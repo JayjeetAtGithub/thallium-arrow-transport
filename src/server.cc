@@ -6,8 +6,7 @@
 
 #include <thallium.hpp>
 
-#include "arrow_headers.h"
-#include "ace.h"
+#include "executor.h"
 
 
 namespace tl = thallium;

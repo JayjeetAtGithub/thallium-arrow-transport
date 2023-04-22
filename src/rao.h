@@ -1,4 +1,4 @@
-#include "arrow_headers.h"
+#include "headers.h"
 
 class RandomAccessObject : public arrow::io::RandomAccessFile {
  public:
