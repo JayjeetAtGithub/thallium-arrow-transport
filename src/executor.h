@@ -7,7 +7,6 @@ namespace cp = arrow::compute;
 namespace ac = arrow::acero;
 
 
-
 arrow::compute::Expression GetFilter(std::string selectivity) {
   if (selectivity == "100") {
       return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
