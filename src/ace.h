@@ -3,27 +3,13 @@
 #include <utility>
 #include <vector>
 
-#include <arrow/api.h>
-#include <arrow/csv/api.h>
-#include <arrow/dataset/api.h>
-#include <arrow/io/api.h>
-#include <arrow/ipc/api.h>
-#include <arrow/compute/api.h>
-#include <arrow/compute/api_vector.h>
-#include <arrow/compute/cast.h>
-#include <arrow/compute/exec/exec_plan.h>
-#include <arrow/compute/expression.h>
-#include <arrow/filesystem/filesystem.h>
-#include <arrow/filesystem/path_util.h>
-#include <arrow/util/future.h>
-#include <arrow/util/range.h>
-#include <arrow/util/thread_pool.h>
-#include <arrow/util/vector.h>
+#include "arrow_headers.h"
 
 #include "payload.h"
 
 
 namespace cp = arrow::compute;
+namespace ac = arrow::acero;
 
 
 class RandomAccessObject : public arrow::io::RandomAccessFile {
@@ -33,7 +19,7 @@ class RandomAccessObject : public arrow::io::RandomAccessFile {
     file_size = size;
   }
 
-  ~RandomAccessObject() override { DCHECK_OK(Close()); }
+  ~RandomAccessObject() override { Close(); }
 
   arrow::Status CheckClosed() const {
     if (closed_) {
@@ -166,11 +152,12 @@ arrow::Result<std::shared_ptr<arrow::RecordBatchReader>> ScanDataset(cp::ExecCon
     arrow::dataset::FinishOptions finish_options;
     ARROW_ASSIGN_OR_RAISE(auto dataset,factory->Finish(finish_options));
 
-    ARROW_ASSIGN_OR_RAISE(std::shared_ptr<cp::ExecPlan> plan,
-                          cp::ExecPlan::Make(&exec_context));
+    ARROW_ASSIGN_OR_RAISE(std::shared_ptr<ac::ExecPlan> plan,
+                          ac::ExecPlan::Make(&exec_context));
 
     ARROW_ASSIGN_OR_RAISE(auto scanner_builder, dataset->NewScan());
     ARROW_RETURN_NOT_OK(scanner_builder->Filter(GetFilter(selectivity)));
+    ARROW_RETURN_NOT_OK(scanner_builder->UseThreads(true));
     ARROW_RETURN_NOT_OK(scanner_builder->Project(schema->field_names()));
     ARROW_ASSIGN_OR_RAISE(auto scanner, scanner_builder->Finish());
 

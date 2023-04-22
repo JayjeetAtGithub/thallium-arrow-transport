@@ -3,32 +3,14 @@
 #include <chrono>
 #include <fstream>
 
-#include <arrow/api.h>
-#include <arrow/compute/expression.h>
-#include <arrow/dataset/api.h>
-#include <arrow/filesystem/api.h>
-#include <arrow/io/api.h>
-#include <arrow/ipc/api.h>
-#include <arrow/util/checked_cast.h>
-#include <arrow/util/iterator.h>
-
-#include <arrow/array/array_base.h>
-#include <arrow/array/array_nested.h>
-#include <arrow/array/data.h>
-#include <arrow/array/util.h>
-#include <arrow/testing/random.h>
-#include <arrow/util/key_value_metadata.h>
-
-#include <parquet/arrow/reader.h>
-#include <parquet/arrow/writer.h>
 #include <thallium.hpp>
 
+#include "arrow_headers.h"
 #include "payload.h"
 
 
 namespace tl = thallium;
 namespace cp = arrow::compute;
-
 
 const int32_t kTransferSize = 19 * 1024 * 1024;
 
@@ -55,6 +37,7 @@ arrow::Result<ScanReq> GetScanRequest(std::string path,
 ConnCtx Init(std::string protocol, std::string host) {
     ConnCtx ctx;
     tl::engine engine(protocol, THALLIUM_SERVER_MODE, true);
+
     tl::endpoint endpoint = engine.lookup(host);
     ctx.engine = engine;
     ctx.endpoint = endpoint;
@@ -64,85 +47,17 @@ ConnCtx Init(std::string protocol, std::string host) {
 tl::bulk local;
 std::vector<std::pair<void*,std::size_t>> segments(1);
 
-ScanCtx Scan(ConnCtx &conn_ctx, ScanReq &scan_req) {
+void Scan(ConnCtx &conn_ctx, ScanReq &scan_req) {
     tl::remote_procedure scan = conn_ctx.engine.define("scan");
-    ScanCtx scan_ctx;
-    std::string uuid = scan.on(conn_ctx.endpoint)(scan_req.stub);
-    scan_ctx.uuid = uuid;
-    scan_ctx.schema = scan_req.schema;
-    return scan_ctx;
+    segments[0].first = (uint8_t*)malloc(kTransferSize);
+    segments[0].second = kTransferSize;
+    local = conn_ctx.engine.expose(segments, tl::bulk_mode::write_only);
+    scan.on(conn_ctx.endpoint)(scan_req.stub);
 }
 
-std::vector<std::shared_ptr<arrow::RecordBatch>> GetNextBatch(ConnCtx &conn_ctx, ScanCtx &scan_ctx, int32_t flag) {
-    std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
 
-    std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> f =
-        [&conn_ctx, &scan_ctx, &batches, &segments, &local, &flag](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
-            if (flag == 1) {
-                segments[0].first = (uint8_t*)malloc(kTransferSize);
-                segments[0].second = kTransferSize;
-                local = conn_ctx.engine.expose(segments, tl::bulk_mode::write_only);
-            }
-            
-            b(0, total_size).on(req.get_endpoint()) >> local(0, total_size);
-            
-            int num_cols = scan_ctx.schema->num_fields();            
-            for (int32_t batch_idx = 0; batch_idx < batch_sizes.size(); batch_idx++) {
-                int32_t num_rows = batch_sizes[batch_idx];
-                
-                std::shared_ptr<arrow::RecordBatch> batch;
-                std::vector<std::shared_ptr<arrow::Array>> columns;
-                
-                for (int64_t i = 0; i < num_cols; i++) {
-                    int32_t magic_off = (batch_idx * num_cols) + i;
-                    std::shared_ptr<arrow::DataType> type = scan_ctx.schema->field(i)->type();  
-                    if (is_binary_like(type->id())) {
-                        std::shared_ptr<arrow::Buffer> data_buff = arrow::Buffer::Wrap(
-                            (uint8_t*)segments[0].first + data_offsets[magic_off], data_sizes[magic_off]
-                        );
-                        std::shared_ptr<arrow::Buffer> offset_buff = arrow::Buffer::Wrap(
-                            (uint8_t*)segments[0].first + off_offsets[magic_off], off_sizes[magic_off]
-                        );
-
-                        std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::StringArray>(num_rows, std::move(offset_buff), std::move(data_buff));
-                        columns.push_back(col_arr);
-                    } else {
-                        std::shared_ptr<arrow::Buffer> data_buff = arrow::Buffer::Wrap(
-                            (uint8_t*)segments[0].first  + data_offsets[magic_off], data_sizes[magic_off]
-                        );
-                        std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::PrimitiveArray>(type, num_rows, std::move(data_buff));
-                        columns.push_back(col_arr);
-                    }
-                }
-                batch = arrow::RecordBatch::Make(scan_ctx.schema, num_rows, columns);
-                batches.push_back(batch);
-            }
-            return req.respond(0);
-        };
-    
-    conn_ctx.engine.define("do_rdma", f);
-    tl::remote_procedure get_next_batch = conn_ctx.engine.define("get_next_batch");
-    int e = get_next_batch.on(conn_ctx.endpoint)(scan_ctx.uuid);
-
-    if (e == 0) {
-        return batches;
-    } else {
-        return std::vector<std::shared_ptr<arrow::RecordBatch>>();
-    }
-}
-
-arrow::Status Main(int argc, char **argv) {
-    if (argc < 2) {
-        std::cout << "./tc [uri]" << std::endl;
-        exit(1);
-    }
-
-    std::string uri = argv[1];
-
-    auto filter = 
-        cp::greater(cp::field_ref("total_amount"), cp::literal(-200));
-
-    auto schema = arrow::schema({
+auto schema = arrow::schema({
         arrow::field("VendorID", arrow::int64()),
         arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
         arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
@@ -162,23 +77,70 @@ arrow::Status Main(int argc, char **argv) {
         arrow::field("total_amount", arrow::float64())
     });
 
+int64_t total_rows_read = 0;
+
+std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> f =
+    [&batches, &segments, &local, &schema](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
+        b(0, total_size).on(req.get_endpoint()) >> local(0, total_size);
+        
+        int num_cols = data_offsets.size() / batch_sizes.size();           
+        for (int32_t batch_idx = 0; batch_idx < batch_sizes.size(); batch_idx++) {
+            int32_t num_rows = batch_sizes[batch_idx];
+            
+            std::vector<std::shared_ptr<arrow::Array>> columns;
+            
+            for (int64_t i = 0; i < num_cols; i++) {
+                int32_t magic_off = (batch_idx * num_cols) + i;
+                std::shared_ptr<arrow::DataType> type = schema->field(i)->type();  
+                if (is_binary_like(type->id())) {
+                    std::shared_ptr<arrow::Buffer> data_buff = arrow::Buffer::Wrap(
+                        (uint8_t*)segments[0].first + data_offsets[magic_off], data_sizes[magic_off]
+                    );
+                    std::shared_ptr<arrow::Buffer> offset_buff = arrow::Buffer::Wrap(
+                        (uint8_t*)segments[0].first + off_offsets[magic_off], off_sizes[magic_off]
+                    );
+
+                    std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::StringArray>(num_rows, std::move(offset_buff), std::move(data_buff));
+                    columns.push_back(col_arr);
+                } else {
+                    std::shared_ptr<arrow::Buffer> data_buff = arrow::Buffer::Wrap(
+                        (uint8_t*)segments[0].first  + data_offsets[magic_off], data_sizes[magic_off]
+                    );
+                    std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::PrimitiveArray>(type, num_rows, std::move(data_buff));
+                    columns.push_back(col_arr);
+                }
+            }
+            auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
+            total_rows_read += batch->num_rows();
+            batches.push_back(batch);
+        }
+        return req.respond(0);
+    };
+
+
+arrow::Status Main(int argc, char **argv) {
+    if (argc < 2) {
+        std::cout << "./tc [uri]" << std::endl;
+        exit(1);
+    }
+
+    std::string uri = argv[1];
+
+    auto filter = 
+        cp::greater(cp::field_ref("total_amount"), cp::literal(-200));
+
     ConnCtx conn_ctx = Init("ofi+verbs", uri);
+    conn_ctx.engine.define("do_rdma", f);
+
     int64_t total_rows = 0;
     int64_t total_batches = 0;
 
     std::string path = "/mnt/cephfs/dataset";
     ARROW_ASSIGN_OR_RAISE(auto scan_req, GetScanRequest(path, filter, schema, schema));
-    ScanCtx scan_ctx = Scan(conn_ctx, scan_req);
-    std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
-    auto start = std::chrono::high_resolution_clock::now();
-    while ((batches = GetNextBatch(conn_ctx, scan_ctx, (total_rows == 0))).size() != 0) {
-        total_batches += batches.size();
-        for (auto batch : batches) {
-            total_rows += batch->num_rows();
-        }
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Read " << total_rows << " rows in " << std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) << " ms" << std::endl;
+
+    Scan(conn_ctx, scan_req);
+    std::cout << "Read " << total_rows_read << " rows" << std::endl;
+
     conn_ctx.engine.finalize();
     return arrow::Status::OK();
 }
