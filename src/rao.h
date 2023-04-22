@@ -1,7 +1,3 @@
-#include <memory>
-#include <utility>
-#include <vector>
-
 #include "arrow_headers.h"
 
 class RandomAccessObject : public arrow::io::RandomAccessFile {
