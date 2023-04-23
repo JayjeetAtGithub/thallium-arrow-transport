@@ -1,4 +1,4 @@
-name: continuous benchmarking
+name: Benchmark
 on: workflow_dispatch
 jobs:
 
