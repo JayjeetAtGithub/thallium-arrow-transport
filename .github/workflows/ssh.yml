@@ -1,0 +1,16 @@
+name: remote ssh command
+on: [push]
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using password
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: apt025.apt.emulab.net
+        username: ${{ secrets.CLOUDLAB_USERNAME }}
+        key: ${{ secrets.CLOUDLAB_PRIVATE_KEY }}
+        port: ${{ secrets.CLOUDLAB_PORT }}
+        script: whoami
