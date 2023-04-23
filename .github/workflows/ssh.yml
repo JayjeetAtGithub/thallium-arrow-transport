@@ -15,7 +15,7 @@ jobs:
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          cd ~/thallium-flight-benchmark
+          cd /root/thallium-flight-benchmark
           ./scripts/server.sh 100 ts6 >out.log 2>err.log &
           echo $! >pid.txt
           cat pid.txt
@@ -30,4 +30,4 @@ jobs:
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          cat pid.txt | xargs kill -9
+          cat /root/pid.txt | xargs kill -9
