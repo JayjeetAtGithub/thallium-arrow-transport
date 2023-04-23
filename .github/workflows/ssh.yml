@@ -15,10 +15,10 @@ jobs:
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          cd /root/thallium-flight-benchmark
-          ./scripts/server.sh 100 ts6 >out.log 2>err.log &
-          echo $! >pid.txt
-          cat pid.txt
+          sudo cd /root/thallium-flight-benchmark
+          sudo ./scripts/server.sh 100 ts6 >out.log 2>err.log &
+          sudo echo $! >pid.txt
+          sudo cat pid.txt
 
 
     - name: kill server
@@ -30,4 +30,4 @@ jobs:
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          cat /root/pid.txt | xargs kill -9
+          sudo cat /root/pid.txt | xargs kill -9
