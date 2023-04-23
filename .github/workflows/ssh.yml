@@ -9,7 +9,7 @@ jobs:
     - name: execute benchmarks
       uses: appleboy/ssh-action@v0.1.10
       with:
-        host: amd182.utah.cloudlab.us
+        host: apt025.apt.emulab.net
         username: ${{ secrets.CLOUDLAB_USERNAME }}
         key: ${{ secrets.CLOUDLAB_PRIVATE_KEY }}
         port: ${{ secrets.CLOUDLAB_PORT }}
