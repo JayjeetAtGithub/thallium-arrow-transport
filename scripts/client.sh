@@ -6,7 +6,7 @@ binary=$1
 export PROJECT_ROOT=$HOME/thallium-arrow-transport
 
 sudo sync
-sudo echo 3 > /proc/sys/vm/drop_caches
+sudo "echo 3 > /proc/sys/vm/drop_caches"
 sudo sync
 
 ssh node1 "sync"
