@@ -13,4 +13,5 @@ jobs:
         username: ${{ secrets.CLOUDLAB_USERNAME }}
         key: ${{ secrets.CLOUDLAB_PRIVATE_KEY }}
         port: ${{ secrets.CLOUDLAB_PORT }}
+        passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: whoami
