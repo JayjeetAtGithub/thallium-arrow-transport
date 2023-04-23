@@ -1,12 +1,12 @@
-name: remote ssh command
+name: continuous benchmarking
 on: [push]
 jobs:
 
   build:
-    name: Build
+    name: benchmark
     runs-on: ubuntu-latest
     steps:
-    - name: executing remote ssh commands using password
+    - name: execute benchmarks
       uses: appleboy/ssh-action@v0.1.10
       with:
         host: amd182.utah.cloudlab.us
