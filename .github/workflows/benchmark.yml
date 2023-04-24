@@ -43,4 +43,5 @@ jobs:
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          cat /tmp/pid | xargs kill -9
+          pid=$(cat /tmp/pid)
+          sudo kill -9 $pid
