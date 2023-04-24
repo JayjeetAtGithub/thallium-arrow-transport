@@ -9,25 +9,25 @@ jobs:
     - name: start server
       uses: appleboy/ssh-action@v0.1.10
       with:
-        host: apt015.apt.emulab.net
+        host: apt019.apt.emulab.net
         username: ${{ secrets.CLOUDLAB_USERNAME }}
         key: ${{ secrets.CLOUDLAB_PRIVATE_KEY }}
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          sudo cd /root/thallium-flight-benchmark
-          sudo ./scripts/server.sh 100 ts6 >out.log 2>err.log &
-          sudo echo $! >pid.txt
-          sudo cat pid.txt
+          cd ~/thallium-flight-benchmark
+          ./scripts/server.sh 100 ts6 >out.log 2>err.log &
+          echo $! > /tmp/pid.txt
+          cat /tmp/pid.txt
 
 
     - name: kill server
       uses: appleboy/ssh-action@v0.1.10
       with:
-        host: apt015.apt.emulab.net
+        host: apt019.apt.emulab.net
         username: ${{ secrets.CLOUDLAB_USERNAME }}
         key: ${{ secrets.CLOUDLAB_PRIVATE_KEY }}
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          sudo cat /root/pid.txt | xargs kill -9
+          cat /tmp/pid.txt | xargs kill -9
