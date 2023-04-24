@@ -16,7 +16,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          ./scripts/server.sh 100 ts6 >out.log 2>err.log &
+          ./scripts/server.sh 100 ts >out.log 2>err.log &
           echo $! > /tmp/pid.txt
           cat /tmp/pid.txt
 
