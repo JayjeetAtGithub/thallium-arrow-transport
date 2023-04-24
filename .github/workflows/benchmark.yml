@@ -15,7 +15,7 @@ jobs:
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          cd ~/thallium-flight-benchmark
+          cd ~/thallium-arrow-transport
           ./scripts/server.sh 100 ts6 >out.log 2>err.log &
           echo $! > /tmp/pid.txt
           cat /tmp/pid.txt
