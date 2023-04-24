@@ -5,7 +5,7 @@ binary=$1
 
 export PROJECT_ROOT=$PWD
 
-uri=$(ssh node1 "cat /tmp/thallium_uri")
+uri=$(cat /proj/schedock-PG0/thallium_uri)
 echo "Connecting to $uri"
 
 $PROJECT_ROOT/bin/$binary $uri
