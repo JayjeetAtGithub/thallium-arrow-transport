@@ -5,7 +5,7 @@ sudo apt update
 sudo apt install -y ibverbs-utils
 git clone https://github.com/JayjeetAtGithub/thallium-flight-benchmark ~/thallium-flight-benchmark
 
-./install_arrow.sh
+./scripts/install_arrow.sh
 
 git clone -b releases/v0.18 -c feature.manyFiles=true https://github.com/spack/spack.git ~/spack
 . ~/spack/share/spack/setup-env.sh

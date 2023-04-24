@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+pwd=$PWD
+
 sudo apt update
 sudo apt install -y python3 \
                python3-pip \
@@ -35,3 +37,4 @@ cmake -DARROW_PARQUET=ON \
 sudo make -j$(nproc) install
 
 sudo cp -r /usr/local/lib/* /usr/lib/
+cd $pwd
