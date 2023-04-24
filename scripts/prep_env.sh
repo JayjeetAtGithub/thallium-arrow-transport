@@ -3,13 +3,17 @@ set -ex
 
 sudo apt update
 sudo apt install -y ibverbs-utils
+
+rm -rf ~/thallium-flight-benchmark
 git clone https://github.com/JayjeetAtGithub/thallium-flight-benchmark ~/thallium-flight-benchmark
 
 ./scripts/install_arrow.sh
 
+rm -rf ~/spack
 git clone -b releases/v0.18 -c feature.manyFiles=true https://github.com/spack/spack.git ~/spack
 . ~/spack/share/spack/setup-env.sh
 
+rm -rf ~/mochi-spack-packages
 git clone https://github.com/mochi-hpc/mochi-spack-packages.git ~/mochi-spack-packages
 spack repo add ~/mochi-spack-packages
 
