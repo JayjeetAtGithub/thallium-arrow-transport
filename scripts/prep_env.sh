@@ -4,9 +4,6 @@ set -ex
 sudo apt update
 sudo apt install -y ibverbs-utils
 
-rm -rf ~/thallium-flight-benchmark
-git clone https://github.com/JayjeetAtGithub/thallium-flight-benchmark ~/thallium-flight-benchmark
-
 ./scripts/install_arrow.sh
 
 rm -rf ~/spack
