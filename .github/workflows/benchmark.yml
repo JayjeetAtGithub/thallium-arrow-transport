@@ -30,7 +30,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          ./scripts/client.sh ts
+          ./scripts/client.sh tc
 
     - name: kill server
       uses: appleboy/ssh-action@v0.1.10
