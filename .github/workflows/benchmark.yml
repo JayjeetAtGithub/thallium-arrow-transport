@@ -44,4 +44,4 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           pid=$(cat /tmp/pid)
-          sudo kill -9 $pid
+          sudo pkill -P $pid
