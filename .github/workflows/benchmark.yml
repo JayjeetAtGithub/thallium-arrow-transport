@@ -5,6 +5,7 @@ jobs:
     strategy:
       matrix:
         selectivity: [100, 10, 1]
+      max-parallel: 1
     name: benchmark
     runs-on: ubuntu-latest
     steps:
