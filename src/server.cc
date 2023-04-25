@@ -212,6 +212,5 @@ int main(int argc, char** argv) {
     std::ofstream file("/proj/schedock-PG0/thallium_uri");
     file << engine.self();
     file.close();
-    std::cout << "Server running at address " << engine.self() << std::endl;    
     engine.wait_for_finalize();
 };

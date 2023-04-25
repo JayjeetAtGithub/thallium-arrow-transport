@@ -70,10 +70,8 @@ arrow::Result<std::shared_ptr<arrow::RecordBatchReader>> ScanDataset(cp::ExecCon
 
     std::shared_ptr<arrow::RecordBatchReader> reader; 
     if (backend == "dataset") {
-      std::cout << "Using dataset backend: " << uri << std::endl;
       ARROW_ASSIGN_OR_RAISE(reader, scanner->ToRecordBatchReader());
     } else if (backend == "dataset+mem") {
-      std::cout << "Using dataset+mem backend: " << uri << std::endl;
       ARROW_ASSIGN_OR_RAISE(auto table, scanner->ToTable())
       auto im_ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
       ARROW_ASSIGN_OR_RAISE(auto im_ds_scanner_builder, im_ds->NewScan());
