@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
             }
 
             auto end = std::chrono::high_resolution_clock::now();
-            std::cout << "Data transfer took : " << std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) << " ms" << std::endl;
+            std::cout << std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) << std::endl;
 
             return req.respond(0);
         };
