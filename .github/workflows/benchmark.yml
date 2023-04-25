@@ -1,8 +1,10 @@
 name: Benchmark
 on: workflow_dispatch
 jobs:
-
   build:
+    strategy:
+      matrix:
+        selectivity: [100, 10, 1]
     name: benchmark
     runs-on: ubuntu-latest
     steps:
@@ -16,10 +18,9 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          sudo ./scripts/server.sh 100 ts >out.log 2>err.log &
+          sudo ./scripts/server.sh {{ matrix.selectivity }} ts >out.log 2>err.log &
           echo $! > /tmp/pid
           cat /tmp/pid
-
     - name: run client
       uses: appleboy/ssh-action@v0.1.10
       if: ${{ success() }}
@@ -31,8 +32,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          sudo ./scripts/client.sh tc
-
+          sudo ./scripts/client.sh tc || true
     - name: kill server
       uses: appleboy/ssh-action@v0.1.10
       if: ${{ always() }}
