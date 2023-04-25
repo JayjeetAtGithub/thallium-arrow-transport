@@ -46,4 +46,4 @@ jobs:
         script: |
           pid=$(cat /tmp/pid)
           pgid=$(ps opgid= "$pid")
-          sudo kill -- -$pgid
+          sudo kill -- -"$pgid"
