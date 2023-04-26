@@ -209,7 +209,7 @@ int main(int argc, char** argv) {
         };
     
     engine.define("scan", scan);
-    std::ofstream file("/proj/schedock-PG0/thallium_uri");
+    std::ofstream file("/tmp/thallium_uri");
     file << engine.self();
     file.close();
     engine.wait_for_finalize();
