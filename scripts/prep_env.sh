@@ -2,7 +2,7 @@
 set -ex
 
 sudo apt update
-sudo apt install -y ibverbs-utils
+sudo apt install -y ibverbs-utils pslist
 
 ./scripts/install_arrow.sh
 
