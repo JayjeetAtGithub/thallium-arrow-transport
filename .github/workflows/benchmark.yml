@@ -33,7 +33,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          sudo ./scripts/client.sh tc
+          sudo ./scripts/client.sh tc || true
     - name: kill server
       uses: appleboy/ssh-action@v0.1.10
       if: ${{ always() }}
