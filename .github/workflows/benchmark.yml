@@ -19,7 +19,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          sudo nohup ./scripts/server.sh {{ matrix.selectivity }} ts >out.log 2>err.log &
+          sudo ./scripts/server.sh {{ matrix.selectivity }} ts >out.log 2>err.log &
           echo $! > /tmp/pid
           cat /tmp/pid
     - name: run client
