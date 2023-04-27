@@ -3,9 +3,23 @@ set -e
 
 binary=$1
 
-export PROJECT_ROOT=$PWD
-
 uri=$(cat /proj/schedock-PG0/thallium_uri)
 echo "Connecting to $uri"
 
-$PROJECT_ROOT/bin/$binary $uri
+function clean_client_cache {
+    sync
+    echo 3 > /proc/sys/vm/drop_caches
+    sync
+}
+
+function clean_server_cache {
+    ssh node1 "sync"
+    ssh node1 "echo 3 > /proc/sys/vm/drop_caches"
+    ssh node1 "sync"
+}
+
+for i in {1..5}; do
+    clean_client_cache
+    clean_server_cache
+    $PWD/bin/$binary $uri
+done
