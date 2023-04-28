@@ -47,10 +47,10 @@ class ThalliumTransportService {
 
             // define the scan procedure
             std::function<void(const tl::request&, const ScanReqRPCStub&)> scan = 
-                [&xstream, &cq, &_backend, &_engine, &do_rdma, &_selectivity](const tl::request &req, const ScanReqRPCStub& stub) {
+                [&xstream, &cq, &do_rdma](const tl::request &req, const ScanReqRPCStub& stub) {
                     arrow::dataset::internal::Initialize();
                     cp::ExecContext exec_ctx;
-                    std::shared_ptr<arrow::RecordBatchReader> reader = ScanDataset(exec_ctx, stub, backend, selectivity).ValueOrDie();
+                    std::shared_ptr<arrow::RecordBatchReader> reader = ScanDataset(exec_ctx, stub, _backend, _selectivity).ValueOrDie();
                     auto start = std::chrono::high_resolution_clock::now();
                     
                     bool finished = false;
