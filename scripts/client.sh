@@ -21,5 +21,5 @@ function clean_server_cache {
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/$binary $uri
+    $PWD/bin/$binary $uri || true
 done
