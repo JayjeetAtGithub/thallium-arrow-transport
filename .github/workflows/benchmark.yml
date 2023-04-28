@@ -17,6 +17,7 @@ jobs:
           echo " " > /proj/schedock-PG0/thallium_result
           echo " " > /proj/schedock-PG0/flight_result
   benchmark:
+    needs: [cleanup]
     strategy:
       matrix:
         protocol: [thallium, flight]
