@@ -11,3 +11,9 @@ target_link_libraries(tc thallium arrow arrow_dataset arrow_acero)
 
 add_executable(ts server.cc)
 target_link_libraries(ts thallium arrow arrow_dataset arrow_acero)
+
+add_executable(tc_debug client_debug.cc)
+target_link_libraries(tc_debug thallium arrow arrow_dataset arrow_acero)
+
+add_executable(ts_debug server_debug.cc)
+target_link_libraries(ts_debug thallium arrow arrow_dataset arrow_acero)
