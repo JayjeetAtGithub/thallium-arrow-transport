@@ -4,6 +4,7 @@ jobs:
   build:
     strategy:
       matrix:
+        protocol: [thallium, flight]
         selectivity: [100, 10, 1]
       max-parallel: 1
     name: benchmark
@@ -19,7 +20,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          sudo ./scripts/thallium_server.sh ${{ matrix.selectivity }} ts >out.log 2>err.log &
+          sudo ./scripts/${{ matrix.protocol }}_server.sh ${{ matrix.selectivity }} ts >out.log 2>err.log &
           echo $! > /tmp/pid
           cat /tmp/pid
     - name: run client
@@ -33,7 +34,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          sudo ./scripts/thallium_client.sh tc
+          sudo ./scripts/${{ matrix.protocol }}_client.sh tc
     - name: kill server
       uses: appleboy/ssh-action@v0.1.10
       if: ${{ always() }}
