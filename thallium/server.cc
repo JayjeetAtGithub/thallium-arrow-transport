@@ -15,6 +15,14 @@ namespace cp = arrow::compute;
 
 const int32_t kTransferSize = 19 * 1024 * 1024;
 const int32_t kBatchSize = 1 << 17;
+const std::string kThalliumResultPath = "/proj/schedock-PG0/thallium_result";
+
+void write_to_file(std::string data, std::string path) {
+    std::ofstream file;
+    outfile.open(path, std::ios_base::app);
+    outfile << data;
+    file.close();
+}
 
 
 class ConcurrentRecordBatchQueue {
@@ -203,14 +211,13 @@ int main(int argc, char** argv) {
             }
 
             auto end = std::chrono::high_resolution_clock::now();
-            std::cout << std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) << std::endl;
-
+            std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
+            write_to_file(exec_time_ms, kThalliumResultPath);
             return req.respond(0);
         };
     
     engine.define("scan", scan);
-    std::ofstream file("/proj/schedock-PG0/thallium_uri");
-    file << engine.self();
-    file.close();
+    std::string uri_file_path = "/proj/schedock-PG0/thallium_uri";
+    write_to_file(engine.self(), uri_file_path);
     engine.wait_for_finalize();
 };
