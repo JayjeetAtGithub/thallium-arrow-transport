@@ -2,6 +2,5 @@
 set -e
 
 selectivity=$1
-binary=$2
 
-$PWD/bin/$binary $selectivity dataset+mem
+$PWD/bin/fs $selectivity dataset+mem

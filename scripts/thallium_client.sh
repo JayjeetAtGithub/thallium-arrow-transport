@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-binary=$1
-
 uri=$(cat /proj/schedock-PG0/thallium_uri)
 echo "Connecting to $uri"
 
@@ -21,5 +19,5 @@ function clean_server_cache {
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/$binary $uri || true
+    $PWD/bin/tc $uri || true
 done

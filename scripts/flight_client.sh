@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-binary=$1
-
 function clean_client_cache {
     sync
     echo 3 > /proc/sys/vm/drop_caches
@@ -18,5 +16,5 @@ function clean_server_cache {
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/$binary || true
+    $PWD/bin/fc || true
 done

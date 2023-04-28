@@ -20,7 +20,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          sudo ./scripts/${{ matrix.protocol }}_server.sh ${{ matrix.selectivity }} ts >out.log 2>err.log &
+          sudo ./scripts/${{ matrix.protocol }}_server.sh ${{ matrix.selectivity }} >out.log 2>err.log &
           echo $! > /tmp/pid
           cat /tmp/pid
     - name: run client
@@ -34,7 +34,7 @@ jobs:
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
           cd ~/thallium-arrow-transport
-          sudo ./scripts/${{ matrix.protocol }}_client.sh tc
+          sudo ./scripts/${{ matrix.protocol }}_client.sh
     - name: kill server
       uses: appleboy/ssh-action@v0.1.10
       if: ${{ always() }}
