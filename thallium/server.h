@@ -50,7 +50,7 @@ class ThalliumTransportService {
             }
 
             // define the client procedure to rdma data from the server
-            tl::remote_procedure do_rdma = this->_engine.define("do_rdma");
+            tl::remote_procedure do_rdma = _engine.define("do_rdma");
 
             // create a new thallium pool for the scanner to keep scanning batches in background
             tl::managed<tl::pool> scanner_pool = tl::pool::create(tl::pool::access::spmc);
@@ -62,18 +62,18 @@ class ThalliumTransportService {
                 [&xstream, &do_rdma, this](const tl::request &req, const ScanReqRPCStub& stub) {
                     arrow::dataset::internal::Initialize();
                     cp::ExecContext exec_ctx;
-                    std::shared_ptr<arrow::RecordBatchReader> reader = ScanDataset(exec_ctx, stub,this->_backend, this->_selectivity).ValueOrDie();
+                    std::shared_ptr<arrow::RecordBatchReader> reader = ScanDataset(exec_ctx, stub, _backend, _selectivity).ValueOrDie();
                     
                     bool finished = false;
                     std::vector<std::pair<void*,std::size_t>> segments(1);
                     uint8_t* segment_buffer = (uint8_t*)malloc(kTransferSize);
                     segments[0].first = (void*)segment_buffer;
                     segments[0].second = kTransferSize;
-                    tl::bulk arrow_bulk = this->_engine.expose(segments, tl::bulk_mode::read_write);
+                    tl::bulk arrow_bulk = _engine.expose(segments, tl::bulk_mode::read_write);
                     _cq.clear();
 
                     xstream->make_thread([&]() {
-                        this->_scan_handler((void*)reader.get());
+                        _scan_handler((void*)reader.get());
                     }, tl::anonymous());
 
                     std::shared_ptr<arrow::RecordBatch> new_batch;
@@ -162,14 +162,14 @@ class ThalliumTransportService {
                     }
                     return req.respond(0);
                 };
-            this->_engine.define("scan", scan);
+            _engine.define("scan", scan);
         };
 
         std::string uri() {
-            return this->_engine.self();
+            return _engine.self();
         }
 
         void Serve() {
-            this->_engine.wait_for_finalize();
+            _engine.wait_for_finalize();
         }
 };
