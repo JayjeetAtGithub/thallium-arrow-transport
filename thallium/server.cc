@@ -57,22 +57,6 @@ class ConcurrentRecordBatchQueue {
         }
 };
 
-class RecordBatchQueue {
-    public:
-        std::deque<std::shared_ptr<arrow::RecordBatch>> queue;
-    
-        void push_back(std::shared_ptr<arrow::RecordBatch> batch) {
-            queue.push_back(batch);
-        }
-
-        void wait_n_pop(std::shared_ptr<arrow::RecordBatch> &batch) {
-            while (queue.empty());
-            batch = queue.front();
-            queue.pop_front();
-        }
-};
-
-
 ConcurrentRecordBatchQueue cq;
 void scan_handler(void *arg) {
     arrow::RecordBatchReader *reader = (arrow::RecordBatchReader*)arg;
