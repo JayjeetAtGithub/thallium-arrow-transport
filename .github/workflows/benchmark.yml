@@ -14,8 +14,8 @@ jobs:
         port: ${{ secrets.CLOUDLAB_PORT }}
         passphrase: ${{ secrets.CLOUDLAB_PASSPHRASE }}
         script: |
-          echo " " > /proj/schedock-PG0/thallium_result
-          echo " " > /proj/schedock-PG0/flight_result
+          echo "" > /proj/schedock-PG0/thallium_result
+          echo "" > /proj/schedock-PG0/flight_result
   benchmark:
     needs: [cleanup]
     strategy:
