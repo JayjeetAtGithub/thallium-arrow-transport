@@ -70,7 +70,7 @@ class ThalliumTransportService {
                     segments[0].first = (void*)segment_buffer;
                     segments[0].second = kTransferSize;
                     tl::bulk arrow_bulk = this->_engine.expose(segments, tl::bulk_mode::read_write);
-                    this->_cq.clear();
+                    _cq.clear();
 
                     xstream->make_thread([&]() {
                         this->_scan_handler((void*)reader.get());
@@ -84,7 +84,7 @@ class ThalliumTransportService {
                         int64_t rows_processed = 0;
 
                         while (rows_processed < kBatchSize) {
-                            this->_cq.wait_n_pop(new_batch);
+                            _cq.wait_n_pop(new_batch);
                             if (new_batch == nullptr) {
                                 finished = true;
                                 break;
