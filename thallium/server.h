@@ -155,14 +155,14 @@ class ThalliumTransportService {
                     write_to_file(exec_time_ms, kThalliumResultPath, true);
                     return req.respond(0);
                 };
-            engine.define("scan", scan);
+            _engine.define("scan", scan);
         };
 
         std::string uri() {
-            return engine.self();
+            return _engine.self();
         }
 
         void Serve() {
-            engine.wait_for_finalize();
+            _engine.wait_for_finalize();
         }
 };
