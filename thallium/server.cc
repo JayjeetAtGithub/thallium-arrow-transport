@@ -17,9 +17,13 @@ const int32_t kTransferSize = 19 * 1024 * 1024;
 const int32_t kBatchSize = 1 << 17;
 const std::string kThalliumResultPath = "/proj/schedock-PG0/thallium_result";
 
-void write_to_file(std::string data, std::string path) {
+void write_to_file(std::string data, std::string path, bool append) {
     std::ofstream file;
-    file.open(path, std::ios_base::app);
+    if (append) {
+        file.open(path, std::ios_base::app);
+    } else {
+        file.open(path);
+    }
     file << data;
     file.close();
 }
@@ -212,7 +216,7 @@ int main(int argc, char** argv) {
 
             auto end = std::chrono::high_resolution_clock::now();
             std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
-            write_to_file(exec_time_ms, kThalliumResultPath);
+            write_to_file(exec_time_ms, kThalliumResultPath, true);
             return req.respond(0);
         };
     
