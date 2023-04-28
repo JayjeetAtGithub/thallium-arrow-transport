@@ -222,6 +222,6 @@ int main(int argc, char** argv) {
     
     engine.define("scan", scan);
     std::string uri_file_path = "/proj/schedock-PG0/thallium_uri";
-    write_to_file(engine.self(), uri_file_path);
+    write_to_file(engine.self(), uri_file_path, false);
     engine.wait_for_finalize();
 };
