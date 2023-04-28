@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <time.h>
 
 #include <arrow/api.h>
@@ -7,21 +8,14 @@
 #include <arrow/ipc/api.h>
 #include <arrow/io/api.h>
 
-class MeasureExecutionTime{
-  private:
-    const std::chrono::steady_clock::time_point begin;
-    const std::string caller;
-  public:
-    MeasureExecutionTime(const std::string& caller):caller(caller),begin(std::chrono::steady_clock::now()){}
-    ~MeasureExecutionTime(){
-        const auto duration=std::chrono::steady_clock::now()-begin;
-        std::cout << (double)std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000 << " seconds" <<std::endl;
-    }
-};
+const std::string kFlightResultPath = "/proj/schedock-PG0/flight_result";
 
-#ifndef MEASURE_FUNCTION_EXECUTION_TIME
-#define MEASURE_FUNCTION_EXECUTION_TIME const MeasureExecutionTime measureExecutionTime(__FUNCTION__);
-#endif
+void write_to_file(std::string data, std::string path) {
+    std::ofstream file;
+    file.open(path, std::ios_base::app);
+    file << data;
+    file.close();
+}
 
 struct ConnectionInfo {
   std::string host;
@@ -47,38 +41,19 @@ int main(int argc, char *argv[]) {
 
   auto client = ConnectToFlightServer(info).ValueOrDie();
 
-  if (backend == "dataset") {
-    std::string filepath = "/mnt/cephfs/dataset";
-    auto descriptor = arrow::flight::FlightDescriptor::Path({filepath});
-    std::unique_ptr<arrow::flight::FlightInfo> flight_info;
-    client->GetFlightInfo(descriptor, &flight_info);
-    std::shared_ptr<arrow::Table> table;
-    std::unique_ptr<arrow::flight::FlightStreamReader> stream;
-    client->DoGet(flight_info->endpoints()[0].ticket, &stream);
-    {
-      MEASURE_FUNCTION_EXECUTION_TIME
-      stream->ReadAll(&table);
-    }
-    std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
+  std::string filepath = "/mnt/cephfs/dataset";
+  auto descriptor = arrow::flight::FlightDescriptor::Path({filepath});
+  std::unique_ptr<arrow::flight::FlightInfo> flight_info;
+  client->GetFlightInfo(descriptor, &flight_info);
+  std::shared_ptr<arrow::Table> table;
+  std::unique_ptr<arrow::flight::FlightStreamReader> stream;
+  client->DoGet(flight_info->endpoints()[0].ticket, &stream);
+  
+  auto start = std::chrono::high_resolution_clock::now();
+  stream->ReadAll(&table);
+  auto end = std::chrono::high_resolution_clock::now();
+  std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
+  write_to_file(exec_time_ms, kFlightResultPath);
 
-  } else {  
-    int64_t total_rows = 0;
-    {
-      MEASURE_FUNCTION_EXECUTION_TIME
-      for (int i = 1; i <= 200; i++) {
-        std::string filepath = "/mnt/cephfs/dataset/16MB.uncompressed.parquet." + std::to_string(i);
-        auto descriptor = arrow::flight::FlightDescriptor::Path({filepath});
-
-        std::unique_ptr<arrow::flight::FlightInfo> flight_info;
-        client->GetFlightInfo(descriptor, &flight_info);
-
-        std::shared_ptr<arrow::Table> table;
-        std::unique_ptr<arrow::flight::FlightStreamReader> stream;
-        client->DoGet(flight_info->endpoints()[0].ticket, &stream);
-        stream->ReadAll(&table);
-        total_rows += table->num_rows();
-      }
-    }
-    std::cout << "Read " << total_rows << " rows" << std::endl;
-  }
+  std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
 }
