@@ -32,7 +32,7 @@ class ThalliumTransportService {
                 cq.push_back(batch);
                 reader->ReadNext(&batch);
             }    
-            cq.push_back(nullptr);
+            _cq.push_back(nullptr);
         }
 
         void Init() {
