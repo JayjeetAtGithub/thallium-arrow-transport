@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
   auto start = std::chrono::high_resolution_clock::now();
   stream->ReadAll(&table);
   auto end = std::chrono::high_resolution_clock::now();
-  std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
+  std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
   write_to_file(exec_time_ms, kFlightResultPath);
 
   std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
