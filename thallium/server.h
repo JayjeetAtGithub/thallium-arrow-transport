@@ -29,7 +29,7 @@ class ThalliumTransportService {
             std::shared_ptr<arrow::RecordBatch> batch;
             reader->ReadNext(&batch);
             while (batch != nullptr) {
-                cq.push_back(batch);
+                _cq.push_back(batch);
                 reader->ReadNext(&batch);
             }    
             _cq.push_back(nullptr);
