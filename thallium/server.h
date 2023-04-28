@@ -35,7 +35,7 @@ class ThalliumTransportService {
             if (hret != HG_SUCCESS) {
                 std::cerr << "Error: margo_addr_lookup()\n";
                 margo_finalize(mid);
-                return -1;
+                exit(1);
             }
 
             // define the client procedure to rdma data from the server
