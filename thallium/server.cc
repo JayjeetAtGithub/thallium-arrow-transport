@@ -19,8 +19,8 @@ const std::string kThalliumResultPath = "/proj/schedock-PG0/thallium_result";
 
 void write_to_file(std::string data, std::string path) {
     std::ofstream file;
-    outfile.open(path, std::ios_base::app);
-    outfile << data;
+    file.open(path, std::ios_base::app);
+    file << data;
     file.close();
 }
 
