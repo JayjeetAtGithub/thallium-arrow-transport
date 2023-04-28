@@ -39,16 +39,11 @@ arrow::Result<std::unique_ptr<arrow::flight::FlightClient>> ConnectToFlightServe
 }
 
 int main(int argc, char *argv[]) {
-  if (argc < 3) {
-    std::cout << "./fc [port] [backend]" << std::endl;
-    exit(1);
-  }
-
   ConnectionInfo info;
   std::string host = "10.10.1.2";
   info.host = host;
-  info.port = (int32_t)std::stoi(argv[1]);
-  std::string backend = argv[2]; // dataset/file
+  info.port = 3000;
+  std::string backend = "dataset";
 
   auto client = ConnectToFlightServer(info).ValueOrDie();
 

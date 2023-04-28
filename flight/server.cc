@@ -200,16 +200,16 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
 };
 
 int main(int argc, char *argv[]) {
-    if (argc < 4) {
-        std::cout << "./fs [port] [selectivity] [backend] [transport]" << std::endl;
+    if (argc < 3) {
+        std::cout << "./fs [selectivity] [backend]" << std::endl;
         exit(1);
     }
     
     std::string host = "10.10.1.2";
-    int32_t port = (int32_t)std::stoi(argv[1]);
-    std::string selectivity = argv[2]; // 100/10/1
-    std::string backend = argv[3]; // file/file+mmap/bake/dataset/dataset+mem
-    std::string transport = argv[4]; // tcp+ucx/tcp+grpc
+    int32_t port = 3000;
+    std::string selectivity = argv[1];
+    std::string backend = argv[2];
+    std::string transport = "tcp+grpc";
 
     auto fs = std::make_shared<arrow::fs::LocalFileSystem>();
 
