@@ -16,6 +16,7 @@ class ThalliumTransportService {
         tl::engine _engine;
         std::string _backend;
         std::string _selectivity;
+        ConcurrentRecordBatchQueue _cq;
 
     public:
         ThalliumTransportService(std::string backend, std::string selectivity) {
@@ -47,11 +48,10 @@ class ThalliumTransportService {
 
             // define the scan procedure
             std::function<void(const tl::request&, const ScanReqRPCStub&)> scan = 
-                [&xstream, &cq, &do_rdma](const tl::request &req, const ScanReqRPCStub& stub) {
+                [&xstream, &do_rdma](const tl::request &req, const ScanReqRPCStub& stub) {
                     arrow::dataset::internal::Initialize();
                     cp::ExecContext exec_ctx;
                     std::shared_ptr<arrow::RecordBatchReader> reader = ScanDataset(exec_ctx, stub, _backend, _selectivity).ValueOrDie();
-                    auto start = std::chrono::high_resolution_clock::now();
                     
                     bool finished = false;
                     std::vector<std::pair<void*,std::size_t>> segments(1);
@@ -59,7 +59,7 @@ class ThalliumTransportService {
                     segments[0].first = (void*)segment_buffer;
                     segments[0].second = kTransferSize;
                     tl::bulk arrow_bulk = _engine.expose(segments, tl::bulk_mode::read_write);
-                    cq.clear();
+                    _cq.clear();
 
                     xstream->make_thread([&]() {
                         scan_handler((void*)reader.get());
@@ -73,7 +73,7 @@ class ThalliumTransportService {
                         int64_t rows_processed = 0;
 
                         while (rows_processed < kBatchSize) {
-                            cq.wait_n_pop(new_batch);
+                            _cq.wait_n_pop(new_batch);
                             if (new_batch == nullptr) {
                                 finished = true;
                                 break;
@@ -149,10 +149,6 @@ class ThalliumTransportService {
                             do_rdma.on(req.get_endpoint())(batch_sizes, data_offsets, data_sizes, off_offsets, off_sizes, total_size, arrow_bulk);
                         }
                     }
-
-                    auto end = std::chrono::high_resolution_clock::now();
-                    std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-                    write_to_file(exec_time_ms, kThalliumResultPath, true);
                     return req.respond(0);
                 };
             _engine.define("scan", scan);
