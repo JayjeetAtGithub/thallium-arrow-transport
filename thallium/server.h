@@ -1,15 +1,17 @@
 #include "crbq.h"
 #include "headers.h"
-#include <thallium.hpp>
-
 #include "executor.h"
+
+#include <thallium.hpp>
 
 
 namespace tl = thallium;
 namespace cp = arrow::compute;
 
+
 const int32_t kTransferSize = 19 * 1024 * 1024;
 const int32_t kBatchSize = 1 << 17;
+
 
 class ThalliumTransportService {
     private:
@@ -60,42 +62,45 @@ class ThalliumTransportService {
             // define the scan procedure
             std::function<void(const tl::request&, const ScanReqRPCStub&)> scan = 
                 [&xstream, &do_rdma, this](const tl::request &req, const ScanReqRPCStub& stub) {
+                    // initialize scanning the arrow dataset
                     arrow::dataset::internal::Initialize();
                     cp::ExecContext exec_ctx;
                     std::shared_ptr<arrow::RecordBatchReader> reader = ScanDataset(exec_ctx, stub, _backend, _selectivity).ValueOrDie();
-                    
-                    bool finished = false;
+
+                    // allocate and expose buffer for rdma
                     std::vector<std::pair<void*,std::size_t>> segments(1);
                     uint8_t* segment_buffer = (uint8_t*)malloc(kTransferSize);
                     segments[0].first = (void*)segment_buffer;
                     segments[0].second = kTransferSize;
                     tl::bulk arrow_bulk = _engine.expose(segments, tl::bulk_mode::read_write);
+
+                    // clear the concurrent queue before starting the scan
                     _cq.clear();
 
+                    // start the scanning process in a different thread
                     xstream->make_thread([&]() {
                         _scan_handler((void*)reader.get());
                     }, tl::anonymous());
 
-                    std::shared_ptr<arrow::RecordBatch> new_batch;
-
+                    // keep collecting batches until we have enough to transfer
+                    std::shared_ptr<arrow::RecordBatch> batch;
+                    bool finished = false;
                     while (1 && !finished) {
                         std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
                         std::vector<int32_t> batch_sizes;
                         int64_t rows_processed = 0;
-
                         while (rows_processed < kBatchSize) {
-                            _cq.wait_n_pop(new_batch);
-                            if (new_batch == nullptr) {
+                            _cq.wait_n_pop(batch);
+                            if (batch == nullptr) {
                                 finished = true;
                                 break;
                             }
-
-                            rows_processed += new_batch->num_rows();
-
-                            batches.push_back(new_batch);
-                            batch_sizes.push_back(new_batch->num_rows());
+                            rows_processed += batch->num_rows();
+                            batches.push_back(batch);
+                            batch_sizes.push_back(batch->num_rows());
                         } 
 
+                        // serialize the batches into a buffer
                         if (batches.size() != 0) {
                             int32_t curr_pos = 0;
                             int32_t total_size = 0;
@@ -156,6 +161,7 @@ class ThalliumTransportService {
                                 }
                             }
 
+                            // initiate the rdma transfer of batches
                             segments[0].second = total_size;
                             do_rdma.on(req.get_endpoint())(batch_sizes, data_offsets, data_sizes, off_offsets, off_sizes, total_size, arrow_bulk);
                         }
