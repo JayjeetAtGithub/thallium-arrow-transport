@@ -1,6 +1,6 @@
 #include "crbq.h"
 #include "headers.h"
-#include "executor.h"
+#include "arrow_executor.h"
 #include "duckdb_executor.h"
 
 #include <thallium.hpp>
