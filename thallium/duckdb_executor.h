@@ -18,8 +18,8 @@ void ExecuteDuckDB() {
     ArrowSchema res_schema;
     
     auto timezone_config = duckdb::QueryResult::GetConfigTimezone(*res);
-    duckdb::ArrowConverter::ToArrowSchema(&res_schema, res->types, res->names, nullptr);
-    duckdb::ArrowConverter::ToArrowArray(res->Fetch(), &res_arr);
+    duckdb::ArrowConverter::ToArrowSchema(&res_schema, res->types, res->names, timezone_config);
+    duckdb::ArrowConverter::ToArrowArray(*(res->Fetch()), &res_arr);
 
     auto result = arrow::ImportRecordBatch(&res_arr, &res_schema).ValueOrDie();
 }
