@@ -7,7 +7,7 @@
 
 class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
     public:
-        DuckDBRecordBatchReader(std::unique_ptr<duckdb::QueryResult> result) : result(result) {
+        DuckDBRecordBatchReader(std::shared_ptr<duckdb::QueryResult> result) : result(result) {
             auto timezone_config = duckdb::QueryResult::GetConfigTimezone(*result);
             duckdb::ArrowConverter::ToArrowSchema(&arrow_schema, result->types, result->names, timezone_config);
             chunk = result->Fetch();
@@ -43,5 +43,5 @@ std::shared_ptr<DuckDBRecordBatchReader> ExecuteDuckDB(std::string &query) {
 
     auto statement = con.Prepare("SELECT * FROM read_parquet('16MB.uncompressed.parquet')");
     auto result = statement->Execute();
-    return std::make_shared<DuckDBRecordBatchReader>(result);
+    return std::make_shared<DuckDBRecordBatchReader>(std:::move(result));
 }
