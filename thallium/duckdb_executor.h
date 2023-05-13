@@ -43,5 +43,5 @@ std::shared_ptr<DuckDBRecordBatchReader> ExecuteDuckDB(std::string &query) {
 
     auto statement = con.Prepare("SELECT * FROM read_parquet('16MB.uncompressed.parquet')");
     auto result = statement->Execute();
-    return std::make_shared<DuckDBRecordBatchReader>(std:::move(result));
+    return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
 }
