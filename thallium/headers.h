@@ -1,5 +1,7 @@
 #include <arrow/api.h>
-#include <arrow/compute/expression.h>
+#include <arrow/compute/api.h>
+#include <arrow/engine/api.h>
+#include <arrow/engine/substrait/util.h>
 #include <arrow/acero/exec_plan.h>
 #include <arrow/dataset/api.h>
 #include <arrow/dataset/plan.h>
