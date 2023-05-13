@@ -3,14 +3,15 @@ cmake_minimum_required(VERSION 3.2)
 find_package(thallium REQUIRED)
 find_package(Arrow REQUIRED)
 find_package(Boost REQUIRED)
+find_package(duckdb REQUIRED)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(tc client.cc)
-target_link_libraries(tc thallium arrow arrow_dataset arrow_acero)
+target_link_libraries(tc thallium arrow arrow_dataset arrow_acero duckdb)
 
 add_executable(ts server.cc)
-target_link_libraries(ts thallium arrow arrow_dataset arrow_acero)
+target_link_libraries(ts thallium arrow arrow_dataset arrow_acero duckdb)
 
 add_executable(ts_new server_new.cc)
-target_link_libraries(ts_new thallium arrow arrow_dataset arrow_acero)
+target_link_libraries(ts_new thallium arrow arrow_dataset arrow_acero duckdb)
