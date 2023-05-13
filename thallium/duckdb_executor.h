@@ -25,6 +25,10 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
             return arrow::Status::OK();
         }
 
+        std::shared_ptr<Schema> schema() const override {
+            return arrow::ImportSchema(&arrow_schema).ValueOrDie();
+        }
+
     private:
         std::shared_ptr<duckdb::QueryResult> result;
         std::unique_ptr<duckdb::DataChunk> chunk;
