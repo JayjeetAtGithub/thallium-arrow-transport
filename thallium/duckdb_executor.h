@@ -1,4 +1,6 @@
-#include "duckdb.hpp"
+#include <duckdb.hpp>
+#include <duckdb/common/arrow/arrow_converter.hpp>
+
 #include <arrow/api.h>
 #include <arrow/c/abi.h>
 #include <arrow/c/bridge.h>
@@ -14,7 +16,7 @@ void ExecuteDuckDB() {
 
     ArrowArray res_arr;
     ArrowSchema res_schema;
-    duckdb::QueryResult::ToArrowSchema(&res_schema, res->types, res->names);
+    duckdb::ArrowConverter::ToArrowSchema(&res_schema, res->types, res->names);
 
     res->Fetch()->ToArrowArray(&res_arr);
     auto result = arrow::ImportRecordBatch(&res_arr, &res_schema).ValueOrDie();
