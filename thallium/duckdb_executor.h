@@ -16,7 +16,7 @@ void ExecuteDuckDB() {
 
     ArrowArray res_arr;
     ArrowSchema res_schema;
-    duckdb::ArrowConverter::ToArrowSchema(&res_schema, res->types, res->names);
+    duckdb::ArrowConverter::ToArrowSchema(&res_schema, res->types, res->names, nullptr);
 
     res->Fetch()->ToArrowArray(&res_arr);
     auto result = arrow::ImportRecordBatch(&res_arr, &res_schema).ValueOrDie();
