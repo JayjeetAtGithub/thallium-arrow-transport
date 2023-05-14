@@ -37,7 +37,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
         ArrowSchema arrow_schema;
 };
 
-std::shared_ptr<DuckDBRecordBatchReader> ExecuteDuckDB(std::string &query) {
+std::shared_ptr<DuckDBRecordBatchReader> ExecuteDuckDBQuery(const std::string &query) {
     duckdb::DuckDB db(nullptr);
     duckdb::Connection con(db);
     con.Query("INSTALL parquet; LOAD parquet;");
