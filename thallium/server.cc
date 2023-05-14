@@ -4,15 +4,10 @@
 #include <mutex>
 #include <condition_variable>
 
-#include <thallium.hpp>
-#include <thallium/serialization/stl/string.hpp>
-#include <thallium/serialization/stl/vector.hpp>
-
+#include "headers.h"
 #include "duckdb_executor.h"
 
 namespace tl = thallium;
-namespace cp = arrow::compute;
-
 
 const int32_t kTransferSize = 19 * 1024 * 1024;
 const int32_t kBatchSize = 1 << 17;

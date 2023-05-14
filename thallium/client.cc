@@ -3,11 +3,6 @@
 #include <chrono>
 #include <fstream>
 
-#include <thallium.hpp>
-#include <thallium/serialization/stl/string.hpp>
-#include <thallium/serialization/stl/vector.hpp>
-
-
 #include "headers.h"
 
 namespace tl = thallium;
