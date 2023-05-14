@@ -7,7 +7,7 @@
 #include <thallium.hpp>
 
 #include "arrow_executor.h"
-
+#include "duckdb_executor.h"
 
 namespace tl = thallium;
 namespace cp = arrow::compute;
@@ -94,11 +94,10 @@ int main(int argc, char** argv) {
     tl::managed<tl::xstream> xstream = 
         tl::xstream::create(tl::scheduler::predef::deflt, *new_pool);
     
-    std::function<void(const tl::request&, const ScanReqRPCStub&)> scan = 
-        [&xstream, &cq, &backend, &engine, &do_rdma, &selectivity](const tl::request &req, const ScanReqRPCStub& stub) {
-            arrow::dataset::internal::Initialize();
-            cp::ExecContext exec_ctx;
-            std::shared_ptr<arrow::RecordBatchReader> reader = ScanDataset(exec_ctx, stub, backend, selectivity).ValueOrDie();
+    std::function<void(const tl::request&, const std::string&)> scan = 
+        [&xstream, &cq, &backend, &engine, &do_rdma, &selectivity](const tl::request &req, const std::string& query) {
+
+            std::shared_ptr<DuckDBRecordBatchReader> reader = ExecuteDuckDB(query);
             auto start = std::chrono::high_resolution_clock::now();
             
             bool finished = false;

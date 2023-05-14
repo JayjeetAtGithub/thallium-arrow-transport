@@ -14,48 +14,20 @@ namespace cp = arrow::compute;
 
 const int32_t kTransferSize = 19 * 1024 * 1024;
 
-
-arrow::Result<ScanReq> GetScanRequest(std::string path,
-                                      cp::Expression filter, 
-                                      std::shared_ptr<arrow::Schema> projection_schema,
-                                      std::shared_ptr<arrow::Schema> dataset_schema) {
-    ARROW_ASSIGN_OR_RAISE(std::shared_ptr<arrow::Buffer> filter_buff, arrow::compute::Serialize(filter));
-    ARROW_ASSIGN_OR_RAISE(auto projection_schema_buff, arrow::ipc::SerializeSchema(*projection_schema));
-    ARROW_ASSIGN_OR_RAISE(auto dataset_schema_buff, arrow::ipc::SerializeSchema(*dataset_schema));
-    ScanReqRPCStub stub(
-        path,
-        const_cast<uint8_t*>(filter_buff->data()), filter_buff->size(), 
-        const_cast<uint8_t*>(dataset_schema_buff->data()), dataset_schema_buff->size(),
-        const_cast<uint8_t*>(projection_schema_buff->data()), projection_schema_buff->size()
-    );
-    ScanReq req;
-    req.stub = stub;
-    req.schema = projection_schema;
-    return req;
-}
-
-ConnCtx Init(std::string protocol, std::string host) {
-    ConnCtx ctx;
-    tl::engine engine(protocol, THALLIUM_SERVER_MODE, true);
-
-    tl::endpoint endpoint = engine.lookup(host);
-    ctx.engine = engine;
-    ctx.endpoint = endpoint;
-    return ctx;
-}
-
 tl::bulk local;
 std::vector<std::pair<void*,std::size_t>> segments(1);
+std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+int64_t total_rows_read = 0;
 
-void Scan(ConnCtx &conn_ctx, ScanReq &scan_req) {
-    tl::remote_procedure scan = conn_ctx.engine.define("scan");
+void Scan(tl::engine &engine, tl::endpoint &endpoint, std::string &query) {
+    tl::remote_procedure scan = engine.define("scan");
     segments[0].first = (uint8_t*)malloc(kTransferSize);
     segments[0].second = kTransferSize;
-    local = conn_ctx.engine.expose(segments, tl::bulk_mode::write_only);
-    scan.on(conn_ctx.endpoint)(scan_req.stub);
+    local = engine.expose(segments, tl::bulk_mode::write_only);
+    scan.on(endpoint)(query);
+    engine.finalize();
 }
 
-std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
 
 auto schema = arrow::schema({
         arrow::field("VendorID", arrow::int64()),
@@ -77,7 +49,6 @@ auto schema = arrow::schema({
         arrow::field("total_amount", arrow::float64())
     });
 
-int64_t total_rows_read = 0;
 
 std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> f =
     [&batches, &segments, &local, &schema](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
@@ -125,23 +96,14 @@ arrow::Status Main(int argc, char **argv) {
     }
 
     std::string uri = argv[1];
-
-    auto filter = 
-        cp::greater(cp::field_ref("total_amount"), cp::literal(-200));
-
-    ConnCtx conn_ctx = Init("ofi+verbs", uri);
-    conn_ctx.engine.define("do_rdma", f);
-
-    int64_t total_rows = 0;
-    int64_t total_batches = 0;
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
+    tl::endpoint endpoint = engine.lookup(uri);
 
     std::string path = "/mnt/cephfs/dataset";
-    ARROW_ASSIGN_OR_RAISE(auto scan_req, GetScanRequest(path, filter, schema, schema));
+    std::string query = "SELECT * FROM /mnt/cephfs/dataset";
 
-    Scan(conn_ctx, scan_req);
+    Scan(engine, endpoint, scan_req);
     std::cout << "Read " << total_rows_read << " rows" << std::endl;
-
-    conn_ctx.engine.finalize();
     return arrow::Status::OK();
 }
 

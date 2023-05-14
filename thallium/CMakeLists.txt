@@ -11,6 +11,3 @@ target_link_libraries(tc thallium arrow arrow_dataset arrow_acero duckdb)
 
 add_executable(ts server.cc)
 target_link_libraries(ts thallium arrow arrow_dataset arrow_acero duckdb)
-
-add_executable(ts_new server_new.cc)
-target_link_libraries(ts_new thallium arrow arrow_dataset arrow_acero duckdb)

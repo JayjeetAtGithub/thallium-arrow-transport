@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "rao.h"
 #include "payload.h"
 
 namespace cp = arrow::compute;
