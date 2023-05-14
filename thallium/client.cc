@@ -100,7 +100,7 @@ arrow::Status Main(int argc, char **argv) {
     std::string path = "/mnt/cephfs/dataset";
     std::string query = "SELECT * FROM /mnt/cephfs/dataset";
 
-    Scan(engine, endpoint, scan_req);
+    Scan(engine, endpoint, query);
     std::cout << "Read " << total_rows_read << " rows" << std::endl;
     return arrow::Status::OK();
 }
