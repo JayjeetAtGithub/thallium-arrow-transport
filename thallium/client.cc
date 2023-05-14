@@ -6,8 +6,6 @@
 #include <thallium.hpp>
 
 #include "headers.h"
-#include "payload.h"
-
 
 namespace tl = thallium;
 namespace cp = arrow::compute;

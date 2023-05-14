@@ -6,7 +6,6 @@
 
 #include <thallium.hpp>
 
-#include "arrow_executor.h"
 #include "duckdb_executor.h"
 
 namespace tl = thallium;
