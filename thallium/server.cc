@@ -6,6 +6,7 @@
 
 #include <thallium.hpp>
 #include <thallium/serialization/stl/string.hpp>
+#include <thallium/serialization/stl/vector.hpp>
 
 #include "duckdb_executor.h"
 
