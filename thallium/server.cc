@@ -96,6 +96,11 @@ int main(int argc, char** argv) {
             tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_write);
             cq.clear();
 
+
+            std::shared_ptr<arrow::RecordBatch> batch;
+            reader->ReadNext(&batch);
+            std::cout << "batch content: " << batch->ToString() << std::endl;
+
             xstream->make_thread([&]() {
                 scan_handler((void*)reader.get());
             }, tl::anonymous());
