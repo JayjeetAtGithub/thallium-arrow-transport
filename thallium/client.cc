@@ -95,8 +95,7 @@ arrow::Status Main(int argc, char **argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
     tl::endpoint endpoint = engine.lookup(uri);
 
-    std::string path = "/mnt/cephfs/dataset";
-    std::string query = "SELECT * FROM '/mnt/cephfs/dataset/16MB.uncompressed.parquet.1' WHERE total_amount > 69";
+    std::string query = "SELECT * FROM read_parquet('/mnt/cephfs/dataset/16MB.uncompressed.parquet.1') WHERE total_amount > 69";
 
     Scan(engine, endpoint, query);
     std::cout << "Read " << total_rows_read << " rows" << std::endl;

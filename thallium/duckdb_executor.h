@@ -41,8 +41,7 @@ std::shared_ptr<DuckDBRecordBatchReader> ExecuteDuckDBQuery(const std::string &q
     duckdb::DuckDB db(nullptr);
     duckdb::Connection con(db);
     con.Query("INSTALL parquet; LOAD parquet;");
-
-    auto statement = con.Prepare("SELECT * FROM read_parquet('16MB.uncompressed.parquet')");
+    auto statement = con.Prepare(query);
     auto result = statement->Execute();
     return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
 }
