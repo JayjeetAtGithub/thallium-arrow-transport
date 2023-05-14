@@ -96,7 +96,7 @@ arrow::Status Main(int argc, char **argv) {
     tl::endpoint endpoint = engine.lookup(uri);
 
     std::string path = "/mnt/cephfs/dataset";
-    std::string query = "SELECT * FROM '/mnt/cephfs/dataset'";
+    std::string query = "SELECT * FROM '/mnt/cephfs/dataset/16MB.uncompressed.parquet.1' WHERE total_amount > 69";
 
     Scan(engine, endpoint, query);
     std::cout << "Read " << total_rows_read << " rows" << std::endl;
