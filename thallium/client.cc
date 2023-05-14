@@ -17,7 +17,7 @@ std::vector<std::pair<void*,std::size_t>> segments(1);
 std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
 int64_t total_rows_read = 0;
 
-void Scan(tl::engine &engine, tl::endpoint &endpoint, std::string &query) {
+void Scan(tl::engine &engine, tl::endpoint &endpoint, std::string query) {
     tl::remote_procedure scan = engine.define("scan");
     segments[0].first = (uint8_t*)malloc(kTransferSize);
     segments[0].second = kTransferSize;
