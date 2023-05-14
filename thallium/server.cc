@@ -67,14 +67,6 @@ void scan_handler(void *arg) {
 
 
 int main(int argc, char** argv) {
-    if (argc < 3) {
-        std::cout << "./ts [selectivity] [backend]" << std::endl;
-        exit(1);
-    }
-
-    std::string selectivity = argv[1];
-    std::string backend = argv[2];
-
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
     margo_instance_id mid = engine.get_margo_instance();
     hg_addr_t svr_addr;
@@ -91,7 +83,7 @@ int main(int argc, char** argv) {
         tl::xstream::create(tl::scheduler::predef::deflt, *new_pool);
     
     std::function<void(const tl::request&, const std::string&)> scan = 
-        [&xstream, &cq, &backend, &engine, &do_rdma, &selectivity](const tl::request &req, const std::string& query) {
+        [&xstream, &cq, &engine, &do_rdma](const tl::request &req, const std::string& query) {
 
             std::shared_ptr<DuckDBRecordBatchReader> reader = ExecuteDuckDBQuery(query);
             auto start = std::chrono::high_resolution_clock::now();
