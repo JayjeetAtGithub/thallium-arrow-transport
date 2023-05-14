@@ -4,6 +4,8 @@
 #include <fstream>
 
 #include <thallium.hpp>
+#include <thallium/serialization/stl/string.hpp>
+
 
 #include "headers.h"
 

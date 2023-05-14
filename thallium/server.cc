@@ -5,6 +5,7 @@
 #include <condition_variable>
 
 #include <thallium.hpp>
+#include <thallium/serialization/stl/string.hpp>
 
 #include "duckdb_executor.h"
 
