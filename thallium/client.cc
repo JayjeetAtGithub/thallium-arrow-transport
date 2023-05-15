@@ -15,15 +15,6 @@ std::vector<std::pair<void*,std::size_t>> segments(1);
 std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
 int64_t total_rows_read = 0;
 
-void Scan(tl::engine &engine, tl::endpoint &endpoint, std::string &query) {
-    tl::remote_procedure scan = engine.define("scan");
-    segments[0].first = (uint8_t*)malloc(kTransferSize);
-    segments[0].second = kTransferSize;
-    local = engine.expose(segments, tl::bulk_mode::write_only);
-    scan.on(endpoint)(query);
-    engine.finalize();
-}
-
 
 auto schema = arrow::schema({
         arrow::field("VendorID", arrow::int64()),
@@ -46,7 +37,7 @@ auto schema = arrow::schema({
     });
 
 
-std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> f =
+std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> do_rdma =
     [&batches, &segments, &local, &schema](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
         b(0, total_size).on(req.get_endpoint()) >> local(0, total_size);
         
@@ -84,20 +75,44 @@ std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_
         return req.respond(0);
     };
 
+struct ConnCtx {
+    tl::engine engine;
+    tl::endpoint endpoint;
+};
+
+ConnCtx Init(std::string &uri) {
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
+    engine.define("do_rdma", do_rdma);
+    tl::endpoint endpoint = engine.lookup(uri);
+    ConnCtx ctx;
+    ctx.engine = engine;
+    ctx.endpoint = endpoint;
+    return ctx;
+}
+
+void Scan(ConnCtx &ctx, std::string &dataset_path, std::string &query) {
+    tl::remote_procedure scan = ctx.engine.define("scan");
+    segments[0].first = (uint8_t*)malloc(kTransferSize);
+    segments[0].second = kTransferSize;
+    local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
+    scan.on(ctx.endpoint)(dataset_path, query);
+    ctx.engine.finalize();
+}
+
 
 arrow::Status Main(int argc, char **argv) {
     if (argc < 2) {
-        std::cout << "./tc [uri]" << std::endl;
+        std::cout << "./tc [uri] [dataset_path] [query]" << std::endl;
         exit(1);
     }
 
     std::string uri = argv[1];
-    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
-    tl::endpoint endpoint = engine.lookup(uri);
+    std::string dataset_path = argv[2];
+    std::string query = argv[3];
 
-    std::string query = "SELECT * FROM read_parquet('/mnt/cephfs/dataset/16MB.uncompressed.parquet.1') WHERE total_amount > 69";
+    ConnCtx ctx = Init(uri);
+    Scan(ctx, dataset_path, query);
 
-    Scan(engine, endpoint, query);
     std::cout << "Read " << total_rows_read << " rows" << std::endl;
     return arrow::Status::OK();
 }

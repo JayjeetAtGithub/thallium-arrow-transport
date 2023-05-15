@@ -1,68 +1,26 @@
 #include <iostream>
-#include <unordered_map>
-#include <fstream>
-#include <mutex>
-#include <condition_variable>
 
+#include "utils.h"
 #include "headers.h"
-#include "duckdb_executor.h"
+#include "engine.h"
 
 namespace tl = thallium;
 
 const int32_t kTransferSize = 19 * 1024 * 1024;
 const int32_t kBatchSize = 1 << 17;
 const std::string kThalliumResultPath = "/proj/schedock-PG0/thallium_result";
-
-void write_to_file(std::string data, std::string path, bool append) {
-    std::ofstream file;
-    if (append) {
-        file.open(path, std::ios_base::app);
-    } else {
-        file.open(path);
-    }
-    file << data;
-    file.close();
-}
+const std::string kThalliumUriPath = "/proj/schedock-PG0/thallium_uri";
 
 
-class ConcurrentRecordBatchQueue {
-    public:
-        std::deque<std::shared_ptr<arrow::RecordBatch>> queue;
-        std::mutex mutex;
-        std::condition_variable cv;
-    
-        void push_back(std::shared_ptr<arrow::RecordBatch> batch) {
-            std::unique_lock<std::mutex> lock(mutex);
-            queue.push_back(batch);
-            lock.unlock();
-            cv.notify_one();
-        }
-
-        void wait_n_pop(std::shared_ptr<arrow::RecordBatch> &batch) {
-            std::unique_lock<std::mutex> lock(mutex);
-            while (queue.empty()) {
-                cv.wait(lock);
-            }
-            batch = queue.front();
-            queue.pop_front();
-        }
-
-        void clear() {
-            std::unique_lock<std::mutex> lock(mutex);
-            queue.clear();
-        }
-};
-
-ConcurrentRecordBatchQueue cq;
 void scan_handler(void *arg) {
-    arrow::RecordBatchReader *reader = (arrow::RecordBatchReader*)arg;
+    ScanThreadContext *ctx = (ScanThreadContext*)arg;
     std::shared_ptr<arrow::RecordBatch> batch;
-    reader->ReadNext(&batch);
+    auto s = ctx->reader->ReadNext(&batch);
     while (batch != nullptr) {
-        cq.push_back(batch);
-        reader->ReadNext(&batch);
+        ctx->cq->push_back(batch);
+        s = ctx->reader->ReadNext(&batch);
     }    
-    cq.push_back(nullptr);
+    ctx->cq->push_back(nullptr);
 }
 
 
@@ -82,10 +40,13 @@ int main(int argc, char** argv) {
     tl::managed<tl::xstream> xstream = 
         tl::xstream::create(tl::scheduler::predef::deflt, *new_pool);
     
-    std::function<void(const tl::request&, const std::string&)> scan = 
-        [&xstream, &cq, &engine, &do_rdma](const tl::request &req, const std::string& query) {
+    std::function<void(const tl::request&, const std::string&, const std::string&)> scan = 
+        [&xstream, &engine, &do_rdma](const tl::request &req, const std::string &dataset_path, const std::string& query) {
 
-            std::shared_ptr<DuckDBRecordBatchReader> reader = ExecuteDuckDBQuery(query);
+            std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+            db->Create(dataset_path);
+            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+
             auto start = std::chrono::high_resolution_clock::now();
             
             bool finished = false;
@@ -94,10 +55,14 @@ int main(int argc, char** argv) {
             segments[0].first = (void*)segment_buffer;
             segments[0].second = kTransferSize;
             tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_write);
-            cq.clear();
+            
+            std::shared_ptr<ScanThreadContext> ctx = std::make_shared<ScanThreadContext>();
+            std::shared_ptr<ConcurrentRecordBatchQueue> cq = std::make_shared<ConcurrentRecordBatchQueue>();
+            ctx->cq = cq;
+            ctx->reader = reader;
 
             xstream->make_thread([&]() {
-                scan_handler((void*)reader.get());
+                scan_handler((void*)ctx.get());
             }, tl::anonymous());
 
             std::shared_ptr<arrow::RecordBatch> new_batch;
@@ -108,7 +73,7 @@ int main(int argc, char** argv) {
                 int64_t rows_processed = 0;
 
                 while (rows_processed < kBatchSize) {
-                    cq.wait_n_pop(new_batch);
+                    cq->wait_n_pop(new_batch);
                     if (new_batch == nullptr) {
                         finished = true;
                         break;
@@ -187,13 +152,12 @@ int main(int argc, char** argv) {
 
             auto end = std::chrono::high_resolution_clock::now();
             std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-            write_to_file(exec_time_ms, kThalliumResultPath, true);
+            WriteToFile(exec_time_ms, kThalliumResultPath, true);
             return req.respond(0);
         };
     
     engine.define("scan", scan);
-    std::string uri_file_path = "/proj/schedock-PG0/thallium_uri";
-    write_to_file(engine.self(), uri_file_path, false);
+    WriteToFile(engine.self(), kThalliumUriPath, false);
     std::cout << "Server running at address " << engine.self() << std::endl;
     engine.wait_for_finalize();
 };

@@ -1,6 +1,7 @@
 #include <mutex>
 #include <deque>
 #include <condition_variable>
+#include <fstream>
 
 #include <arrow/api.h>
 
@@ -30,4 +31,20 @@ class ConcurrentRecordBatchQueue {
             std::unique_lock<std::mutex> lock(mutex);
             queue.clear();
         }
+};
+
+void WriteToFile(std::string data, std::string path, bool append) {
+    std::ofstream file;
+    if (append) {
+        file.open(path, std::ios_base::app);
+    } else {
+        file.open(path);
+    }
+    file << data;
+    file.close();
+}
+
+struct ScanThreadContext {
+    std::shared_ptr<ConcurrentRecordBatchQueue> cq;
+    std::shared_ptr<arrow::RecordBatchReader> reader;
 };
