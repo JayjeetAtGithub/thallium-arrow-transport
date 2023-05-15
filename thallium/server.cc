@@ -18,7 +18,7 @@ void scan_handler(void *arg) {
     auto s = reader->ReadNext(&batch);
     while (batch != nullptr) {
         cq.push_back(batch);
-        s = reader->ReadNext(&batch).ValueOrDie();
+        s = reader->ReadNext(&batch);
     }    
     cq.push_back(nullptr);
 }
