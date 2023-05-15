@@ -15,10 +15,10 @@ ConcurrentRecordBatchQueue cq;
 void scan_handler(void *arg) {
     arrow::RecordBatchReader *reader = (arrow::RecordBatchReader*)arg;
     std::shared_ptr<arrow::RecordBatch> batch;
-    reader->ReadNext(&batch);
+    auto s = reader->ReadNext(&batch).ValueOrDie();
     while (batch != nullptr) {
         cq.push_back(batch);
-        reader->ReadNext(&batch);
+        s = reader->ReadNext(&batch).ValueOrDie();
     }    
     cq.push_back(nullptr);
 }
