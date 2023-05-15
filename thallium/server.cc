@@ -43,7 +43,10 @@ int main(int argc, char** argv) {
     std::function<void(const tl::request&, const std::string&, const std::string&)> scan = 
         [&xstream, &cq, &engine, &do_rdma](const tl::request &req, const std::string &dataset_path, const std::string& query) {
 
-            std::shared_ptr<DuckDBRecordBatchReader> reader = ExecuteDuckDBQuery(dataset_path, query);
+            std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+            db->Create(dataset_path);
+            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+
             auto start = std::chrono::high_resolution_clock::now();
             
             bool finished = false;

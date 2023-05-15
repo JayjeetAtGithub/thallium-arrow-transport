@@ -5,6 +5,7 @@
 #include <arrow/c/abi.h>
 #include <arrow/c/bridge.h>
 
+
 class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
     public:
         DuckDBRecordBatchReader(std::shared_ptr<duckdb::QueryResult> result) : result(result) {
@@ -38,14 +39,27 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
         std::shared_ptr<arrow::Schema> imported_schema;
 };
 
-std::shared_ptr<DuckDBRecordBatchReader> ExecuteDuckDBQuery(const std::string &dataset_path, const std::string &query) {
-    duckdb::DuckDB db(nullptr);
-    duckdb::Connection con(db);
-    con.Query("INSTALL parquet; LOAD parquet;");
-    std::string table_create_query = "CREATE TABLE dataset AS SELECT * FROM read_parquet('" + dataset_path + "');";
-    con.Query(table_create_query);    
-    
-    auto statement = con.Prepare(query);
-    auto result = statement->Execute();
-    return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
-}
+
+class DuckDBEngine {
+    public:
+        DuckDBEngine() {
+            db = std::make_shared<duckdb::DuckDB>(nullptr);
+            con = std::make_shared<duckdb::Connection>(*db);
+        }
+
+        void Create(const std::string &path) {
+            con->Query("INSTALL parquet; LOAD parquet;");
+            std::string table_create_query = "CREATE TABLE dataset AS SELECT * FROM read_parquet('" + path + "');";
+            con->Query(table_create_query);    
+        }
+
+        std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
+            auto statement = con->Prepare(query);
+            auto result = statement->Execute();
+            return std::make_shared<arrow::RecordBatchReader>(std::move(result));
+        }
+
+    private:
+        std::shared_ptr<duckdb::DuckDB> db;
+        std::shared_ptr<duckdb::Connection> con;
+};
