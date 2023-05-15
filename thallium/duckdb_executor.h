@@ -30,7 +30,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
             return arrow::ImportSchema(&schema).ValueOrDie();
         }
 
-    private:
+    protected:
         std::shared_ptr<duckdb::QueryResult> result;
         std::unique_ptr<duckdb::DataChunk> chunk;
         ArrowArray arrow_array;
