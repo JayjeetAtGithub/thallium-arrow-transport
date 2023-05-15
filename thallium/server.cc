@@ -1,9 +1,6 @@
 #include <iostream>
-#include <unordered_map>
-#include <fstream>
-#include <mutex>
-#include <condition_variable>
 
+#include "utils.h"
 #include "headers.h"
 #include "duckdb_executor.h"
 
@@ -13,45 +10,6 @@ const int32_t kTransferSize = 19 * 1024 * 1024;
 const int32_t kBatchSize = 1 << 17;
 const std::string kThalliumResultPath = "/proj/schedock-PG0/thallium_result";
 
-void write_to_file(std::string data, std::string path, bool append) {
-    std::ofstream file;
-    if (append) {
-        file.open(path, std::ios_base::app);
-    } else {
-        file.open(path);
-    }
-    file << data;
-    file.close();
-}
-
-
-class ConcurrentRecordBatchQueue {
-    public:
-        std::deque<std::shared_ptr<arrow::RecordBatch>> queue;
-        std::mutex mutex;
-        std::condition_variable cv;
-    
-        void push_back(std::shared_ptr<arrow::RecordBatch> batch) {
-            std::unique_lock<std::mutex> lock(mutex);
-            queue.push_back(batch);
-            lock.unlock();
-            cv.notify_one();
-        }
-
-        void wait_n_pop(std::shared_ptr<arrow::RecordBatch> &batch) {
-            std::unique_lock<std::mutex> lock(mutex);
-            while (queue.empty()) {
-                cv.wait(lock);
-            }
-            batch = queue.front();
-            queue.pop_front();
-        }
-
-        void clear() {
-            std::unique_lock<std::mutex> lock(mutex);
-            queue.clear();
-        }
-};
 
 ConcurrentRecordBatchQueue cq;
 void scan_handler(void *arg) {
@@ -193,7 +151,7 @@ int main(int argc, char** argv) {
     
     engine.define("scan", scan);
     std::string uri_file_path = "/proj/schedock-PG0/thallium_uri";
-    write_to_file(engine.self(), uri_file_path, false);
+    WriteToFile(engine.self(), uri_file_path, false);
     std::cout << "Server running at address " << engine.self() << std::endl;
     engine.wait_for_finalize();
 };

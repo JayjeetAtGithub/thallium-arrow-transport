@@ -1,6 +1,7 @@
 #include <mutex>
 #include <deque>
 #include <condition_variable>
+#include <fstream>
 
 #include <arrow/api.h>
 
@@ -31,3 +32,14 @@ class ConcurrentRecordBatchQueue {
             queue.clear();
         }
 };
+
+void WriteToFile(std::string data, std::string path, bool append) {
+    std::ofstream file;
+    if (append) {
+        file.open(path, std::ios_base::app);
+    } else {
+        file.open(path);
+    }
+    file << data;
+    file.close();
+}
