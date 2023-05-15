@@ -3,4 +3,4 @@ set -e
 
 selectivity=$1
 
-$PWD/bin/fs $selectivity dataset+mem
+$PWD/bin/fs
