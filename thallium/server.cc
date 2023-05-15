@@ -2,7 +2,7 @@
 
 #include "utils.h"
 #include "headers.h"
-#include "duckdb_executor.h"
+#include "engine.h"
 
 namespace tl = thallium;
 
