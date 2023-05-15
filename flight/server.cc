@@ -12,27 +12,15 @@
 #include "parquet/arrow/writer.h"
 #include "parquet/file_reader.h"
 
+#include "engine.h"
+
 class ParquetStorageService : public arrow::flight::FlightServerBase {
     public:
         explicit ParquetStorageService(
-            std::shared_ptr<arrow::fs::FileSystem> fs, std::string host, int32_t port, 
-            std::string selectivity, std::string backend
-        ) : fs_(std::move(fs)), host_(host), port_(port), selectivity_(selectivity), backend_(backend) {}
+            std::shared_ptr<arrow::fs::FileSystem> fs, std::string host, int32_t port 
+        ) : fs_(std::move(fs)), host_(host), port_(port) {}
 
         int32_t Port() { return port_; }
-
-        arrow::compute::Expression GetFilter() {
-            if (selectivity_ == "100") {
-                return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                               arrow::compute::literal(-200));
-            } else if (selectivity_ == "10") {
-                return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                               arrow::compute::literal(27));
-            } else if (selectivity_ == "1") {
-                return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                               arrow::compute::literal(69));
-            }
-        }
 
         arrow::Status GetFlightInfo(const arrow::flight::ServerCallContext&,
                                     const arrow::flight::FlightDescriptor& descriptor,
@@ -44,130 +32,18 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
             return arrow::Status::OK();
         }
 
-        arrow::Status Benchmark(const arrow::flight::Ticket& request,
-                                         std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
-            std::string path;
-            ARROW_ASSIGN_OR_RAISE(auto fs, arrow::fs::FileSystemFromUri(request.ticket, &path)); 
-            auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
-                
-            arrow::fs::FileSelector s;
-            s.base_dir = std::move(path);
-            s.recursive = true;
-
-            auto schema = arrow::schema({
-                arrow::field("VendorID", arrow::int64()),
-                arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-                arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-                arrow::field("passenger_count", arrow::int64()),
-                arrow::field("trip_distance", arrow::float64()),
-                arrow::field("RatecodeID", arrow::int64()),
-                arrow::field("store_and_fwd_flag", arrow::utf8()),
-                arrow::field("PULocationID", arrow::int64()),
-                arrow::field("DOLocationID", arrow::int64()),
-                arrow::field("payment_type", arrow::int64()),
-                arrow::field("fare_amount", arrow::float64()),
-                arrow::field("extra", arrow::float64()),
-                arrow::field("mta_tax", arrow::float64()),
-                arrow::field("tip_amount", arrow::float64()),
-                arrow::field("tolls_amount", arrow::float64()),
-                arrow::field("improvement_surcharge", arrow::float64()),
-                arrow::field("total_amount", arrow::float64())
-            });
-
-            arrow::dataset::FileSystemFactoryOptions options;
-            ARROW_ASSIGN_OR_RAISE(auto factory, 
-                arrow::dataset::FileSystemDatasetFactory::Make(std::move(fs), s, std::move(format), options));
-            arrow::dataset::FinishOptions finish_options;
-            ARROW_ASSIGN_OR_RAISE(auto dataset,factory->Finish(finish_options));
-
-            ARROW_ASSIGN_OR_RAISE(auto scanner_builder, dataset->NewScan());
-            ARROW_RETURN_NOT_OK(scanner_builder->Filter(GetFilter()));
-            ARROW_RETURN_NOT_OK(scanner_builder->Project(schema->field_names()));
-
-            ARROW_ASSIGN_OR_RAISE(auto scanner, scanner_builder->Finish());
-
-            if (backend_ == "dataset") {
-                std::cout << "Using dataset backend: " << request.ticket << std::endl;
-                ARROW_ASSIGN_OR_RAISE(auto reader, scanner->ToRecordBatchReader());
-                *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
-                    new arrow::flight::RecordBatchStream(reader));
-            } else if (backend_ == "dataset+mem") {
-                std::cout << "Using dataset+mem backend: " << request.ticket << std::endl;
-                ARROW_ASSIGN_OR_RAISE(auto table, scanner->ToTable());
-                auto im_ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
-                ARROW_ASSIGN_OR_RAISE(auto im_ds_scanner_builder, im_ds->NewScan());
-                ARROW_ASSIGN_OR_RAISE(auto im_ds_scanner, im_ds_scanner_builder->Finish());
-                ARROW_ASSIGN_OR_RAISE(auto reader, im_ds_scanner->ToRecordBatchReader());
-                *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
-                    new arrow::flight::RecordBatchStream(reader));
-            }
-
-            return arrow::Status::OK();
-        }
-
-        arrow::Status Read(const arrow::flight::Ticket& request,
-                           std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
-
-            auto schema = arrow::schema({
-                arrow::field("VendorID", arrow::int64()),
-                arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-                arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-                arrow::field("passenger_count", arrow::int64()),
-                arrow::field("trip_distance", arrow::float64()),
-                arrow::field("RatecodeID", arrow::int64()),
-                arrow::field("store_and_fwd_flag", arrow::utf8()),
-                arrow::field("PULocationID", arrow::int64()),
-                arrow::field("DOLocationID", arrow::int64()),
-                arrow::field("payment_type", arrow::int64()),
-                arrow::field("fare_amount", arrow::float64()),
-                arrow::field("extra", arrow::float64()),
-                arrow::field("mta_tax", arrow::float64()),
-                arrow::field("tip_amount", arrow::float64()),
-                arrow::field("tolls_amount", arrow::float64()),
-                arrow::field("improvement_surcharge", arrow::float64()),
-                arrow::field("total_amount", arrow::float64())
-            });
-
-            auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
-
-            arrow::dataset::FileSource source;
-            if (backend_ == "file") {
-                std::cout << "Using file backend: " << request.ticket << std::endl;
-                ARROW_ASSIGN_OR_RAISE(auto file, arrow::io::ReadableFile::Open(request.ticket));
-                source = arrow::dataset::FileSource(file);
-            } else if (backend_ == "file+mmap") {
-                std::cout << "Using file+mmap backend: " << request.ticket << std::endl;
-                ARROW_ASSIGN_OR_RAISE(auto file, arrow::io::MemoryMappedFile::Open(request.ticket, arrow::io::FileMode::READ));
-                source = arrow::dataset::FileSource(file);
-            }
-
-            ARROW_ASSIGN_OR_RAISE(
-                auto fragment, format->MakeFragment(std::move(source), arrow::compute::literal(true)));
-            
-            auto options = std::make_shared<arrow::dataset::ScanOptions>();
-            auto scanner_builder = std::make_shared<arrow::dataset::ScannerBuilder>(
-                schema, std::move(fragment), std::move(options));
-
-            ARROW_RETURN_NOT_OK(scanner_builder->Filter(GetFilter()));
-            ARROW_RETURN_NOT_OK(scanner_builder->Project(schema->field_names()));
-
-            ARROW_ASSIGN_OR_RAISE(auto scanner, scanner_builder->Finish());
-            ARROW_ASSIGN_OR_RAISE(auto reader, scanner->ToRecordBatchReader());
-
-            *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
-                new arrow::flight::RecordBatchStream(reader));
-        
-            return arrow::Status::OK();
-        }
-
         arrow::Status DoGet(const arrow::flight::ServerCallContext&,
                             const arrow::flight::Ticket& request,
                             std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
-            if (backend_ == "dataset" || backend_ == "dataset+mem") {
-                return Benchmark(request, stream);
-            } else {
-                return Read(request, stream);
-            }
+            std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+            db->Create(request.ticket);
+
+            std::string query "SELECT * FROM dataset;"
+
+            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+            *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
+                new arrow::flight::RecordBatchStream(reader));
+            return arrow::Status::OK();
         }
 
     private:
@@ -177,13 +53,7 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
             std::string path = file_info.path();
             auto descriptor = arrow::flight::FlightDescriptor::Path({path});
             arrow::flight::FlightEndpoint endpoint;
-            
-            if (backend_ == "dataset" || backend_ == "dataset+mem") {
-                endpoint.ticket.ticket = "file://" + path;
-            } else {
-                endpoint.ticket.ticket = path;
-            }
-
+            endpoint.ticket.ticket = path;
             arrow::flight::Location location;
             ARROW_RETURN_NOT_OK(
                 arrow::flight::Location::ForGrpcTcp(host_, port(), &location));
@@ -195,20 +65,16 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
         std::shared_ptr<arrow::fs::FileSystem> fs_;
         std::string host_;
         int32_t port_;
-        std::string selectivity_;
-        std::string backend_;
 };
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
-        std::cout << "./fs [selectivity] [backend]" << std::endl;
+        std::cout << "./fs" << std::endl;
         exit(1);
     }
     
     std::string host = "10.10.1.2";
     int32_t port = 3000;
-    std::string selectivity = argv[1];
-    std::string backend = argv[2];
     std::string transport = "tcp+grpc";
 
     auto fs = std::make_shared<arrow::fs::LocalFileSystem>();
@@ -222,7 +88,7 @@ int main(int argc, char *argv[]) {
 
     arrow::flight::FlightServerOptions options(server_location);
     auto server = std::unique_ptr<arrow::flight::FlightServerBase>(
-        new ParquetStorageService(std::move(fs), host, port, selectivity, backend));
+        new ParquetStorageService(std::move(fs), host, port));
     server->Init(options);
     std::cout << "Listening on port " << server->port() << std::endl;
     server->Serve();
