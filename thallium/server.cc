@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
         tl::xstream::create(tl::scheduler::predef::deflt, *new_pool);
     
     std::function<void(const tl::request&, const std::string&, const std::string&)> scan = 
-        [&xstream, &cq, &engine, &do_rdma](const tl::request &req, const std::string &dataset_path, const std::string& query) {
+        [&xstream, &engine, &do_rdma](const tl::request &req, const std::string &dataset_path, const std::string& query) {
 
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(dataset_path);
@@ -55,15 +55,15 @@ int main(int argc, char** argv) {
             segments[0].first = (void*)segment_buffer;
             segments[0].second = kTransferSize;
             tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_write);
-            cq.clear();
             
-            ScanThreadContext ctx;
+            cq->clear();
+            std::shared_ptr<ScanThreadContext> ctx = std::make_shared<ScanThreadContext>();
             std::shared_ptr<ConcurrentRecordBatchQueue> cq = std::make_shared<ConcurrentRecordBatchQueue>();
-            ctx.cq = cq;
-            ctx.reader = reader;
+            ctx->cq = cq;
+            ctx->reader = reader;
 
             xstream->make_thread([&]() {
-                scan_handler((void*)&ctx);
+                scan_handler((void*)ctx.get());
             }, tl::anonymous());
 
             std::shared_ptr<arrow::RecordBatch> new_batch;
