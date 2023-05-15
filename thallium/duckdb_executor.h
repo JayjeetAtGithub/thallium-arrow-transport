@@ -38,10 +38,13 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
         std::shared_ptr<arrow::Schema> imported_schema;
 };
 
-std::shared_ptr<DuckDBRecordBatchReader> ExecuteDuckDBQuery(const std::string &query) {
+std::shared_ptr<DuckDBRecordBatchReader> ExecuteDuckDBQuery(const std::string &dataset_path, const std::string &query) {
     duckdb::DuckDB db(nullptr);
     duckdb::Connection con(db);
     con.Query("INSTALL parquet; LOAD parquet;");
+    std::string table_create_query = "CREATE TABLE dataset AS SELECT * FROM read_parquet('" + dataset_path + "');";
+    con.Query(table_create_query);    
+    
     auto statement = con.Prepare(query);
     auto result = statement->Execute();
     return std::make_shared<DuckDBRecordBatchReader>(std::move(result));

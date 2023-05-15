@@ -91,27 +91,28 @@ ConnCtx Init(std::string &uri) {
     return ctx;
 }
 
-void Scan(ConnCtx &ctx, std::string &query) {
+void Scan(ConnCtx &ctx, std::string &dataset_path, std::string &query) {
     tl::remote_procedure scan = ctx.engine.define("scan");
     segments[0].first = (uint8_t*)malloc(kTransferSize);
     segments[0].second = kTransferSize;
     local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
-    scan.on(ctx.endpoint)(query);
+    scan.on(ctx.endpoint)(dataset_path, query);
     ctx.engine.finalize();
 }
 
 
 arrow::Status Main(int argc, char **argv) {
     if (argc < 2) {
-        std::cout << "./tc [uri] [query]" << std::endl;
+        std::cout << "./tc [uri] [dataset_path] [query]" << std::endl;
         exit(1);
     }
 
     std::string uri = argv[1];
-    std::string query = argv[2];
+    std::string dataset_path = argv[2]
+    std::string query = argv[3];
 
     ConnCtx ctx = Init(uri);
-    Scan(ctx, query);
+    Scan(ctx, dataset_path, query);
 
     std::cout << "Read " << total_rows_read << " rows" << std::endl;
     return arrow::Status::OK();

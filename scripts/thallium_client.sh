@@ -19,5 +19,5 @@ function clean_server_cache {
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/tc $uri "SELECT * FROM read_parquet('/mnt/cephfs/dataset/16MB.uncompressed.parquet.1') WHERE total_amount > 69" || true
+    $PWD/bin/tc $uri "SELECT * FROM dataset WHERE total_amount > 69" || true
 done
