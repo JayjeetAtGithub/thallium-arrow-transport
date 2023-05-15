@@ -108,7 +108,7 @@ arrow::Status Main(int argc, char **argv) {
     }
 
     std::string uri = argv[1];
-    std::string dataset_path = argv[2]
+    std::string dataset_path = argv[2];
     std::string query = argv[3];
 
     ConnCtx ctx = Init(uri);
