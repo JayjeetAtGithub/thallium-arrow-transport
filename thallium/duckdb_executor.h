@@ -56,7 +56,7 @@ class DuckDBEngine {
         std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
             auto statement = con->Prepare(query);
             auto result = statement->Execute();
-            return std::make_shared<arrow::RecordBatchReader>(std::move(result));
+            return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
         }
 
     private:
