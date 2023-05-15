@@ -77,8 +77,8 @@ std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_
     };
 
 struct ConnCtx {
-    tl::engine;
-    tl::endpoint;
+    tl::engine engine;
+    tl::endpoint endpoint;
 };
 
 ConnCtx Init(std::string &uri) {
