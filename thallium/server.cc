@@ -9,7 +9,7 @@ namespace tl = thallium;
 const int32_t kTransferSize = 19 * 1024 * 1024;
 const int32_t kBatchSize = 1 << 17;
 const std::string kThalliumResultPath = "/proj/schedock-PG0/thallium_result";
-
+const std::string kThalliumUriPath = "/proj/schedock-PG0/thallium_uri";
 
 ConcurrentRecordBatchQueue cq;
 void scan_handler(void *arg) {
@@ -150,8 +150,7 @@ int main(int argc, char** argv) {
         };
     
     engine.define("scan", scan);
-    std::string uri_file_path = "/proj/schedock-PG0/thallium_uri";
-    WriteToFile(engine.self(), uri_file_path, false);
+    WriteToFile(engine.self(), kThalliumUriPath, false);
     std::cout << "Server running at address " << engine.self() << std::endl;
     engine.wait_for_finalize();
 };
