@@ -67,12 +67,7 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
         int32_t port_;
 };
 
-int main(int argc, char *argv[]) {
-    if (argc < 3) {
-        std::cout << "./fs" << std::endl;
-        exit(1);
-    }
-    
+int main(int argc, char *argv[]) {    
     std::string host = "10.10.1.2";
     int32_t port = 3000;
     std::string transport = "tcp+grpc";
