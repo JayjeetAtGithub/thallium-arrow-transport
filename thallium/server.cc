@@ -11,16 +11,16 @@ const int32_t kBatchSize = 1 << 17;
 const std::string kThalliumResultPath = "/proj/schedock-PG0/thallium_result";
 const std::string kThalliumUriPath = "/proj/schedock-PG0/thallium_uri";
 
-ConcurrentRecordBatchQueue cq;
+
 void scan_handler(void *arg) {
-    arrow::RecordBatchReader *reader = (arrow::RecordBatchReader*)arg;
+    ScanThreadContext *ctx = (ScanThreadContext*)arg;
     std::shared_ptr<arrow::RecordBatch> batch;
-    auto s = reader->ReadNext(&batch);
+    auto s = ctx->reader->ReadNext(&batch);
     while (batch != nullptr) {
-        cq.push_back(batch);
-        s = reader->ReadNext(&batch);
+        ctx->cq->push_back(batch);
+        s = ctx->reader->ReadNext(&batch);
     }    
-    cq.push_back(nullptr);
+    ctx->cq->push_back(nullptr);
 }
 
 
@@ -56,9 +56,14 @@ int main(int argc, char** argv) {
             segments[0].second = kTransferSize;
             tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_write);
             cq.clear();
+            
+            ScanThreadContext ctx;
+            std::shared_ptr<ConcurrentRecordBatchQueue> cq = std::make_shared<ConcurrentRecordBatchQueue>();
+            ctx.cq = cq;
+            ctx.reader = reader;
 
             xstream->make_thread([&]() {
-                scan_handler((void*)reader.get());
+                scan_handler((void*)&ctx);
             }, tl::anonymous());
 
             std::shared_ptr<arrow::RecordBatch> new_batch;
@@ -69,7 +74,7 @@ int main(int argc, char** argv) {
                 int64_t rows_processed = 0;
 
                 while (rows_processed < kBatchSize) {
-                    cq.wait_n_pop(new_batch);
+                    cq->wait_n_pop(new_batch);
                     if (new_batch == nullptr) {
                         finished = true;
                         break;

@@ -16,7 +16,6 @@ std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
 int64_t total_rows_read = 0;
 
 
-
 auto schema = arrow::schema({
         arrow::field("VendorID", arrow::int64()),
         arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),

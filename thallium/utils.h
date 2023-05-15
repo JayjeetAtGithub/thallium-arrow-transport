@@ -43,3 +43,8 @@ void WriteToFile(std::string data, std::string path, bool append) {
     file << data;
     file.close();
 }
+
+struct ScanThreadContext {
+    std::shared_ptr<ConcurrentRecordBatchQueue> cq;
+    std::shared_ptr<arrow::RecordBatchReader> reader;
+};
