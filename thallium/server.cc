@@ -56,7 +56,6 @@ int main(int argc, char** argv) {
             segments[0].second = kTransferSize;
             tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_write);
             
-            cq->clear();
             std::shared_ptr<ScanThreadContext> ctx = std::make_shared<ScanThreadContext>();
             std::shared_ptr<ConcurrentRecordBatchQueue> cq = std::make_shared<ConcurrentRecordBatchQueue>();
             ctx->cq = cq;
