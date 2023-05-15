@@ -46,7 +46,7 @@ auto schema = arrow::schema({
     });
 
 
-std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> f =
+std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> do_rdma =
     [&batches, &segments, &local, &schema](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
         b(0, total_size).on(req.get_endpoint()) >> local(0, total_size);
         
@@ -93,6 +93,7 @@ arrow::Status Main(int argc, char **argv) {
 
     std::string uri = argv[1];
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
+    engine.define("do_rdma", do_rdma);
     tl::endpoint endpoint = engine.lookup(uri);
 
     std::string query = "SELECT * FROM read_parquet('/mnt/cephfs/dataset/16MB.uncompressed.parquet.1') WHERE total_amount > 69";
