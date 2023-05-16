@@ -38,11 +38,18 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(request.ticket);
 
+            std::cout << "Created table" << std::endl;
+
             std::string query = "SELECT * FROM dataset WHERE total_amount > 69;";
 
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+
+            std::cout << "Initiated execution" << std::endl;
+
             *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
                 new arrow::flight::RecordBatchStream(reader));
+
+            std::cout << "Instantiated Flight Data Stream" << std::endl;
             return arrow::Status::OK();
         }
 
