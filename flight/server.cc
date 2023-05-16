@@ -43,7 +43,7 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
 
             std::cout << "Created table" << std::endl;
 
-            std::string query = "SELECT * FROM dataset WHERE total_amount > 69;";
+            std::string query = "SELECT * FROM dataset WHERE total_amount > 69";
 
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
 
