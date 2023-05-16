@@ -36,6 +36,9 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
                             const arrow::flight::Ticket& request,
                             std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+
+            std::cout << "Creating table at: " << request.ticket << std::endl;
+            
             db->Create(request.ticket);
 
             std::cout << "Created table" << std::endl;
