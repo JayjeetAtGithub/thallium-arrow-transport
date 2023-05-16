@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
   auto client = ConnectToFlightServer(info).ValueOrDie();
 
-  std::string filepath = "/mnt/cephfs/dataset";
+  std::string filepath = "/mnt/cephfs/dataset/*";
   auto descriptor = arrow::flight::FlightDescriptor::Path({filepath});
   std::unique_ptr<arrow::flight::FlightInfo> flight_info;
   client->GetFlightInfo(descriptor, &flight_info);

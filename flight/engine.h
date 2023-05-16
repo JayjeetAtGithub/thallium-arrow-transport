@@ -56,15 +56,14 @@ class DuckDBEngine : public Engine {
 
         void Create(const std::string &path) {
             con->Query("INSTALL parquet; LOAD parquet;");
+            con->Query("PRAGMA threads=32;");
             std::string table_create_query = "CREATE TABLE dataset AS SELECT * FROM read_parquet('" + path + "');";
             con->Query(table_create_query);    
         }
 
         std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
             auto statement = con->Prepare(query);
-            std::cout << "Prepared query: " << query << std::endl;
             auto result = statement->Execute();
-            std::cout << "Executed query: " << query << std::endl;
             return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
         }
 
