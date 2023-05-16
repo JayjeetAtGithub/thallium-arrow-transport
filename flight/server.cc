@@ -35,24 +35,12 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
         arrow::Status DoGet(const arrow::flight::ServerCallContext&,
                             const arrow::flight::Ticket& request,
                             std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
-            std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
-
-            std::cout << "Creating table at: " << request.ticket << std::endl;
-            
+            std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();            
             db->Create(request.ticket);
-
-            std::cout << "Created table" << std::endl;
-
             std::string query = "SELECT * FROM dataset WHERE total_amount > 69";
-
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-
-            std::cout << "Initiated execution" << std::endl;
-
             *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
                 new arrow::flight::RecordBatchStream(reader));
-
-            std::cout << "Instantiated Flight Data Stream" << std::endl;
             return arrow::Status::OK();
         }
 
@@ -63,7 +51,11 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
             std::string path = file_info.path();
             auto descriptor = arrow::flight::FlightDescriptor::Path({path});
             arrow::flight::FlightEndpoint endpoint;
-            endpoint.ticket.ticket = path;
+            // endpoint.ticket.ticket = path;
+            
+            endpoint.ticket.path = path;
+            endpoint.ticket.query = "query";
+
             arrow::flight::Location location;
             ARROW_RETURN_NOT_OK(
                 arrow::flight::Location::ForGrpcTcp(host_, port(), &location));
@@ -90,6 +82,7 @@ int main(int argc, char *argv[]) {
     arrow::flight::FlightServerOptions options(server_location);
     auto server = std::unique_ptr<arrow::flight::FlightServerBase>(
         new ParquetStorageService(std::move(fs), host, port));
+    
     server->Init(options);
     std::cout << "Listening on port " << server->port() << std::endl;
     server->Serve();
