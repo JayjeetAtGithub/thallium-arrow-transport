@@ -85,11 +85,7 @@ int main(int argc, char *argv[]) {
     auto fs = std::make_shared<arrow::fs::LocalFileSystem>();
 
     arrow::flight::Location server_location;
-    if (transport == "tcp+ucx") {
-        server_location = arrow::flight::Location::ForScheme("ucx", "[::1]", 0).ValueOrDie();
-    } else {
-        arrow::flight::Location::ForGrpcTcp(host, port, &server_location);
-    }
+    arrow::flight::Location::ForGrpcTcp(host, port, &server_location);
 
     arrow::flight::FlightServerOptions options(server_location);
     auto server = std::unique_ptr<arrow::flight::FlightServerBase>(
