@@ -63,6 +63,6 @@ int main(int argc, char *argv[]) {
     WriteToFile(exec_time_ms, kFlightResultPath, true);
 
     std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
-    std::cout << "Time taken: " << exec_time_ms << " ms" << std::endl;
+    std::cout << "Time taken (ms): " << exec_time_ms << std::endl;
     return 0;
 }
