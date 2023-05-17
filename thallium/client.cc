@@ -92,6 +92,7 @@ arrow::Status Main(int argc, char **argv) {
 
     ConnCtx ctx = Init(uri);
     auto table = Scan(ctx, path, query).ValueOrDie();
+    std::cout << table->ToString() << std::endl;
     std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
 
     return arrow::Status::OK();
