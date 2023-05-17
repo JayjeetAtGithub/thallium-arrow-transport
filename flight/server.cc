@@ -35,6 +35,7 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
                             const arrow::flight::Ticket& request,
                             std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+            std::cout << "Ticket: " << request.ticket << std::endl;
             std::pair<std::string, std::string> payload = SplitRequest(request.ticket);
             db->Create(payload.first);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(payload.second);
@@ -49,6 +50,7 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
             std::shared_ptr<arrow::Schema> schema = arrow::schema({});
 
             arrow::flight::FlightEndpoint endpoint;
+            endpoint.ticket.ticket = descriptor.cmd;
             arrow::flight::Location location;
             ARROW_RETURN_NOT_OK(
                 arrow::flight::Location::ForGrpcTcp(host_, port(), &location));

@@ -49,8 +49,6 @@ int main(int argc, char *argv[]) {
   std::unique_ptr<arrow::flight::FlightInfo> flight_info;
   client->GetFlightInfo(descriptor, &flight_info);
 
-  std::cout << flight_info->SerializeToString().ValueOrDie() << std::endl;
-
   std::unique_ptr<arrow::flight::FlightStreamReader> stream;
   client->DoGet(flight_info->endpoints()[0].ticket, &stream);
   
