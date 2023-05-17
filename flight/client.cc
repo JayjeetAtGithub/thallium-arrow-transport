@@ -40,12 +40,14 @@ int main(int argc, char *argv[]) {
     info.host = host;
     info.port = 3000;
 
+    std::string path = argv[1];
+    std::string query = argv[2];
+
     auto client = ConnectToFlightServer(info).ValueOrDie();
 
-    std::string path = "/mnt/cephfs/dataset/*";
-    std::string query = "/mnt/cephfs/dataset/*@SELECT * FROM dataset WHERE total_amount > 69;";
+    std::string request = path + "@" + query;
 
-    auto descriptor = arrow::flight::FlightDescriptor::Command(query);
+    auto descriptor = arrow::flight::FlightDescriptor::Command(request);
     std::unique_ptr<arrow::flight::FlightInfo> flight_info;
     client->GetFlightInfo(descriptor, &flight_info);
 

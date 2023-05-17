@@ -16,5 +16,5 @@ function clean_server_cache {
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/fc || true
+    $PWD/bin/fc "/mnt/cephfs/dataset/*" "SELECT * FROM dataset WHERE total_amount > 69" || true
 done
