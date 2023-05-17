@@ -7,28 +7,6 @@
 
 namespace tl = thallium;
 
-
-auto schema = arrow::schema({
-        arrow::field("VendorID", arrow::int64()),
-        arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-        arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-        arrow::field("passenger_count", arrow::int64()),
-        arrow::field("trip_distance", arrow::float64()),
-        arrow::field("RatecodeID", arrow::int64()),
-        arrow::field("store_and_fwd_flag", arrow::utf8()),
-        arrow::field("PULocationID", arrow::int64()),
-        arrow::field("DOLocationID", arrow::int64()),
-        arrow::field("payment_type", arrow::int64()),
-        arrow::field("fare_amount", arrow::float64()),
-        arrow::field("extra", arrow::float64()),
-        arrow::field("mta_tax", arrow::float64()),
-        arrow::field("tip_amount", arrow::float64()),
-        arrow::field("tolls_amount", arrow::float64()),
-        arrow::field("improvement_surcharge", arrow::float64()),
-        arrow::field("total_amount", arrow::float64())
-    });
-
-
 struct ConnCtx {
     tl::engine engine;
     tl::endpoint endpoint;
@@ -43,7 +21,7 @@ ConnCtx Init(std::string &uri) {
     return ctx;
 }
 
-arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &path, std::string &query) {
+arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &path, std::string &query, std::shared_ptr<arrow::Schema> &schema) {
     tl::remote_procedure scan = ctx.engine.define("scan");
     int32_t kTransferSize = 19 * 1024 * 1024;
     std::vector<std::pair<void*,std::size_t>> segments(1);
@@ -95,19 +73,39 @@ arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &pat
     return arrow::Table::FromRecordBatches(schema, batches);
 }
 
-
 arrow::Status Main(int argc, char **argv) {
     if (argc < 2) {
         std::cout << "./tc [uri] [path] [query]" << std::endl;
         exit(1);
     }
 
+    auto schema = arrow::schema({
+        arrow::field("VendorID", arrow::int64()),
+        arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
+        arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
+        arrow::field("passenger_count", arrow::int64()),
+        arrow::field("trip_distance", arrow::float64()),
+        arrow::field("RatecodeID", arrow::int64()),
+        arrow::field("store_and_fwd_flag", arrow::utf8()),
+        arrow::field("PULocationID", arrow::int64()),
+        arrow::field("DOLocationID", arrow::int64()),
+        arrow::field("payment_type", arrow::int64()),
+        arrow::field("fare_amount", arrow::float64()),
+        arrow::field("extra", arrow::float64()),
+        arrow::field("mta_tax", arrow::float64()),
+        arrow::field("tip_amount", arrow::float64()),
+        arrow::field("tolls_amount", arrow::float64()),
+        arrow::field("improvement_surcharge", arrow::float64()),
+        arrow::field("total_amount", arrow::float64())
+    });
+
     std::string uri = argv[1];
     std::string path = argv[2];
     std::string query = argv[3];
 
     ConnCtx ctx = Init(uri);
-    Scan(ctx, path, query);
+    auto table = Scan(ctx, path, query, schema).ValueOrDie();
+    std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
 
     return arrow::Status::OK();
 }
