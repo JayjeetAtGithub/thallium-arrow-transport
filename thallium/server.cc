@@ -42,8 +42,9 @@ int main(int argc, char** argv) {
 
     std::shared_ptr<arrow::RecordBatchReader> reader;    
 
-    std::function<void(const tl::request&, const std::string&, const std::string&) init_scan = 
+    std::function<void(const tl::request&, const std::string&, const std::string&)> init_scan = 
         [&reader](const tl::request &req, const std::string& path, const std::string& query) {
+            std::cout << "Request: " << query << "@" << path << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             reader = db->Execute(query);
