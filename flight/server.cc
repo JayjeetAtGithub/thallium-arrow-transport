@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     arrow::flight::Location::ForGrpcTcp(host, port, &server_location);
 
     arrow::flight::FlightServerOptions options(server_location);
-    auto server = std::unique_ptr<arrow::flight::FlightServerBase>(host, port);
+    auto server = std::unique_ptr<arrow::flight::FlightServerBase>(new ParquetStorageService(host, port));
     server->Init(options);
     std::cout << "Listening on port " << server->port() << std::endl;
     server->Serve();
