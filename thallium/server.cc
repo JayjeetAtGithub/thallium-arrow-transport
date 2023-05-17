@@ -41,10 +41,10 @@ int main(int argc, char** argv) {
         tl::xstream::create(tl::scheduler::predef::deflt, *new_pool);
     
     std::function<void(const tl::request&, const std::string&, const std::string&)> scan = 
-        [&xstream, &engine, &do_rdma](const tl::request &req, const std::string &dataset_path, const std::string& query) {
-
+        [&xstream, &engine, &do_rdma](const tl::request &req, const std::string &path, const std::string& query) {
+            std::cout << "Request: " << path << "@" << query << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
-            db->Create(dataset_path);
+            db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
 
             auto start = std::chrono::high_resolution_clock::now();
