@@ -39,14 +39,21 @@ int main(int argc, char** argv) {
     tl::managed<tl::pool> new_pool = tl::pool::create(tl::pool::access::spmc);
     tl::managed<tl::xstream> xstream = 
         tl::xstream::create(tl::scheduler::predef::deflt, *new_pool);
-    
-    std::function<void(const tl::request&, const std::string&, const std::string&)> scan = 
-        [&xstream, &engine, &do_rdma](const tl::request &req, const std::string &path, const std::string& query) {
-            std::cout << "Request: " << path << "@" << query << std::endl;
+
+    std::shared_ptr<arrow::RecordBatchReader> reader;    
+
+    std::function<void(const tl::request&, const std::string&, const std::string&) init_scan = 
+        [&reader](const tl::request &req, const std::string& path, const std::string& query) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
-            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+            reader = db->Execute(query);
+            std::shared_ptr<arrow::Buffer> buff = arrow::ipc::SerializeSchema(*(reader->schema()));
+            return req.respond(
+                std::string(reinterpret_cast<const char*>(buff->data()), static_cast<size_t>(buff->size())));
+        }
 
+    std::function<void(const tl::request&)> start_scan = 
+        [&xstream, &engine, &do_rdma, &reader](const tl::request &req) {
             auto start = std::chrono::high_resolution_clock::now();
             
             bool finished = false;
@@ -157,7 +164,8 @@ int main(int argc, char** argv) {
             return req.respond(0);
         };
     
-    engine.define("scan", scan);
+    engine.define("init_scan", init_scan);
+    engine.define("start_scan", start_scan);
     WriteToFile(engine.self(), kThalliumUriPath, false);
     std::cout << "Server running at address " << engine.self() << std::endl;
     engine.wait_for_finalize();
