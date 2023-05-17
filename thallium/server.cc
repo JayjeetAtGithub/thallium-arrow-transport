@@ -48,10 +48,10 @@ int main(int argc, char** argv) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             reader = db->Execute(query);
-            std::shared_ptr<arrow::Buffer> buff = arrow::ipc::SerializeSchema(*(reader->schema()));
+            std::shared_ptr<arrow::Buffer> buff = arrow::ipc::SerializeSchema(*(reader->schema())).ValueOrDie();
             return req.respond(
                 std::string(reinterpret_cast<const char*>(buff->data()), static_cast<size_t>(buff->size())));
-        }
+        };
 
     std::function<void(const tl::request&)> start_scan = 
         [&xstream, &engine, &do_rdma, &reader](const tl::request &req) {
