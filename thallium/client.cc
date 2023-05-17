@@ -10,9 +10,7 @@ namespace cp = arrow::compute;
 
 const int32_t kTransferSize = 19 * 1024 * 1024;
 
-tl::bulk local;
-std::vector<std::pair<void*,std::size_t>> segments(1);
-std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+
 int64_t total_rows_read = 0;
 
 
@@ -37,7 +35,30 @@ auto schema = arrow::schema({
     });
 
 
-std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> do_rdma =
+struct ConnCtx {
+    tl::engine engine;
+    tl::endpoint endpoint;
+};
+
+ConnCtx Init(std::string &uri) {
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
+    tl::endpoint endpoint = engine.lookup(uri);
+    ConnCtx ctx;
+    ctx.engine = engine;
+    ctx.endpoint = endpoint;
+    return ctx;
+}
+
+void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
+    tl::remote_procedure scan = ctx.engine.define("scan");
+
+    std::vector<std::pair<void*,std::size_t>> segments(1);
+    segments[0].first = (uint8_t*)malloc(kTransferSize);
+    segments[0].second = kTransferSize;
+    tl::bulk local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
+
+    std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+    std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> do_rdma =
     [&batches, &segments, &local, &schema](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
         b(0, total_size).on(req.get_endpoint()) >> local(0, total_size);
         
@@ -75,26 +96,7 @@ std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_
         return req.respond(0);
     };
 
-struct ConnCtx {
-    tl::engine engine;
-    tl::endpoint endpoint;
-};
-
-ConnCtx Init(std::string &uri) {
-    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
     engine.define("do_rdma", do_rdma);
-    tl::endpoint endpoint = engine.lookup(uri);
-    ConnCtx ctx;
-    ctx.engine = engine;
-    ctx.endpoint = endpoint;
-    return ctx;
-}
-
-void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
-    tl::remote_procedure scan = ctx.engine.define("scan");
-    segments[0].first = (uint8_t*)malloc(kTransferSize);
-    segments[0].second = kTransferSize;
-    local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
     scan.on(ctx.endpoint)(path, query);
     ctx.engine.finalize();
 }
