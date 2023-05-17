@@ -112,4 +112,5 @@ arrow::Status Main(int argc, char **argv) {
 
 int main(int argc, char** argv) {
     arrow::Status s = Main(argc, argv);
+    return s.ok() ? 0 : 1;
 }
