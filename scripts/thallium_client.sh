@@ -16,8 +16,10 @@ function clean_server_cache {
     ssh node1 "sync"
 }
 
+query=$(cat /tmp/query)
+
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/tc $uri "/mnt/cephfs/dataset/*" "SELECT * FROM dataset WHERE total_amount > 69" || true
+    $PWD/bin/tc $uri "/mnt/cephfs/dataset/*" $query || true
 done
