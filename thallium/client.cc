@@ -6,38 +6,31 @@
 #include "headers.h"
 
 namespace tl = thallium;
-namespace cp = arrow::compute;
 
-const int32_t kTransferSize = 19 * 1024 * 1024;
+struct ConnCtx {
+    tl::engine engine;
+    tl::endpoint endpoint;
+};
 
-tl::bulk local;
-std::vector<std::pair<void*,std::size_t>> segments(1);
-std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
-int64_t total_rows_read = 0;
+ConnCtx Init(std::string &uri) {
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
+    tl::endpoint endpoint = engine.lookup(uri);
+    ConnCtx ctx;
+    ctx.engine = engine;
+    ctx.endpoint = endpoint;
+    return ctx;
+}
 
+arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &path, std::string &query, std::shared_ptr<arrow::Schema> &schema) {
+    tl::remote_procedure scan = ctx.engine.define("scan");
+    int32_t kTransferSize = 19 * 1024 * 1024;
+    std::vector<std::pair<void*,std::size_t>> segments(1);
+    segments[0].first = (uint8_t*)malloc(kTransferSize);
+    segments[0].second = kTransferSize;
+    tl::bulk local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
 
-auto schema = arrow::schema({
-        arrow::field("VendorID", arrow::int64()),
-        arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-        arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-        arrow::field("passenger_count", arrow::int64()),
-        arrow::field("trip_distance", arrow::float64()),
-        arrow::field("RatecodeID", arrow::int64()),
-        arrow::field("store_and_fwd_flag", arrow::utf8()),
-        arrow::field("PULocationID", arrow::int64()),
-        arrow::field("DOLocationID", arrow::int64()),
-        arrow::field("payment_type", arrow::int64()),
-        arrow::field("fare_amount", arrow::float64()),
-        arrow::field("extra", arrow::float64()),
-        arrow::field("mta_tax", arrow::float64()),
-        arrow::field("tip_amount", arrow::float64()),
-        arrow::field("tolls_amount", arrow::float64()),
-        arrow::field("improvement_surcharge", arrow::float64()),
-        arrow::field("total_amount", arrow::float64())
-    });
-
-
-std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> do_rdma =
+    std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+    std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> do_rdma =
     [&batches, &segments, &local, &schema](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
         b(0, total_size).on(req.get_endpoint()) >> local(0, total_size);
         
@@ -69,36 +62,16 @@ std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_
                 }
             }
             auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-            total_rows_read += batch->num_rows();
             batches.push_back(batch);
         }
         return req.respond(0);
     };
 
-struct ConnCtx {
-    tl::engine engine;
-    tl::endpoint endpoint;
-};
-
-ConnCtx Init(std::string &uri) {
-    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
-    engine.define("do_rdma", do_rdma);
-    tl::endpoint endpoint = engine.lookup(uri);
-    ConnCtx ctx;
-    ctx.engine = engine;
-    ctx.endpoint = endpoint;
-    return ctx;
-}
-
-void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
-    tl::remote_procedure scan = ctx.engine.define("scan");
-    segments[0].first = (uint8_t*)malloc(kTransferSize);
-    segments[0].second = kTransferSize;
-    local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
+    ctx.engine.define("do_rdma", do_rdma);
     scan.on(ctx.endpoint)(path, query);
     ctx.engine.finalize();
+    return arrow::Table::FromRecordBatches(schema, batches);
 }
-
 
 arrow::Status Main(int argc, char **argv) {
     if (argc < 2) {
@@ -106,17 +79,37 @@ arrow::Status Main(int argc, char **argv) {
         exit(1);
     }
 
+    auto schema = arrow::schema({
+        arrow::field("VendorID", arrow::int64()),
+        arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
+        arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
+        arrow::field("passenger_count", arrow::int64()),
+        arrow::field("trip_distance", arrow::float64()),
+        arrow::field("RatecodeID", arrow::int64()),
+        arrow::field("store_and_fwd_flag", arrow::utf8()),
+        arrow::field("PULocationID", arrow::int64()),
+        arrow::field("DOLocationID", arrow::int64()),
+        arrow::field("payment_type", arrow::int64()),
+        arrow::field("fare_amount", arrow::float64()),
+        arrow::field("extra", arrow::float64()),
+        arrow::field("mta_tax", arrow::float64()),
+        arrow::field("tip_amount", arrow::float64()),
+        arrow::field("tolls_amount", arrow::float64()),
+        arrow::field("improvement_surcharge", arrow::float64()),
+        arrow::field("total_amount", arrow::float64())
+    });
+
     std::string uri = argv[1];
     std::string path = argv[2];
     std::string query = argv[3];
 
     ConnCtx ctx = Init(uri);
-    Scan(ctx, path, query);
+    auto table = Scan(ctx, path, query, schema).ValueOrDie();
+    std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
 
-    std::cout << "Read " << total_rows_read << " rows" << std::endl;
     return arrow::Status::OK();
 }
 
 int main(int argc, char** argv) {
-    Main(argc, argv);
+    arrow::Status s = Main(argc, argv);
 }
