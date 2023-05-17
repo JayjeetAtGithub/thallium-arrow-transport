@@ -21,5 +21,5 @@ query=$(cat /tmp/query)
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/tc $uri "/mnt/cephfs/dataset/*" $query || true
+    $PWD/bin/tc $uri "/mnt/cephfs/dataset/*" "$query" || true
 done
