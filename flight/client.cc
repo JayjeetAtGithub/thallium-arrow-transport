@@ -7,7 +7,7 @@
 #include <arrow/ipc/api.h>
 #include <arrow/io/api.h>
 
-#include "util.h"
+#include "utils.h"
 
 
 const std::string kFlightResultPath = "/proj/schedock-PG0/flight_result";
