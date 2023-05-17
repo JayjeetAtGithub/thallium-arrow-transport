@@ -13,6 +13,7 @@
 #include "parquet/file_reader.h"
 
 #include "engine.h"
+#include "utils.h"
 
 
 class ParquetStorageService : public arrow::flight::FlightServerBase {
