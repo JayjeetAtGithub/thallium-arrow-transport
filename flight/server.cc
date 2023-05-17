@@ -13,20 +13,19 @@
 #include "parquet/file_reader.h"
 
 #include "engine.h"
+#include "utils.h"
+
 
 class ParquetStorageService : public arrow::flight::FlightServerBase {
     public:
-        explicit ParquetStorageService(
-            std::shared_ptr<arrow::fs::FileSystem> fs, std::string host, int32_t port 
-        ) : fs_(std::move(fs)), host_(host), port_(port) {}
+        explicit ParquetStorageService(std::string host, int32_t port) : host_(host), port_(port) {}
 
         int32_t Port() { return port_; }
 
         arrow::Status GetFlightInfo(const arrow::flight::ServerCallContext&,
                                     const arrow::flight::FlightDescriptor& descriptor,
                                     std::unique_ptr<arrow::flight::FlightInfo>* info) {
-            ARROW_ASSIGN_OR_RAISE(auto file_info, fs_->GetFileInfo(descriptor.path[0]));
-            ARROW_ASSIGN_OR_RAISE(auto flight_info, MakeFlightInfo(file_info));
+            ARROW_ASSIGN_OR_RAISE(auto flight_info, MakeFlightInfo(descriptor));
             *info = std::unique_ptr<arrow::flight::FlightInfo>(
                 new arrow::flight::FlightInfo(std::move(flight_info)));
             return arrow::Status::OK();
@@ -36,11 +35,10 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
                             const arrow::flight::Ticket& request,
                             std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
-            db->Create(request.ticket);
-
-            std::string query = "SELECT * FROM dataset WHERE total_amount > 69;";
-
-            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+            std::cout << "Ticket: " << request.ticket << std::endl;
+            std::pair<std::string, std::string> payload = SplitRequest(request.ticket);
+            db->Create(payload.first);
+            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(payload.second);
             *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
                 new arrow::flight::RecordBatchStream(reader));
             return arrow::Status::OK();
@@ -48,12 +46,11 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
 
     private:
         arrow::Result<arrow::flight::FlightInfo> MakeFlightInfo(
-            const arrow::fs::FileInfo& file_info) {
+            const arrow::flight::FlightDescriptor& descriptor) {
             std::shared_ptr<arrow::Schema> schema = arrow::schema({});
-            std::string path = file_info.path();
-            auto descriptor = arrow::flight::FlightDescriptor::Path({path});
+
             arrow::flight::FlightEndpoint endpoint;
-            endpoint.ticket.ticket = path;
+            endpoint.ticket.ticket = descriptor.cmd;
             arrow::flight::Location location;
             ARROW_RETURN_NOT_OK(
                 arrow::flight::Location::ForGrpcTcp(host_, port(), &location));
@@ -62,7 +59,6 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
             return arrow::flight::FlightInfo::Make(*schema, descriptor, {endpoint}, 0, 0);
         }
 
-        std::shared_ptr<arrow::fs::FileSystem> fs_;
         std::string host_;
         int32_t port_;
 };
@@ -72,18 +68,11 @@ int main(int argc, char *argv[]) {
     int32_t port = 3000;
     std::string transport = "tcp+grpc";
 
-    auto fs = std::make_shared<arrow::fs::LocalFileSystem>();
-
     arrow::flight::Location server_location;
-    if (transport == "tcp+ucx") {
-        server_location = arrow::flight::Location::ForScheme("ucx", "[::1]", 0).ValueOrDie();
-    } else {
-        arrow::flight::Location::ForGrpcTcp(host, port, &server_location);
-    }
+    arrow::flight::Location::ForGrpcTcp(host, port, &server_location);
 
     arrow::flight::FlightServerOptions options(server_location);
-    auto server = std::unique_ptr<arrow::flight::FlightServerBase>(
-        new ParquetStorageService(std::move(fs), host, port));
+    auto server = std::unique_ptr<arrow::flight::FlightServerBase>(new ParquetStorageService(host, port));
     server->Init(options);
     std::cout << "Listening on port " << server->port() << std::endl;
     server->Serve();

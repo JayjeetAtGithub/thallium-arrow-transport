@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <time.h>
 
 #include <arrow/api.h>
@@ -7,6 +6,9 @@
 #include <arrow/filesystem/api.h>
 #include <arrow/ipc/api.h>
 #include <arrow/io/api.h>
+
+#include "utils.h"
+
 
 const std::string kFlightResultPath = "/proj/schedock-PG0/flight_result";
 
@@ -37,23 +39,26 @@ int main(int argc, char *argv[]) {
   std::string host = "10.10.1.2";
   info.host = host;
   info.port = 3000;
-  std::string backend = "dataset";
 
   auto client = ConnectToFlightServer(info).ValueOrDie();
 
-  std::string filepath = "/mnt/cephfs/dataset";
-  auto descriptor = arrow::flight::FlightDescriptor::Path({filepath});
+  std::string path = "/mnt/cephfs/dataset/*";
+  std::string query = "/mnt/cephfs/dataset/*@SELECT * FROM dataset WHERE total_amount > 69;";
+
+  auto descriptor = arrow::flight::FlightDescriptor::Command(query);
   std::unique_ptr<arrow::flight::FlightInfo> flight_info;
   client->GetFlightInfo(descriptor, &flight_info);
-  std::shared_ptr<arrow::Table> table;
+
   std::unique_ptr<arrow::flight::FlightStreamReader> stream;
   client->DoGet(flight_info->endpoints()[0].ticket, &stream);
   
+  std::shared_ptr<arrow::Table> table;
   auto start = std::chrono::high_resolution_clock::now();
   stream->ReadAll(&table);
   auto end = std::chrono::high_resolution_clock::now();
+  
   std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-  write_to_file(exec_time_ms, kFlightResultPath);
+  WriteToFile(exec_time_ms, kFlightResultPath, true);
 
   std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
 }
