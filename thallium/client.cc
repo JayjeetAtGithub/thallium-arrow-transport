@@ -6,12 +6,6 @@
 #include "headers.h"
 
 namespace tl = thallium;
-namespace cp = arrow::compute;
-
-const int32_t kTransferSize = 19 * 1024 * 1024;
-
-
-int64_t total_rows_read = 0;
 
 
 auto schema = arrow::schema({
@@ -51,7 +45,7 @@ ConnCtx Init(std::string &uri) {
 
 void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
     tl::remote_procedure scan = ctx.engine.define("scan");
-
+    int32_t kTransferSize = 19 * 1024 * 1024;
     std::vector<std::pair<void*,std::size_t>> segments(1);
     segments[0].first = (uint8_t*)malloc(kTransferSize);
     segments[0].second = kTransferSize;
@@ -90,7 +84,6 @@ void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
                 }
             }
             auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-            total_rows_read += batch->num_rows();
             batches.push_back(batch);
         }
         return req.respond(0);
@@ -99,6 +92,7 @@ void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
     engine.define("do_rdma", do_rdma);
     scan.on(ctx.endpoint)(path, query);
     ctx.engine.finalize();
+    return arrow::Table::FromRecordBatches(schema, batches);
 }
 
 
@@ -115,7 +109,6 @@ arrow::Status Main(int argc, char **argv) {
     ConnCtx ctx = Init(uri);
     Scan(ctx, path, query);
 
-    std::cout << "Read " << total_rows_read << " rows" << std::endl;
     return arrow::Status::OK();
 }
 
