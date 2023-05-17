@@ -43,7 +43,7 @@ ConnCtx Init(std::string &uri) {
     return ctx;
 }
 
-void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
+arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &path, std::string &query) {
     tl::remote_procedure scan = ctx.engine.define("scan");
     int32_t kTransferSize = 19 * 1024 * 1024;
     std::vector<std::pair<void*,std::size_t>> segments(1);
@@ -89,7 +89,7 @@ void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
         return req.respond(0);
     };
 
-    engine.define("do_rdma", do_rdma);
+    ctx.engine.define("do_rdma", do_rdma);
     scan.on(ctx.endpoint)(path, query);
     ctx.engine.finalize();
     return arrow::Table::FromRecordBatches(schema, batches);
@@ -113,5 +113,5 @@ arrow::Status Main(int argc, char **argv) {
 }
 
 int main(int argc, char** argv) {
-    Main(argc, argv);
+    arrow::Status s = Main(argc, argv);
 }
