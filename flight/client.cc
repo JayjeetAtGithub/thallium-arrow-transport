@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     auto client = ConnectToFlightServer(info).ValueOrDie();
 
-    std::string request = path + "@" + query;
+    std::string request = query + "@" + path;
 
     auto descriptor = arrow::flight::FlightDescriptor::Command(request);
     std::unique_ptr<arrow::flight::FlightInfo> flight_info;
