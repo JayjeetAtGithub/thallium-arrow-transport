@@ -21,13 +21,21 @@ ConnCtx Init(std::string &uri) {
     return ctx;
 }
 
-arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &path, std::string &query, std::shared_ptr<arrow::Schema> &schema) {
-    tl::remote_procedure scan = ctx.engine.define("scan");
+arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &path, std::string &query) {
+    tl::remote_procedure init_scan = ctx.engine.define("init_scan");
+    tl::remote_procedure start_scan = ctx.engine.define("start_scan");
+
     int32_t kTransferSize = 19 * 1024 * 1024;
     std::vector<std::pair<void*,std::size_t>> segments(1);
     segments[0].first = (uint8_t*)malloc(kTransferSize);
     segments[0].second = kTransferSize;
     tl::bulk local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
+
+    std::string schema_str = init_scan.on(ctx.endpoint)(path, query);
+    std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(schema_str.c_str(), schema_str.size());
+    arrow::ipc::DictionaryMemo dict_memo;
+    arrow::io::BufferReader buff_reader(schema_buff);
+    std::shared_ptr<arrow::Schema> schema = arrow::ipc::ReadSchema(&buff_reader, &dict_memo).ValueOrDie();
 
     std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
     std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> do_rdma =
@@ -66,9 +74,8 @@ arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &pat
         }
         return req.respond(0);
     };
-
     ctx.engine.define("do_rdma", do_rdma);
-    scan.on(ctx.endpoint)(path, query);
+    start_scan.on(ctx.endpoint)();
     ctx.engine.finalize();
     return arrow::Table::FromRecordBatches(schema, batches);
 }
@@ -79,32 +86,13 @@ arrow::Status Main(int argc, char **argv) {
         exit(1);
     }
 
-    auto schema = arrow::schema({
-        arrow::field("VendorID", arrow::int64()),
-        arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-        arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-        arrow::field("passenger_count", arrow::int64()),
-        arrow::field("trip_distance", arrow::float64()),
-        arrow::field("RatecodeID", arrow::int64()),
-        arrow::field("store_and_fwd_flag", arrow::utf8()),
-        arrow::field("PULocationID", arrow::int64()),
-        arrow::field("DOLocationID", arrow::int64()),
-        arrow::field("payment_type", arrow::int64()),
-        arrow::field("fare_amount", arrow::float64()),
-        arrow::field("extra", arrow::float64()),
-        arrow::field("mta_tax", arrow::float64()),
-        arrow::field("tip_amount", arrow::float64()),
-        arrow::field("tolls_amount", arrow::float64()),
-        arrow::field("improvement_surcharge", arrow::float64()),
-        arrow::field("total_amount", arrow::float64())
-    });
-
     std::string uri = argv[1];
     std::string path = argv[2];
     std::string query = argv[3];
 
     ConnCtx ctx = Init(uri);
-    auto table = Scan(ctx, path, query, schema).ValueOrDie();
+    auto table = Scan(ctx, path, query).ValueOrDie();
+    std::cout << table->ToString() << std::endl;
     std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
 
     return arrow::Status::OK();

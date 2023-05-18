@@ -48,3 +48,10 @@ struct ScanThreadContext {
     std::shared_ptr<ConcurrentRecordBatchQueue> cq;
     std::shared_ptr<arrow::RecordBatchReader> reader;
 };
+
+std::pair<std::string, std::string> SplitRequest(std::string request) {
+    std::string delimiter = "@";
+    std::string path = request.substr(0, request.find(delimiter));
+    std::string query = request.substr(request.find(delimiter) + 1, request.length());
+    return std::make_pair(path, query);
+}
