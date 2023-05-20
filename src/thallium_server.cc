@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
                         finished = true;
                         break;
                     }
-                    std::cout << batch->ToString()  << std::endl;
+                    std::cout << new_batch->ToString()  << std::endl;
 
 
                     rows_processed += new_batch->num_rows();
