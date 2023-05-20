@@ -21,7 +21,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
                 *out = nullptr;
                 return arrow::Status::OK();
             }
-            arrow::ArrowArray arrow_array;
+            ArrowArray arrow_array;
             duckdb::ArrowConverter::ToArrowArray(*chunk, &arrow_array);
             *out = arrow::ImportRecordBatch(&arrow_array, imported_schema).ValueOrDie();
             return arrow::Status::OK();
