@@ -70,6 +70,7 @@ arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &pat
                 }
             }
             auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
+            std::cout << batch->ToString() << std::endl;
             batches.push_back(batch);
         }
         return req.respond(0);
