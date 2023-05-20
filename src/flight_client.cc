@@ -8,9 +8,7 @@
 #include <arrow/io/api.h>
 
 #include "utils.h"
-
-
-const std::string kFlightResultPath = "/proj/schedock-PG0/flight_result";
+#include "constants.h"
 
 void write_to_file(std::string data, std::string path) {
     std::ofstream file;
@@ -60,7 +58,7 @@ int main(int argc, char *argv[]) {
     auto end = std::chrono::high_resolution_clock::now();
     
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-    WriteToFile(exec_time_ms, kFlightResultPath, true);
+    WriteToFile(exec_time_ms, FL_RES_PATH, true);
     
     std::cout << table->ToString() << std::endl;
     std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;

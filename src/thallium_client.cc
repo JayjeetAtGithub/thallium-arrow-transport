@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "headers.h"
+#include "constants.h"
 
 namespace tl = thallium;
 
@@ -25,10 +26,9 @@ arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &pat
     tl::remote_procedure init_scan = ctx.engine.define("init_scan");
     tl::remote_procedure start_scan = ctx.engine.define("start_scan");
 
-    int32_t kTransferSize = 19 * 1024 * 1024;
     std::vector<std::pair<void*,std::size_t>> segments(1);
-    segments[0].first = (uint8_t*)malloc(kTransferSize);
-    segments[0].second = kTransferSize;
+    segments[0].first = (uint8_t*)malloc(BUFFER_SIZE);
+    segments[0].second = BUFFER_SIZE;
     tl::bulk local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
 
     std::string schema_str = init_scan.on(ctx.endpoint)(path, query);

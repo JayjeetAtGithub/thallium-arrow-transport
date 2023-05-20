@@ -6,12 +6,6 @@
 
 namespace tl = thallium;
 
-const int32_t kTransferSize = 19 * 1024 * 1024;
-const int32_t kBatchSize = 1 << 17;
-const std::string kThalliumResultPath = "/proj/schedock-PG0/thallium_result";
-const std::string kThalliumUriPath = "/proj/schedock-PG0/thallium_uri";
-
-
 void scan_handler(void *arg) {
     ScanThreadContext *ctx = (ScanThreadContext*)arg;
     std::shared_ptr<arrow::RecordBatch> batch;
@@ -59,9 +53,9 @@ int main(int argc, char** argv) {
             
             bool finished = false;
             std::vector<std::pair<void*,std::size_t>> segments(1);
-            uint8_t* segment_buffer = (uint8_t*)malloc(kTransferSize);
+            uint8_t* segment_buffer = (uint8_t*)malloc(BUFFER_SIZE);
             segments[0].first = (void*)segment_buffer;
-            segments[0].second = kTransferSize;
+            segments[0].second = BUFFER_SIZE;
             tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_write);
             
             std::shared_ptr<ScanThreadContext> ctx = std::make_shared<ScanThreadContext>();
@@ -80,7 +74,7 @@ int main(int argc, char** argv) {
                 std::vector<int32_t> batch_sizes;
                 int64_t rows_processed = 0;
 
-                while (rows_processed < kBatchSize) {
+                while (rows_processed < BATCH_SIZE) {
                     cq->wait_n_pop(new_batch);
                     if (new_batch == nullptr) {
                         finished = true;
@@ -160,14 +154,14 @@ int main(int argc, char** argv) {
 
             auto end = std::chrono::high_resolution_clock::now();
             std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-            WriteToFile(exec_time_ms, kThalliumResultPath, true);
+            WriteToFile(exec_time_ms, TL_RES_PATH, true);
             std::cout << "Time taken (ms): " << exec_time_ms << std::endl;
             return req.respond(0);
         };
     
     engine.define("init_scan", init_scan);
     engine.define("start_scan", start_scan);
-    WriteToFile(engine.self(), kThalliumUriPath, false);
+    WriteToFile(engine.self(), TL_URI_PATH, false);
     std::cout << "Server running at address " << engine.self() << std::endl;
     engine.wait_for_finalize();
 };
