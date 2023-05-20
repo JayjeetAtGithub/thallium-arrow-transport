@@ -12,7 +12,6 @@ void scan_handler(void *arg) {
     std::shared_ptr<arrow::RecordBatch> batch;
     auto s = ctx->reader->ReadNext(&batch);
     while (batch != nullptr) {
-        std::cout << batch->ToString()  << std::endl;
         ctx->cq->push_back(batch);
         s = ctx->reader->ReadNext(&batch);
     }    
@@ -82,6 +81,8 @@ int main(int argc, char** argv) {
                         finished = true;
                         break;
                     }
+                    std::cout << batch->ToString()  << std::endl;
+
 
                     rows_processed += new_batch->num_rows();
 
