@@ -82,11 +82,6 @@ arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &pat
 }
 
 arrow::Status Main(int argc, char **argv) {
-    if (argc < 2) {
-        std::cout << "./tc [uri] [path] [query]" << std::endl;
-        exit(1);
-    }
-
     std::string uri = argv[1];
     std::string path = argv[2];
     std::string query = argv[3];
