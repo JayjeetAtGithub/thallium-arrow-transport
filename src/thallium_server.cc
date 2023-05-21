@@ -157,6 +157,7 @@ int main(int argc, char** argv) {
             std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
             WriteToFile(exec_time_ms, TL_RES_PATH, true);
             std::cout << "Time taken (ms): " << exec_time_ms << std::endl;
+            delete segment_buffer;
             return req.respond(0);
         };
     
