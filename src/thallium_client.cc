@@ -84,8 +84,7 @@ arrow::Status Main(int argc, char **argv) {
     std::string query = argv[3];
 
     ConnCtx ctx = Init(uri);
-    Scan(ctx, path, query).ValueOrDie();
-    std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
+    Scan(ctx, path, query);
 
     return arrow::Status::OK();
 }
