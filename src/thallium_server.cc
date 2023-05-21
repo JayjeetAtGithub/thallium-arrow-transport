@@ -81,7 +81,6 @@ int main(int argc, char** argv) {
                         finished = true;
                         break;
                     }
-
                     rows_processed += new_batch->num_rows();
 
                     batches.push_back(new_batch);

@@ -22,7 +22,7 @@ ConnCtx Init(std::string &uri) {
     return ctx;
 }
 
-arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &path, std::string &query) {
+void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
     tl::remote_procedure init_scan = ctx.engine.define("init_scan");
     tl::remote_procedure start_scan = ctx.engine.define("start_scan");
 
@@ -37,9 +37,8 @@ arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &pat
     arrow::io::BufferReader buff_reader(schema_buff);
     std::shared_ptr<arrow::Schema> schema = arrow::ipc::ReadSchema(&buff_reader, &dict_memo).ValueOrDie();
 
-    std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
     std::function<void(const tl::request&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, std::vector<int32_t>&, int32_t&, tl::bulk&)> do_rdma =
-    [&batches, &segments, &local, &schema](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
+    [&segments, &local, &schema](const tl::request& req, std::vector<int32_t> &batch_sizes, std::vector<int32_t>& data_offsets, std::vector<int32_t>& data_sizes, std::vector<int32_t>& off_offsets, std::vector<int32_t>& off_sizes, int32_t& total_size, tl::bulk& b) {
         b(0, total_size).on(req.get_endpoint()) >> local(0, total_size);
         
         int num_cols = data_offsets.size() / batch_sizes.size();           
@@ -70,30 +69,21 @@ arrow::Result<std::shared_ptr<arrow::Table>> Scan(ConnCtx &ctx, std::string &pat
                 }
             }
             auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-            batches.push_back(batch);
         }
         return req.respond(0);
     };
     ctx.engine.define("do_rdma", do_rdma);
     start_scan.on(ctx.endpoint)();
     ctx.engine.finalize();
-    return arrow::Table::FromRecordBatches(schema, batches);
 }
 
 arrow::Status Main(int argc, char **argv) {
-    if (argc < 2) {
-        std::cout << "./tc [uri] [path] [query]" << std::endl;
-        exit(1);
-    }
-
     std::string uri = argv[1];
     std::string path = argv[2];
     std::string query = argv[3];
 
     ConnCtx ctx = Init(uri);
-    auto table = Scan(ctx, path, query).ValueOrDie();
-    std::cout << table->ToString() << std::endl;
-    std::cout << "Read " << table->num_rows() << " rows and " << table->num_columns() << " columns" << std::endl;
+    Scan(ctx, path, query);
 
     return arrow::Status::OK();
 }
