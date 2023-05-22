@@ -1,10 +1,8 @@
 #!/bin/bash
 set -e
 
-uri=$(cat /proj/schedock-PG0/thallium_uri)
-echo "Connecting to $uri"
-
-mode=$1
+binary=$1
+mode=$2
 
 function clean_client_cache {
     sync
@@ -23,5 +21,11 @@ query=$(cat /tmp/query)
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/tc $uri "/mnt/cephfs/dataset/*" "$query" "$mode" || true
+
+    if [ "$binary" == "tc" ]; then
+        uri=$(cat /proj/schedock-PG0/thallium_uri)
+        $PWD/bin/"$binary" $uri "/mnt/cephfs/dataset/*" "$query" "$mode" || true
+    else
+        $PWD/bin/"$binary" "/mnt/cephfs/dataset/*" "$query" "$mode" || true
+    fi
 done
