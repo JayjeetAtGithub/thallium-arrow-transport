@@ -35,14 +35,18 @@ int main(int argc, char** argv) {
     tl::managed<tl::xstream> xstream = 
         tl::xstream::create(tl::scheduler::predef::deflt, *new_pool);
 
-    std::shared_ptr<arrow::RecordBatchReader> reader;    
-
-    std::function<void(const tl::request&, const std::string&, const std::string&)> init_scan = 
-        [&reader](const tl::request &req, const std::string& path, const std::string& query) {
-            std::cout << "Request: " << query << "@" << path << std::endl;
+    std::shared_ptr<arrow::RecordBatchReader> reader;
+    std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
+        [&reader](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
+            std::cout << "Request: " << query << "@" << path << "@" << mode << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
-            reader = db->ExecuteEager(query);
+            if (mode == "t") {
+                reader = db->ExecuteEager(query);
+            }
+            else {
+                reader = db->Execute(query);
+            }
             std::shared_ptr<arrow::Buffer> buff = arrow::ipc::SerializeSchema(*(reader->schema())).ValueOrDie();
             return req.respond(
                 std::string(reinterpret_cast<const char*>(buff->data()), static_cast<size_t>(buff->size())));

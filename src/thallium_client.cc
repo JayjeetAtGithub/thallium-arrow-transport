@@ -22,7 +22,7 @@ ConnCtx Init(std::string &uri) {
     return ctx;
 }
 
-void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
+void Scan(ConnCtx &ctx, std::string &path, std::string &query, std::string &mode) {
     tl::remote_procedure init_scan = ctx.engine.define("init_scan");
     tl::remote_procedure start_scan = ctx.engine.define("start_scan");
 
@@ -31,7 +31,7 @@ void Scan(ConnCtx &ctx, std::string &path, std::string &query) {
     segments[0].second = BUFFER_SIZE;
     tl::bulk local = ctx.engine.expose(segments, tl::bulk_mode::write_only);
 
-    std::string schema_str = init_scan.on(ctx.endpoint)(path, query);
+    std::string schema_str = init_scan.on(ctx.endpoint)(path, query, mode);
     std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(schema_str.c_str(), schema_str.size());
     arrow::ipc::DictionaryMemo dict_memo;
     arrow::io::BufferReader buff_reader(schema_buff);
@@ -82,9 +82,10 @@ arrow::Status Main(int argc, char **argv) {
     std::string uri = argv[1];
     std::string path = argv[2];
     std::string query = argv[3];
+    std::string mode = argv[4];
 
     ConnCtx ctx = Init(uri);
-    Scan(ctx, path, query);
+    Scan(ctx, path, query, mode);
 
     return arrow::Status::OK();
 }
