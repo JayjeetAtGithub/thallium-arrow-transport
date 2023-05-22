@@ -49,9 +49,9 @@ struct ScanThreadContext {
     std::shared_ptr<arrow::RecordBatchReader> reader;
 };
 
-std::pair<std::string, std::string> SplitRequest(std::string request) {
+std::pair<std::string, std::string> SplitString(std::string s) {
     std::string delimiter = "@";
-    std::string path = request.substr(0, request.find(delimiter));
-    std::string query = request.substr(request.find(delimiter) + 1, request.length());
-    return std::make_pair(path, query);
+    std::string part1 = s.substr(0, s.find(delimiter));
+    std::string part2 = s.substr(s.find(delimiter) + 1, s.length());
+    return std::make_pair(part1, part2);
 }
