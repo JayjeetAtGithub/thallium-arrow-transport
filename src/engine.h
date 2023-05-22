@@ -42,6 +42,7 @@ class Engine {
     public:
         virtual void Create(const std::string &path) = 0;
         virtual std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) = 0;
+        virtual std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) = 0;
 };
 
 
@@ -63,6 +64,24 @@ class DuckDBEngine : public Engine {
             auto statement = con->Prepare(query);
             auto result = statement->Execute();
             return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
+        }
+
+        std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) {
+            auto statement = con->Prepare(query);
+            auto result = statement->Execute();
+            auto reader = std::make_shared<DuckDBRecordBatchReader>(std::move(result));
+
+            std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+            std::shared_ptr<arrow::RecordBatch> batch;
+            while (reader->ReadNext(&batch).ok() && batch != nullptr) {
+                batches.push_back(batch);
+            }
+
+            auto table = arrow::Table::FromRecordBatches(batches).ValueOrDie();
+            auto ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
+            auto scanner_builder = ds->NewScan().ValueOrDie();
+            auto scanner = scanner_builder->Finish().ValueOrDie();
+            return scanner->ToRecordBatchReader().ValueOrDie();
         }
 
     private:

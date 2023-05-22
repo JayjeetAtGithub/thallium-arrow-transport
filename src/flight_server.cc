@@ -38,7 +38,7 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             std::pair<std::string, std::string> payload = SplitRequest(request.ticket);
             db->Create(payload.second);
-            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(payload.first);
+            std::shared_ptr<arrow::RecordBatchReader> reader = db->ExecuteEager(payload.first);
             *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
                 new arrow::flight::RecordBatchStream(reader));
             return arrow::Status::OK();
@@ -74,6 +74,6 @@ int main(int argc, char *argv[]) {
     arrow::flight::FlightServerOptions options(server_location);
     auto server = std::unique_ptr<arrow::flight::FlightServerBase>(new ParquetStorageService(host, port));
     server->Init(options);
-    std::cout << "Listening on port " << server->port() << std::endl;
+    std::cout << "Serving at: " << server->location().ToString() << std::endl;
     server->Serve();
 }

@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
             std::cout << "Request: " << query << "@" << path << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
-            reader = db->Execute(query);
+            reader = db->ExecuteEager(query);
             std::shared_ptr<arrow::Buffer> buff = arrow::ipc::SerializeSchema(*(reader->schema())).ValueOrDie();
             return req.respond(
                 std::string(reinterpret_cast<const char*>(buff->data()), static_cast<size_t>(buff->size())));
@@ -156,12 +156,13 @@ int main(int argc, char** argv) {
             std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
             WriteToFile(exec_time_ms, TL_RES_PATH, true);
             std::cout << "Time taken (ms): " << exec_time_ms << std::endl;
+            delete segment_buffer;
             return req.respond(0);
         };
     
     engine.define("init_scan", init_scan);
     engine.define("start_scan", start_scan);
     WriteToFile(engine.self(), TL_URI_PATH, false);
-    std::cout << "Server running at address " << engine.self() << std::endl;
+    std::cout << "Serving at: " << engine.self() << std::endl;
     engine.wait_for_finalize();
 };
