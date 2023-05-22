@@ -36,14 +36,14 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
                             std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
             std::cout << "Request: " << request.ticket << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
-            std::pair<std::string, std::string> query_n_pathmode = SplitString(request.ticket);
-            std::pair<std::string, std::string> path_n_mode = SplitString(query_n_pathmode.second);
-            db->Create(path_n_mode.first);
+            std::pair<std::string, std::string> split_a = SplitString(request.ticket);
+            std::pair<std::string, std::string> split_b = SplitString(split_a.second);
+            db->Create(split_b.first);
             std::shared_ptr<arrow::RecordBatchReader> reader;
-            if (path_n_mode.second == "t") {
-                reader = db->ExecuteEager(query_n_pathmode.first);
+            if (split_b.second == "t") {
+                reader = db->ExecuteEager(split_a.first);
             } else {
-                reader = db->Execute(query_n_pathmode.first);
+                reader = db->Execute(split_a.first);
             }
             *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
                 new arrow::flight::RecordBatchStream(reader));
