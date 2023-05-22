@@ -74,6 +74,6 @@ int main(int argc, char *argv[]) {
     arrow::flight::FlightServerOptions options(server_location);
     auto server = std::unique_ptr<arrow::flight::FlightServerBase>(new ParquetStorageService(host, port));
     server->Init(options);
-    std::cout << "Serving at: " << server->location()->ToString() << std::endl;
+    std::cout << "Serving at: " << server->location().ToString() << std::endl;
     server->Serve();
 }
