@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+mode=$1
+
 function clean_client_cache {
     sync
     echo 3 > /proc/sys/vm/drop_caches
@@ -18,5 +20,5 @@ query=$(cat /tmp/query)
 for i in {1..5}; do
     clean_client_cache
     clean_server_cache
-    $PWD/bin/fc "/mnt/cephfs/dataset/*" "$query" || true
+    $PWD/bin/fc "/mnt/cephfs/dataset/*" "$query" "$mode" || true
 done
