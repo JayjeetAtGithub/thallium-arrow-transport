@@ -12,7 +12,6 @@ void scan_handler(void *arg) {
     std::shared_ptr<arrow::RecordBatch> batch;
     auto s = ctx->reader->ReadNext(&batch);
     while (batch != nullptr) {
-        std::cout << batch->num_rows() << std::endl;
         ctx->cq->push_back(batch);
         s = ctx->reader->ReadNext(&batch);
     }    
@@ -164,6 +163,6 @@ int main(int argc, char** argv) {
     engine.define("init_scan", init_scan);
     engine.define("start_scan", start_scan);
     WriteToFile(engine.self(), TL_URI_PATH, false);
-    std::cout << "Server running at address " << engine.self() << std::endl;
+    std::cout << "Serving at: " << engine.self() << std::endl;
     engine.wait_for_finalize();
 };
