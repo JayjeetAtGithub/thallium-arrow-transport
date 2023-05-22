@@ -6,3 +6,5 @@
 2. SELECT * FROM dataset;
 3. SELECT * FROM dataset WHERE total_amount > 69;
 4. SELECT * FROM dataset WHERE total_amount > 27;
+5. SELECT avg(fare_amount) FROM dataset;
+
