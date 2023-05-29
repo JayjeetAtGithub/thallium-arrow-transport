@@ -12,7 +12,7 @@ sudo apt install -y python3 \
                libboost-all-dev \
                llvm
 
-if [ ! -d "arrow" ]; then
+if [ ! -d "/tmp/arrow" ]; then
     git clone https://github.com/apache/arrow /tmp/arrow
 fi
 
