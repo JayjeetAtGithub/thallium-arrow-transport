@@ -5,6 +5,7 @@ sudo apt update
 sudo apt install -y ibverbs-utils pslist
 
 ./scripts/install_arrow.sh
+./scripts/install_duckdb.sh
 
 rm -rf ~/spack
 git clone -b releases/v0.18 -c feature.manyFiles=true https://github.com/spack/spack.git ~/spack
