@@ -5,10 +5,11 @@ pwd=$PWD
 
 if [ ! -d "/tmp/duckdb" ]; then
     git clone https://github.com/duckdb/duckdb /tmp/duckdb
-    git checkout v0.8.0
 fi
 
 cd /tmp/duckdb
+
+git checkout v0.8.0
 git pull
 
 mkdir -p build/
