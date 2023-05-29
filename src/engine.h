@@ -38,7 +38,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
 };
 
 
-class Engine {
+class QueryEngine {
     public:
         virtual void Create(const std::string &path) = 0;
         virtual std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) = 0;
@@ -46,7 +46,7 @@ class Engine {
 };
 
 
-class DuckDBEngine : public Engine {
+class DuckDBEngine : public QueryEngine {
     public:
         DuckDBEngine() {
             db = std::make_shared<duckdb::DuckDB>(nullptr);
