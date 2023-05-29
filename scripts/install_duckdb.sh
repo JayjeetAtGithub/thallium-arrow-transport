@@ -14,6 +14,6 @@ mkdir -p build/
 cd build/
 
 cmake ..
-make -j$(nproc) install
+sudo make -j$(nproc) install
 
 cd $pwd
