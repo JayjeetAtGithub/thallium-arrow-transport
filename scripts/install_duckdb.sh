@@ -10,7 +10,7 @@ fi
 cd /tmp/duckdb
 
 git checkout v0.8.0
-git pull
+git pull origin v0.8.0
 
 mkdir -p build/
 cd build/
