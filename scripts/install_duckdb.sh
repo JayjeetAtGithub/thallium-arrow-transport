@@ -15,5 +15,6 @@ cd build/
 
 cmake ..
 sudo make -j$(nproc) install
+sudo cp /usr/local/lib/libduck* /usr/lib
 
 cd $pwd
