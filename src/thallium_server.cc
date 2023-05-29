@@ -12,7 +12,7 @@ void scan_handler(void *arg) {
     std::shared_ptr<arrow::RecordBatch> batch;
     auto s = ctx->reader->ReadNext(&batch);
     while (batch != nullptr) {
-        std::cout << "Batch size: " << batch->size() << std::endl;
+        std::cout << "Batch size: " << batch->num_rows() << std::endl;
         ctx->cq->push_back(batch);
         s = ctx->reader->ReadNext(&batch);
     }    
