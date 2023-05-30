@@ -80,6 +80,7 @@ class DuckDBEngine : public QueryEngine {
             auto table = arrow::Table::FromRecordBatches(batches).ValueOrDie();
             auto ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
             auto scanner_builder = ds->NewScan().ValueOrDie();
+            scanner_builder->UseThreads(false);
             auto scanner = scanner_builder->Finish().ValueOrDie();
             return scanner->ToRecordBatchReader().ValueOrDie();
         }
