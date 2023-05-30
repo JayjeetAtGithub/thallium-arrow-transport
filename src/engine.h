@@ -89,5 +89,5 @@ class DuckDBEngine : public QueryEngine {
     private:
         std::shared_ptr<duckdb::DuckDB> db;
         std::shared_ptr<duckdb::Connection> con;
-        std::shared_ptr<QueryResult> result;
+        std::shared_ptr<duckdb::QueryResult> result;
 };
