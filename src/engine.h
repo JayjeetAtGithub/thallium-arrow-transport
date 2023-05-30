@@ -10,7 +10,7 @@
 class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
     public:
         DuckDBRecordBatchReader(std::shared_ptr<duckdb::QueryResult> result) : result(result.get()) {
-            auto timezone_config = duckdb::QueryResult::GetConfigTimezone(result);
+            auto timezone_config = duckdb::QueryResult::GetConfigTimezone(*result);
             ArrowSchema arrow_schema;
             duckdb::ArrowConverter::ToArrowSchema(&arrow_schema, result->types, result->names, timezone_config);
             imported_schema = arrow::ImportSchema(&arrow_schema).ValueOrDie();
