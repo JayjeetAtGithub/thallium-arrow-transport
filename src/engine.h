@@ -27,6 +27,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
             }
 
             *out = arrow::ImportRecordBatch(&arrow_array, imported_schema).ValueOrDie();
+            std::cout << out->ToString() << std::endl;
             return arrow::Status::OK();
         }
 
