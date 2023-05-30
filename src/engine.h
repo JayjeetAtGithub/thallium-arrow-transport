@@ -18,7 +18,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
 
         arrow::Status ReadNext(std::shared_ptr<arrow::RecordBatch>* out) override {
             ArrowArray arrow_array
-            idx_t count = ArrowUtil::FetchChunk(result.get(), 1000000, &arrow_array);
+            duckdb::idx_t count = ArrowUtil::FetchChunk(result.get(), 1000000, &arrow_array);
 
             if (count == 0) {
                 *out = nullptr;
