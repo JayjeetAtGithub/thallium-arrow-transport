@@ -1,5 +1,6 @@
 #include <duckdb.hpp>
 #include <duckdb/common/arrow/arrow_converter.hpp>
+#include <duckdb/common/arrow/arrow_wrapper.hpp>
 
 #include <arrow/api.h>
 #include <arrow/c/abi.h>
@@ -16,13 +17,14 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
         }
 
         arrow::Status ReadNext(std::shared_ptr<arrow::RecordBatch>* out) override {
-            chunk = result->Fetch();
-            if (chunk == nullptr) {
+            ArrowArray arrow_array
+            idx_t count = ArrowUtil::FetchChunk(result.get(), 1000000, &arrow_array);
+
+            if (count == 0) {
                 *out = nullptr;
                 return arrow::Status::OK();
             }
-            ArrowArray arrow_array;
-            duckdb::ArrowConverter::ToArrowArray(*chunk, &arrow_array);
+
             *out = arrow::ImportRecordBatch(&arrow_array, imported_schema).ValueOrDie();
             return arrow::Status::OK();
         }
