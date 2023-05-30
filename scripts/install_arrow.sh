@@ -10,6 +10,7 @@ sudo apt install -y python3 \
                python3-numpy \
                cmake \
                libboost-all-dev \
+               libssl-dev \
                llvm
 
 if [ ! -d "/tmp/arrow" ]; then
