@@ -14,20 +14,17 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
             ArrowSchema arrow_schema;
             duckdb::ArrowConverter::ToArrowSchema(&arrow_schema, result->types, result->names, timezone_config);
             imported_schema = arrow::ImportSchema(&arrow_schema).ValueOrDie();
-            std::cout << "Imported schema: " << imported_schema->ToString() << std::endl;
         }
 
         arrow::Status ReadNext(std::shared_ptr<arrow::RecordBatch>* out) override {
             ArrowArray arrow_array;
             idx_t count = duckdb::ArrowUtil::FetchChunk(result_.get(), 1000000, &arrow_array);
-            std::cout << "Fetched chunk: " << count << std::endl;
             if (count == 0) {
                 *out = nullptr;
                 return arrow::Status::OK();
             }
 
             *out = arrow::ImportRecordBatch(&arrow_array, imported_schema).ValueOrDie();
-            std::cout << (*out)->num_rows() << std::endl;
             return arrow::Status::OK();
         }
 
