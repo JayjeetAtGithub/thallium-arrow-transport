@@ -64,13 +64,13 @@ class DuckDBEngine : public QueryEngine {
 
         std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
             auto statement = con->Prepare(query);
-            auto result = statement->Execute();
+            result = statement->Execute();
             return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
         }
 
         std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) {
             auto statement = con->Prepare(query);
-            auto result = statement->Execute();
+            result = statement->Execute();
             auto reader = std::make_shared<DuckDBRecordBatchReader>(std::move(result));
 
             std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
@@ -89,4 +89,5 @@ class DuckDBEngine : public QueryEngine {
     private:
         std::shared_ptr<duckdb::DuckDB> db;
         std::shared_ptr<duckdb::Connection> con;
+        std::shared_ptr<QueryResult> result;
 };
