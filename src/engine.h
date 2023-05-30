@@ -9,7 +9,7 @@
 
 class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
     public:
-        DuckDBRecordBatchReader(std::shared_ptr<duckdb::QueryResult> result) : result(result) {
+        DuckDBRecordBatchReader(std::shared_ptr<duckdb::QueryResult> result) : result(std::move(result)) {
             auto timezone_config = duckdb::QueryResult::GetConfigTimezone(*result);
             ArrowSchema arrow_schema;
             duckdb::ArrowConverter::ToArrowSchema(&arrow_schema, result->types, result->names, timezone_config);
@@ -64,13 +64,13 @@ class DuckDBEngine : public QueryEngine {
 
         std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
             auto statement = con->Prepare(query);
-            result = statement->Execute();
+            auto result = statement->Execute();
             return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
         }
 
         std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) {
             auto statement = con->Prepare(query);
-            result = statement->Execute();
+            auto result = statement->Execute();
             auto reader = std::make_shared<DuckDBRecordBatchReader>(std::move(result));
 
             std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
@@ -89,5 +89,4 @@ class DuckDBEngine : public QueryEngine {
     private:
         std::shared_ptr<duckdb::DuckDB> db;
         std::shared_ptr<duckdb::Connection> con;
-        std::shared_ptr<duckdb::QueryResult> result;
 };
