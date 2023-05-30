@@ -69,6 +69,7 @@ void Scan(ConnCtx &ctx, std::string &path, std::string &query, std::string &mode
                 }
             }
             auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
+            std::cout << batch->ToString() << std::endl;
         }
         return req.respond(0);
     };
