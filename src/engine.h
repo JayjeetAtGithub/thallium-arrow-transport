@@ -35,7 +35,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
         }
 
     protected:
-        std::shared_ptr<std::duckdb::QueryResult> result;
+        std::shared_ptr<duckdb::QueryResult> result;
         std::unique_ptr<duckdb::DataChunk> chunk;
         std::shared_ptr<arrow::Schema> imported_schema;
 };
