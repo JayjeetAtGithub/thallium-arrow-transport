@@ -9,8 +9,8 @@
 
 class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
     public:
-        DuckDBRecordBatchReader(std::shared_ptr<duckdb::QueryResult> result) : result(result) {
-            auto timezone_config = duckdb::QueryResult::GetConfigTimezone(*result);
+        DuckDBRecordBatchReader(std::shared_ptr<duckdb::QueryResult> result) : result(result.get()) {
+            auto timezone_config = duckdb::QueryResult::GetConfigTimezone(result);
             ArrowSchema arrow_schema;
             duckdb::ArrowConverter::ToArrowSchema(&arrow_schema, result->types, result->names, timezone_config);
             imported_schema = arrow::ImportSchema(&arrow_schema).ValueOrDie();
@@ -19,7 +19,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
 
         arrow::Status ReadNext(std::shared_ptr<arrow::RecordBatch>* out) override {
             ArrowArray arrow_array;
-            idx_t count = duckdb::ArrowUtil::FetchChunk(result.get(), 1000000, &arrow_array);
+            idx_t count = duckdb::ArrowUtil::FetchChunk(result, 1000000, &arrow_array);
 
             if (count == 0) {
                 *out = nullptr;
@@ -35,7 +35,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
         }
 
     protected:
-        std::shared_ptr<duckdb::QueryResult> result;
+        duckdb::QueryResult *result;
         std::unique_ptr<duckdb::DataChunk> chunk;
         std::shared_ptr<arrow::Schema> imported_schema;
 };
