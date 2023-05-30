@@ -14,6 +14,7 @@ class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
             ArrowSchema arrow_schema;
             duckdb::ArrowConverter::ToArrowSchema(&arrow_schema, result->types, result->names, timezone_config);
             imported_schema = arrow::ImportSchema(&arrow_schema).ValueOrDie();
+            std::cout << "Imported schema: " << imported_schema->ToString() << std::endl;
         }
 
         arrow::Status ReadNext(std::shared_ptr<arrow::RecordBatch>* out) override {
