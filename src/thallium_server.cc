@@ -157,7 +157,6 @@ int main(int argc, char** argv) {
             }
 
             delete segment_buffer;
-            
             return req.respond(e);
         };
     
