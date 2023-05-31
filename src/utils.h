@@ -2,7 +2,8 @@
 #include <deque>
 #include <condition_variable>
 #include <fstream>
-
+#include <chrono>
+#include <ctime>
 #include <arrow/api.h>
 
 class ConcurrentRecordBatchQueue {
@@ -54,4 +55,10 @@ std::pair<std::string, std::string> SplitString(std::string s) {
     std::string part1 = s.substr(0, s.find(delimiter));
     std::string part2 = s.substr(s.find(delimiter) + 1, s.length());
     return std::make_pair(part1, part2);
+}
+
+void PrintCurrentTimestamp() {
+    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::cout << "Timestamp: " << std::ctime(&now_c) << std::endl;
 }

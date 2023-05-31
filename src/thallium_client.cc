@@ -3,6 +3,7 @@
 #include <chrono>
 #include <fstream>
 
+#include "utils.h"
 #include "headers.h"
 #include "constants.h"
 
@@ -113,7 +114,7 @@ class ThalliumClient {
             auto end = std::chrono::high_resolution_clock::now();
             auto exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
             std::cout << "Scan RPC (ms): " << exec_time_ms << std::endl;
-            std::cout << std::chrono::system_clock::now() << " UTC\n";
+            PrintCurrentTimestamp();
 
         }
 };

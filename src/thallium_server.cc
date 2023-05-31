@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
             auto end = std::chrono::high_resolution_clock::now();
             std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
             std::cout << "Execution time: " << exec_time_ms << std::endl;
-            std::cout << std::chrono::system_clock::now() << " UTC\n";
+            PrintCurrentTimestamp();
 
             delete segment_buffer;
             
