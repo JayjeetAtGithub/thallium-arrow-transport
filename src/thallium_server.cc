@@ -53,9 +53,7 @@ int main(int argc, char** argv) {
         };
 
     std::function<void(const tl::request&)> start_scan = 
-        [&xstream, &engine, &do_rdma, &reader](const tl::request &req) {
-            auto start = std::chrono::high_resolution_clock::now();
-            
+        [&xstream, &engine, &do_rdma, &reader](const tl::request &req) {            
             bool finished = false;
             std::vector<std::pair<void*,std::size_t>> segments(1);
             uint8_t* segment_buffer = (uint8_t*)malloc(BUFFER_SIZE);
@@ -156,10 +154,6 @@ int main(int argc, char** argv) {
                 }
             }
 
-            auto end = std::chrono::high_resolution_clock::now();
-            std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-            WriteToFile(exec_time_ms, TL_RES_PATH, true);
-            std::cout << "Time taken (ms): " << exec_time_ms << std::endl;
             delete segment_buffer;
             return req.respond(0);
         };
