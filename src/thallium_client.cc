@@ -14,7 +14,7 @@ class ThalliumDescriptor {
         std::string path;
         std::string mode;
 
-    static Create(std::string &query, std::string &path, std::string &mode) {
+    static ThalliumDescriptor Create(std::string &query, std::string &path, std::string &mode) {
         ThalliumDescriptor desc;
         desc.query = query;
         desc.path = path;
@@ -38,7 +38,7 @@ class ThalliumClient {
 
         ThalliumClient(std::string &uri) : uri(uri) {}
 
-        Connect() {
+        void Connect() {
             engine = tl::engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
             endpoint = engine.lookup(uri);
         }
@@ -103,9 +103,9 @@ class ThalliumClient {
                 }
                 return req.respond(0);
             };
-            client.engine.define("do_rdma", do_rdma);
-            start_scan.on(client.endpoint)();
-            client.engine.finalize();
+            engine.define("do_rdma", do_rdma);
+            start_scan.on(endpoint)();
+            engine.finalize();
         }
 };
 
