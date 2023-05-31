@@ -153,13 +153,12 @@ int main(int argc, char** argv) {
 
                     segments[0].second = total_size;
                     e = do_rdma.on(req.get_endpoint())(batch_sizes, data_offsets, data_sizes, off_offsets, off_sizes, total_size, arrow_bulk);
+                    std::cout << "Sent batch of size: " << total_size << std::endl;
                 }
             }
 
             auto end = std::chrono::high_resolution_clock::now();
             std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-            std::cout << "Execution time: " << exec_time_ms << std::endl;
-            PrintCurrentTimestamp();
 
             delete segment_buffer;
             

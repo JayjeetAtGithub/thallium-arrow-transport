@@ -101,7 +101,8 @@ class ThalliumClient {
                         }
                     }
                     auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-                    std::cout << batch->ToString() << std::endl;
+                    std::cout << "Batch of size: " << batch->num_rows() << std::endl;
+                    sleep(4000);
                 }
                 return req.respond(0);
             };
