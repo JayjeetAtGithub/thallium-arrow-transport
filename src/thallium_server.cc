@@ -54,7 +54,6 @@ int main(int argc, char** argv) {
 
     std::function<void(const tl::request&)> start_scan = 
         [&xstream, &engine, &do_rdma, &reader](const tl::request &req) {
-            auto start = std::chrono::high_resolution_clock::now();
             int e;
             bool finished = false;
             std::vector<std::pair<void*,std::size_t>> segments(1);
@@ -156,9 +155,6 @@ int main(int argc, char** argv) {
                     std::cout << "Sent batch of size: " << total_size << std::endl;
                 }
             }
-
-            auto end = std::chrono::high_resolution_clock::now();
-            std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
 
             delete segment_buffer;
             
