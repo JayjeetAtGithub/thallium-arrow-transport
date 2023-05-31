@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
     std::function<void(const tl::request&)> start_scan = 
         [&xstream, &engine, &do_rdma, &reader](const tl::request &req) {
             auto start = std::chrono::high_resolution_clock::now();
-            
+            int e;
             bool finished = false;
             std::vector<std::pair<void*,std::size_t>> segments(1);
             uint8_t* segment_buffer = (uint8_t*)malloc(BUFFER_SIZE);
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
                     }
 
                     segments[0].second = total_size;
-                    do_rdma.on(req.get_endpoint())(batch_sizes, data_offsets, data_sizes, off_offsets, off_sizes, total_size, arrow_bulk);
+                    e = do_rdma.on(req.get_endpoint())(batch_sizes, data_offsets, data_sizes, off_offsets, off_sizes, total_size, arrow_bulk);
                 }
             }
 
@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
             std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
             std::cout << "Execution time: " << exec_time_ms << std::endl;
             delete segment_buffer;
-            return req.respond(0);
+            return req.respond(e);
         };
     
     engine.define("init_scan", init_scan);
