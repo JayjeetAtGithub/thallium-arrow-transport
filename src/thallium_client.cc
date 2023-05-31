@@ -37,6 +37,7 @@ class ThalliumClient {
         std::string uri;
 
         ThalliumClient(std::string &uri) : uri(uri) {}
+        ~ThalliumClient() { engine.finalize(); }
 
         void Connect() {
             engine = tl::engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
@@ -116,12 +117,6 @@ class ThalliumClient {
             end = std::chrono::high_resolution_clock::now();
             exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
             std::cout << "Scan RPC (ms): " << exec_time_ms;
-            
-            start = std::chrono::high_resolution_clock::now();
-            engine.finalize();
-            end = std::chrono::high_resolution_clock::now();
-            exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-            std::cout << "Finalize (ms): " << exec_time_ms;
         }
 };
 
