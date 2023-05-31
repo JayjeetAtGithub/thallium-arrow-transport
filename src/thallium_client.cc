@@ -45,7 +45,6 @@ class ThalliumClient {
 
         void GetThalliumInfo(ThalliumDescriptor &desc, ThalliumInfo &info) {
             tl::remote_procedure init_scan = engine.define("init_scan");
-            tl::remote_procedure start_scan = engine.define("start_scan");
 
             std::vector<std::pair<void*,std::size_t>> segments(1);
             segments[0].first = (uint8_t*)malloc(BUFFER_SIZE);
@@ -104,6 +103,7 @@ class ThalliumClient {
                 return req.respond(0);
             };
             engine.define("do_rdma", do_rdma);
+            tl::remote_procedure start_scan = engine.define("start_scan");
             start_scan.on(endpoint)();
             engine.finalize();
         }
@@ -121,7 +121,7 @@ arrow::Status Main(int argc, char **argv) {
     auto desc = ThalliumDescriptor::Create(query, path, mode);
 
     ThalliumInfo info;
-    client->GetThalliumInfo(desc, info)
+    client->GetThalliumInfo(desc, info);
 
     client->Scan(info);
 
