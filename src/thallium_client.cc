@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <ctime>
 #include <fstream>
 
 #include "headers.h"
@@ -102,6 +103,10 @@ class ThalliumClient {
                     auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
                     std::cout << batch->ToString() << std::endl;
                 }
+
+                auto timenow = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+                std::cout << ctime(&timenow) << std::endl;
+
                 return req.respond(0);
             };
             
