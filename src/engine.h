@@ -6,6 +6,8 @@
 #include <arrow/c/abi.h>
 #include <arrow/c/bridge.h>
 
+#include "constants.h"
+
 
 class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
     public:
