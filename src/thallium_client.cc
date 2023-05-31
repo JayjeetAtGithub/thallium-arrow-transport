@@ -103,14 +103,25 @@ class ThalliumClient {
                 }
                 return req.respond(0);
             };
+            
+            auto start = std::chrono::high_resolution_clock::now();
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure start_scan = engine.define("start_scan");
-            auto start = std::chrono::high_resolution_clock::now();
-            int e = start_scan.on(endpoint)();
             auto end = std::chrono::high_resolution_clock::now();
-            std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-            std::cout << "Time main (ms): " << exec_time_ms;
+            auto exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
+            std::cout << "Define (ms): " << exec_time_ms;
+            
+            start = std::chrono::high_resolution_clock::now();
+            int e = start_scan.on(endpoint)();
+            end = std::chrono::high_resolution_clock::now();
+            exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
+            std::cout << "Scan RPC (ms): " << exec_time_ms;
+            
+            start = std::chrono::high_resolution_clock::now();
             engine.finalize();
+            end = std::chrono::high_resolution_clock::now();
+            exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
+            std::cout << "Finalize (ms): " << exec_time_ms;
         }
 };
 
