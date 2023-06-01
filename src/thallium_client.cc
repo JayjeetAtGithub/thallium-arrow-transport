@@ -109,9 +109,9 @@ class ThalliumClient {
             auto s = std::chrono::high_resolution_clock::now();
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure start_scan = engine.define("start_scan");
-            auto e = std::chrono::high_resolution_clock::now();
-            auto exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(e-s).count()/1000) + "\n";
-            std::cout << "Define RPC (ms): " << exec_time_ms << std::endl;
+            auto en = std::chrono::high_resolution_clock::now();
+            auto exec = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(en-s).count()/1000) + "\n";
+            std::cout << "Define RPC (ms): " << exec << std::endl;
 
             auto start = std::chrono::high_resolution_clock::now();
             int e = start_scan.on(endpoint)();
