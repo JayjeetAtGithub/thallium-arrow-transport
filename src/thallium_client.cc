@@ -103,7 +103,12 @@ class ThalliumClient {
             
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
+
+            auto start = std::chrono::high_resolution_clock::now();
             int e = get_next_batch.on(endpoint)();
+            auto end = std::chrono::high_resolution_clock::now();
+            std::cout << "RPC = " << CalcDuration(start, end) << std::endl;
+
             if (e == 0) {
                 return batch;
             } else {
