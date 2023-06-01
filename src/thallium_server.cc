@@ -7,17 +7,6 @@
 
 namespace tl = thallium;
 
-void scan_handler(void *arg) {
-    ScanThreadContext *ctx = (ScanThreadContext*)arg;
-    std::shared_ptr<arrow::RecordBatch> batch;
-    auto s = ctx->reader->ReadNext(&batch);
-    while (batch != nullptr) {
-        ctx->cq->push_back(batch);
-        s = ctx->reader->ReadNext(&batch);
-    }    
-    ctx->cq->push_back(nullptr);
-}
-
 
 int main(int argc, char** argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
@@ -29,8 +18,6 @@ int main(int argc, char** argv) {
         margo_finalize(mid);
         return -1;
     }
-
-    tl::remote_procedure do_rdma = engine.define("do_rdma");    
 
     std::shared_ptr<arrow::RecordBatchReader> reader;
     std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
@@ -49,11 +36,16 @@ int main(int argc, char** argv) {
                 std::string(reinterpret_cast<const char*>(buff->data()), static_cast<size_t>(buff->size())));
         };
 
+    tl::remote_procedure do_rdma = engine.define("do_rdma");
     std::function<void(const tl::request&)> get_next_batch = 
         [&do_rdma, &reader, &engine](const tl::request &req) {
             auto start = std::chrono::high_resolution_clock::now();
             std::shared_ptr<arrow::RecordBatch> batch;
+            
+            auto s1 = std::chrono::high_resolution_clock::now();
             reader->ReadNext(&batch);
+            auto e1 = std::chrono::high_resolution_clock::now();
+            std::cout << "ReadNext: " << std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count()/1000) << std::endl;
 
             if (batch != nullptr) {
                 std::vector<int64_t> data_buff_sizes;
@@ -103,7 +95,7 @@ int main(int argc, char** argv) {
                 
                 int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
                 auto end = std::chrono::high_resolution_clock::now();
-                std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << std::endl;
+                std::cout << "Time: " << std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) << std::endl;
                 return req.respond(e);
             } else {
                 return req.respond(1);
