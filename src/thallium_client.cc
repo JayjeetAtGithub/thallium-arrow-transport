@@ -27,8 +27,6 @@ class ThalliumDescriptor {
 class ThalliumInfo {
     public:
         std::shared_ptr<arrow::Schema> schema;
-        tl::bulk local;
-        std::vector<std::pair<void*,std::size_t>> segments;
 };
 
 class ThalliumClient {
@@ -48,30 +46,21 @@ class ThalliumClient {
         void GetThalliumInfo(ThalliumDescriptor &desc, ThalliumInfo &info) {
             tl::remote_procedure init_scan = engine.define("init_scan");
 
-            std::vector<std::pair<void*,std::size_t>> segments(1);
-            segments[0].first = (uint8_t*)malloc(BUFFER_SIZE);
-            segments[0].second = BUFFER_SIZE;
-            tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
-
             std::string schema_str = init_scan.on(endpoint)(desc.path, desc.query, desc.mode);
             std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(schema_str.c_str(), schema_str.size());
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::io::BufferReader buff_reader(schema_buff);
             std::shared_ptr<arrow::Schema> schema = arrow::ipc::ReadSchema(&buff_reader, &dict_memo).ValueOrDie();
-
             info.schema = schema;
-            info.local = local;
-            info.segments = segments;
         }
 
         std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
             auto schema = info.schema;
-            auto local = info.local;
-            auto segments = info.segments;
+            auto engine = this->engine;
 
             std::shared_ptr<arrow::RecordBatch> batch;
             std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma =
-                [&schema, &batch](const tl::request& req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk& b) {
+                [&schema, &batch, &engine](const tl::request& req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk& b) {
                     int num_cols = schema->num_fields();
                     
                     std::vector<std::shared_ptr<arrow::Array>> columns;
