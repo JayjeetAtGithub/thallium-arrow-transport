@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
             auto s1 = std::chrono::high_resolution_clock::now();
             reader->ReadNext(&batch);
             auto e1 = std::chrono::high_resolution_clock::now();
-            std::cout << "ReadNext: " << std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count()/1000) << std::endl;
+            std::cout << "ReadNext: " << CalcDuration(s1, e1) << std::endl;
 
             if (batch != nullptr) {
                 std::vector<int64_t> data_buff_sizes;
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
                 
                 int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
                 auto end = std::chrono::high_resolution_clock::now();
-                std::cout << "Time: " << std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) << std::endl;
+                std::cout << "Time: " << CalcDuration(start, end) << std::endl;
                 return req.respond(e);
             } else {
                 return req.respond(1);

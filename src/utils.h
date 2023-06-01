@@ -62,3 +62,7 @@ void PrintCurrentTimestamp() {
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
     std::cout << "Timestamp: " << std::ctime(&now_c) << std::endl;
 }
+
+std::string CalcDuration(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end) {
+    return std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
+}
