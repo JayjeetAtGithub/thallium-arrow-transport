@@ -50,6 +50,7 @@ int main(int argc, char** argv) {
         };
 
     std::function<void(const tl::request&)> get_next_batch = 
+        auto start = std::chrono::high_resolution_clock::now();
         [&do_rdma, &reader, &engine](const tl::request &req) {
             std::shared_ptr<arrow::RecordBatch> batch;
             reader->ReadNext(&batch);
@@ -100,8 +101,10 @@ int main(int argc, char** argv) {
                 tl::bulk arrow_bulk;
                 arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
                 
-                do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
-                return req.respond(0);
+                int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
+                auto end = std::chrono::high_resolution_clock::now();
+                std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << std::endl;
+                return req.respond(e);
             } else {
                 return req.respond(1);
             }
