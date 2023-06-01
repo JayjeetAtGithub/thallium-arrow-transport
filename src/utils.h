@@ -64,5 +64,5 @@ void PrintCurrentTimestamp() {
 }
 
 std::string CalcDuration(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end) {
-    return (double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000;
+    return (double)(std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
 }
