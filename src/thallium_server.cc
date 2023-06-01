@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     double total_time = 0;
     tl::remote_procedure do_rdma = engine.define("do_rdma");
     std::function<void(const tl::request&)> get_next_batch = 
-        [&do_rdma, &reader, &engine](const tl::request &req) {
+        [&do_rdma, &reader, &engine, &total_time](const tl::request &req) {
             auto start = std::chrono::high_resolution_clock::now();
             std::shared_ptr<arrow::RecordBatch> batch;
             reader->ReadNext(&batch);
