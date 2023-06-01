@@ -50,8 +50,8 @@ int main(int argc, char** argv) {
         };
 
     std::function<void(const tl::request&)> get_next_batch = 
-        auto start = std::chrono::high_resolution_clock::now();
         [&do_rdma, &reader, &engine](const tl::request &req) {
+            auto start = std::chrono::high_resolution_clock::now();
             std::shared_ptr<arrow::RecordBatch> batch;
             reader->ReadNext(&batch);
 
