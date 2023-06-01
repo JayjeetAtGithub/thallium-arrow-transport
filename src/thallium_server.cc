@@ -50,13 +50,11 @@ int main(int argc, char** argv) {
         };
 
     std::function<void(const tl::request&)> get_next_batch = 
-        [&do_rdma, &reader](const tl::request &req) {
-            
+        [&do_rdma, &reader, &engine](const tl::request &req) {
             std::shared_ptr<arrow::RecordBatch> batch;
             reader->ReadNext(&batch);
 
             if (batch != nullptr) {
-
                 std::vector<int64_t> data_buff_sizes;
                 std::vector<int64_t> offset_buff_sizes;
                 int64_t num_rows = batch->num_rows();
@@ -105,7 +103,6 @@ int main(int argc, char** argv) {
                 do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
                 return req.respond(0);
             } else {
-                reader_map.erase(uuid);
                 return req.respond(1);
             }
         };
