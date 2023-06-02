@@ -21,9 +21,11 @@ arrow::Status Main(int argc, char **argv) {
     tl::endpoint endpoint = engine.lookup(uri);
     tl::remote_procedure scan = engine.define("scan");
 
-    std::cout << getTimestamp() << std::endl;
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 100; i++) {
+        std::cout << getTimestamp() << std::endl;
         scan.on(endpoint)();
+        sleep(2);
+    }
     
     return arrow::Status::OK();
 }
