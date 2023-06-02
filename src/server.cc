@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
     std::function<void(const tl::request&)> scan = 
         [](const tl::request &req) {
             std::cout << "Hello World : " << getTimestamp() << std::endl;
+            return req.respond(0);
         };
 
 
