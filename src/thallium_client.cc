@@ -45,7 +45,7 @@ class ThalliumClient {
 
         void GetThalliumInfo(ThalliumDescriptor &desc, ThalliumInfo &info) {
             tl::remote_procedure init_scan = engine.define("init_scan");
-
+            std::cout << "Client: InitScan: Calling RPC at: " << getTimestamp() << std::endl;
             std::string schema_str = init_scan.on(endpoint)(desc.path, desc.query, desc.mode);
             std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(schema_str.c_str(), schema_str.size());
             arrow::ipc::DictionaryMemo dict_memo;
@@ -105,7 +105,7 @@ class ThalliumClient {
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
 
             auto start = std::chrono::high_resolution_clock::now();
-            std::cout << "Client: Calling RPC at : " << getTimestamp() << std::endl;
+            std::cout << "Client: GetNextBatch: Calling RPC at : " << getTimestamp() << std::endl;
             int e = get_next_batch.on(endpoint)();
             auto end = std::chrono::high_resolution_clock::now();
             std::cout << "Client RPC took: " << CalcDuration(start, end) << std::endl;
