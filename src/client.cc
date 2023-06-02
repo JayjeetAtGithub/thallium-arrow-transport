@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     tl::remote_procedure scan = engine.define("scan");
 
     for (int i = 0; i < 5; i++) {
-        std::cout << "Client: Calling RPC at : " getTimestamp() << std::endl;
+        std::cout << "Client: Calling RPC at : " << getTimestamp() << std::endl;
         scan.on(endpoint)();
         sleep(2);
     }
