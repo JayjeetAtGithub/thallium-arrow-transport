@@ -15,9 +15,9 @@ arrow::Status Main(int argc, char **argv) {
     std::string query = argv[3];
     std::string mode = argv[4];
 
-    tl::engine engine(protocol, THALLIUM_SERVER_MODE, true);
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
     tl::endpoint endpoint = engine.lookup(uri);
-    tl::remote_procedure scan = conn_ctx.engine.define("scan");
+    tl::remote_procedure scan = engine.define("scan");
 
     std::cout << getTimestamp() << std::endl;
     scan.on(endpoint)();
