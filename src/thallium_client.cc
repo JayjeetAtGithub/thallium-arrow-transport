@@ -105,10 +105,10 @@ class ThalliumClient {
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
 
             auto start = std::chrono::high_resolution_clock::now();
-            std::cout << getTimestamp() << std::endl;
+            std::cout << "Client: Calling RPC at : " << getTimestamp() << std::endl;
             int e = get_next_batch.on(endpoint)();
             auto end = std::chrono::high_resolution_clock::now();
-            std::cout << "RPC = " << CalcDuration(start, end) << std::endl;
+            std::cout << "Client RPC took: " << CalcDuration(start, end) << std::endl;
 
             if (e == 0) {
                 return batch;

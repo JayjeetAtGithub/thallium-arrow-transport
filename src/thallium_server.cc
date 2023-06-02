@@ -19,11 +19,9 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    double total_time = 0;
     std::shared_ptr<arrow::RecordBatchReader> reader;
     std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
-        [&reader, &total_time](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
-            total_time = 0;
+        [&reader](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
             std::cout << "Request: " << query << "@" << path << "@" << mode << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
@@ -40,9 +38,8 @@ int main(int argc, char** argv) {
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
     std::function<void(const tl::request&)> get_next_batch = 
-        [&do_rdma, &reader, &engine, &total_time](const tl::request &req) {
-            std::cout << getTimestamp() << std::endl;
-
+        [&do_rdma, &reader, &engine](const tl::request &req) {
+            std::cout << "Server: Called RPC at : " << getTimestamp() << std::endl;
             auto start = std::chrono::high_resolution_clock::now();
             std::shared_ptr<arrow::RecordBatch> batch;
             reader->ReadNext(&batch);
@@ -95,8 +92,7 @@ int main(int argc, char** argv) {
                 
                 int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
                 auto end = std::chrono::high_resolution_clock::now();
-                total_time += CalcDuration(start, end);
-                std::cout << "Total time: " << total_time << std::endl;
+                std::cout << "Server body took: " << CalcDuration(start, end); << std::endl;
                 return req.respond(e);
             } else {
                 return req.respond(1);
