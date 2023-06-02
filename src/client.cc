@@ -2,6 +2,8 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
+#include <unistd.h>
+
 
 #include <thallium.hpp>
 #include "utils.h"
