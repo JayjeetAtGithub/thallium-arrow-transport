@@ -1,8 +1,6 @@
 #include <iostream>
-
+#include <thallium.hpp>
 #include "utils.h"
-#include "headers.h"
-#include "constants.h"
 
 namespace tl = thallium;
 
@@ -26,7 +24,7 @@ int main(int argc, char** argv) {
 
 
     engine.define("scan", scan);
-    WriteToFile(engine.self(), TL_URI_PATH, false);
+    WriteToFile(engine.self(), "/proj/schedock-PG0/thallium_uri", false);
     std::cout << "Serving at: " << engine.self() << std::endl;
     engine.wait_for_finalize();
 };

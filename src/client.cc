@@ -3,13 +3,12 @@
 #include <chrono>
 #include <fstream>
 
+#include <thallium.hpp>
 #include "utils.h"
-#include "headers.h"
-#include "constants.h"
 
 namespace tl = thallium;
 
-arrow::Status Main(int argc, char **argv) {
+int main(int argc, char** argv) {
     std::string uri = argv[1];
     std::string path = argv[2];
     std::string query = argv[3];
@@ -26,11 +25,4 @@ arrow::Status Main(int argc, char **argv) {
         scan.on(endpoint)();
         sleep(2);
     }
-    
-    return arrow::Status::OK();
-}
-
-int main(int argc, char** argv) {
-    arrow::Status s = Main(argc, argv);
-    return s.ok() ? 0 : 1;
 }
