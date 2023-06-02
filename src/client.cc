@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
     std::cout << uri << std::endl;
 
-    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
+    tl::engine engine("ofi+verbs", THALLIUM_CLIENT_MODE, true);
     tl::endpoint endpoint = engine.lookup(uri);
     tl::remote_procedure scan = engine.define("scan");
 
