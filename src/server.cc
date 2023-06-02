@@ -6,7 +6,7 @@ namespace tl = thallium;
 
 
 int main(int argc, char** argv) {
-    tl::engine engine("ofi+tcp", THALLIUM_SERVER_MODE, true);
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
     margo_instance_id mid = engine.get_margo_instance();
     hg_addr_t svr_addr;
     hg_return_t hret = margo_addr_self(mid, &svr_addr);
@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
     std::function<void(const tl::request&)> scan = 
         [](const tl::request &req) {
-            std::cout << "Hello World : " << getTimestamp() << std::endl;
+            std::cout << "Server: Reached inside RPC body at: " << getTimestamp() << std::endl;
             return req.respond(0);
         };
 

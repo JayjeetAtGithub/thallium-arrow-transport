@@ -18,12 +18,12 @@ int main(int argc, char** argv) {
 
     std::cout << uri << std::endl;
 
-    tl::engine engine("ofi+tcp", THALLIUM_SERVER_MODE, true);
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
     tl::endpoint endpoint = engine.lookup(uri);
     tl::remote_procedure scan = engine.define("scan");
 
     for (int i = 0; i < 100; i++) {
-        std::cout << getTimestamp() << std::endl;
+        std::cout << "Client: Calling RPC at : " getTimestamp() << std::endl;
         scan.on(endpoint)();
         sleep(2);
     }
