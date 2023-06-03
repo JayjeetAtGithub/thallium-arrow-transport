@@ -45,7 +45,6 @@ class ThalliumClient {
 
         void GetThalliumInfo(ThalliumDescriptor &desc, ThalliumInfo &info) {
             tl::remote_procedure init_scan = engine.define("init_scan");
-            std::cout << "Client: InitScan: Calling RPC at: " << getTimestamp() << std::endl;
             std::string schema_str = init_scan.on(endpoint)(desc.path, desc.query, desc.mode);
             std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(schema_str.c_str(), schema_str.size());
             arrow::ipc::DictionaryMemo dict_memo;
@@ -105,10 +104,8 @@ class ThalliumClient {
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
 
             auto start = std::chrono::high_resolution_clock::now();
-            std::cout << "Client: GetNextBatch: Calling RPC at : " << getTimestamp() << std::endl;
             int e = get_next_batch.on(endpoint)();
             auto end = std::chrono::high_resolution_clock::now();
-            std::cout << "Client RPC took: " << CalcDuration(start, end) << std::endl;
 
             if (e == 0) {
                 return batch;
@@ -134,14 +131,20 @@ arrow::Status Main(int argc, char **argv) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
+    std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
     std::shared_ptr<arrow::RecordBatch> batch;
     while ((batch = client->GetNextBatch(info)) != nullptr) {
-        std::cout << batch->num_rows() << std::endl;
+        batches.push_back(batch);
     }
-
+    auto table = arrow::Table::FromRecordBatches(info.schema, batches);
     auto end = std::chrono::high_resolution_clock::now();
-    std::string exec_time = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-    std::cout << "Time (ms): " << exec_time << std::endl;
+
+    std::cout << table->ToString() << std::endl;
+
+    std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
+    WriteToFile(exec_time_ms, TL_RES_PATH, true);
+    
+    std::cout << "Time taken (ms): " << exec_time << std::endl;
 
     return arrow::Status::OK();
 }
