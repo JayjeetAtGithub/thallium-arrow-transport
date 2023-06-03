@@ -2,8 +2,23 @@
 #include <deque>
 #include <condition_variable>
 #include <fstream>
-
+#include <chrono>
+#include <iomanip>
+#include <ctime>
 #include <arrow/api.h>
+
+
+std::string getTimestamp() {
+  const auto now = std::chrono::system_clock::now();
+  const auto nowAsTimeT = std::chrono::system_clock::to_time_t(now);
+  const auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+      now.time_since_epoch()) % 1000;
+  std::stringstream nowSs;
+  nowSs
+      << std::put_time(std::localtime(&nowAsTimeT), "%a %b %d %Y %T")
+      << '.' << std::setfill('0') << std::setw(3) << nowMs.count();
+  return nowSs.str();
+}
 
 class ConcurrentRecordBatchQueue {
     public:
@@ -54,4 +69,8 @@ std::pair<std::string, std::string> SplitString(std::string s) {
     std::string part1 = s.substr(0, s.find(delimiter));
     std::string part2 = s.substr(s.find(delimiter) + 1, s.length());
     return std::make_pair(part1, part2);
+}
+
+double CalcDuration(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end) {
+    return ((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count())/1000;
 }
