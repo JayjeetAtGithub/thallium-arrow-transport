@@ -91,6 +91,7 @@ int main(int argc, char** argv) {
                 
                 int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
                 auto end = std::chrono::high_resolution_clock::now();
+                std::cout << "Time taken from server (ms) : " << CalcDuration(start, end) << std::endl;
                 return req.respond(e);
             } else {
                 return req.respond(1);
