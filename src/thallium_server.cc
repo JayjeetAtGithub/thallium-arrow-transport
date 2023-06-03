@@ -37,8 +37,9 @@ int main(int argc, char** argv) {
         };
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
+    double total_time = 0;
     std::function<void(const tl::request&)> get_next_batch = 
-        [&do_rdma, &reader, &engine](const tl::request &req) {
+        [&do_rdma, &reader, &engine, &total_time](const tl::request &req) {
             auto start = std::chrono::high_resolution_clock::now();
             std::shared_ptr<arrow::RecordBatch> batch;
             reader->ReadNext(&batch);
@@ -91,7 +92,8 @@ int main(int argc, char** argv) {
                 
                 int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
                 auto end = std::chrono::high_resolution_clock::now();
-                std::cout << "Time taken from server (ms) : " << CalcDuration(start, end) << std::endl;
+                total_time += CalcDuration(start, end);
+                std::cout << "Total time: " << total_time << std::endl;
                 return req.respond(e);
             } else {
                 return req.respond(1);
