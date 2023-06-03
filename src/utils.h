@@ -3,8 +3,22 @@
 #include <condition_variable>
 #include <fstream>
 #include <chrono>
+#include <iomanip>
 #include <ctime>
 #include <arrow/api.h>
+
+
+std::string getTimestamp() {
+  const auto now = std::chrono::system_clock::now();
+  const auto nowAsTimeT = std::chrono::system_clock::to_time_t(now);
+  const auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+      now.time_since_epoch()) % 1000;
+  std::stringstream nowSs;
+  nowSs
+      << std::put_time(std::localtime(&nowAsTimeT), "%a %b %d %Y %T")
+      << '.' << std::setfill('0') << std::setw(3) << nowMs.count();
+  return nowSs.str();
+}
 
 class ConcurrentRecordBatchQueue {
     public:
@@ -57,8 +71,6 @@ std::pair<std::string, std::string> SplitString(std::string s) {
     return std::make_pair(part1, part2);
 }
 
-void PrintCurrentTimestamp() {
-    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    std::cout << "Timestamp: " << std::ctime(&now_c) << std::endl;
+double CalcDuration(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end) {
+    return ((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count())/1000;
 }
