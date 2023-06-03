@@ -19,9 +19,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    double total_time = 0;
+
     std::shared_ptr<arrow::RecordBatchReader> reader;
     std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
-        [&reader](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
+        [&reader, &total_time](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
+            total_time = 0;
             std::cout << "Request: " << query << "@" << path << "@" << mode << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
@@ -37,7 +40,6 @@ int main(int argc, char** argv) {
         };
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
-    double total_time = 0;
     std::function<void(const tl::request&)> get_next_batch = 
         [&do_rdma, &reader, &engine, &total_time](const tl::request &req) {
             auto start = std::chrono::high_resolution_clock::now();
