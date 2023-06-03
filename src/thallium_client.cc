@@ -53,7 +53,7 @@ class ThalliumClient {
             info.schema = schema;
         }
 
-        std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
+        std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info, double &total_time) {    
             auto schema = info.schema;
             auto engine = this->engine;
 
@@ -106,6 +106,8 @@ class ThalliumClient {
             auto start = std::chrono::high_resolution_clock::now();
             int e = get_next_batch.on(endpoint)();
             auto end = std::chrono::high_resolution_clock::now();
+            total_time += CalcDuration(start, end);
+            std::cout << "Total time (client): " << total_time << " ms" << std::endl;
 
             if (e == 0) {
                 return batch;
@@ -133,7 +135,8 @@ arrow::Status Main(int argc, char **argv) {
 
     std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
     std::shared_ptr<arrow::RecordBatch> batch;
-    while ((batch = client->GetNextBatch(info)) != nullptr) {
+    double total_time = 0;
+    while ((batch = client->GetNextBatch(info, total_time)) != nullptr) {
         batches.push_back(batch);
     }
     auto table = arrow::Table::FromRecordBatches(info.schema, batches).ValueOrDie();
