@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
     std::function<void(const tl::request&)> scan = 
         [](const tl::request &req) {
-            std::cout << "Server: Reached inside RPC body at: " << getTimestamp() << std::endl;
+            std::cout << "Server: Reached inside RPC body at: " << PrintTimestamp() << std::endl;
             return req.respond(0);
         };
 
