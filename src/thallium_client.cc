@@ -132,7 +132,6 @@ arrow::Status Main(int argc, char **argv) {
     client->GetThalliumInfo(desc, info);
 
     auto start = std::chrono::high_resolution_clock::now();
-
     std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
     std::shared_ptr<arrow::RecordBatch> batch;
     double total_time = 0;
@@ -141,8 +140,6 @@ arrow::Status Main(int argc, char **argv) {
     }
     auto table = arrow::Table::FromRecordBatches(info.schema, batches).ValueOrDie();
     auto end = std::chrono::high_resolution_clock::now();
-
-    std::cout << table->ToString() << std::endl;
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
     WriteToFile(exec_time_ms, TL_RES_PATH, true);
