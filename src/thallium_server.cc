@@ -37,8 +37,12 @@ int main(int argc, char** argv) {
         };
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
-    std::function<void(const tl::request&)> get_next_batch = 
-        [&do_rdma, &reader, &engine](const tl::request &req) {
+    std::function<void(const tl::request&, const int&)> get_next_batch = 
+        [&do_rdma, &reader, &engine](const tl::request &req, const int& warmup) {
+            if (warmup) {
+                return req.respond(0);
+            }
+
             std::shared_ptr<arrow::RecordBatch> batch;
             reader->ReadNext(&batch);
 

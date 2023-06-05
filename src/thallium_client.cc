@@ -53,6 +53,11 @@ class ThalliumClient {
             info.schema = schema;
         }
 
+        void Warmup() {
+            tl::remote_procedure get_next_batch = this->engine.define("get_next_batch");
+            get_next_batch.on(endpoint)(1);
+        }
+
         std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
             auto schema = info.schema;
             auto engine = this->engine;
@@ -102,7 +107,7 @@ class ThalliumClient {
             
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
-            int e = get_next_batch.on(endpoint)();
+            int e = get_next_batch.on(endpoint)(0);
             if (e == 0) {
                 return batch;
             } else {
@@ -124,6 +129,9 @@ arrow::Status Main(int argc, char **argv) {
 
     ThalliumInfo info;
     client->GetThalliumInfo(desc, info);
+
+    // Do a warmup blank RPC to get around libfabrics cold start
+    client->Warmup();
 
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
