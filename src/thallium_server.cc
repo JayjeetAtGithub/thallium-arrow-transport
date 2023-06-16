@@ -100,6 +100,7 @@ int main(int argc, char** argv) {
                 int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
                 return req.respond(e);
             } else {
+                reader_map.erase(uuid);
                 return req.respond(1);
             }
         };
