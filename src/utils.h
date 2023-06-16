@@ -74,3 +74,24 @@ std::pair<std::string, std::string> SplitString(std::string s) {
 double CalcDuration(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end) {
     return ((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count())/1000;
 }
+
+class InitScanRespStub {
+    public:
+        std::string schema;
+        std::string uuid;
+
+        InitScanRespStub() {}
+        InitScanRespStub(std::string schema, std::string uuid) : schema(schema), uuid(uuid) {}
+
+        template<typename A>
+        void save(A& ar) const {
+            ar & schema;
+            ar & uuid;
+        }
+
+        template<typename A>
+        void load(A& ar) {
+            ar & schema;
+            ar & uuid;
+        }
+};

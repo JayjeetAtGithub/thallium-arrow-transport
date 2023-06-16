@@ -27,6 +27,7 @@ class ThalliumDescriptor {
 class ThalliumInfo {
     public:
         std::shared_ptr<arrow::Schema> schema;
+        std::string uuid;
 };
 
 class ThalliumClient {
@@ -45,17 +46,18 @@ class ThalliumClient {
 
         void GetThalliumInfo(ThalliumDescriptor &desc, ThalliumInfo &info) {
             tl::remote_procedure init_scan = engine.define("init_scan");
-            std::string schema_str = init_scan.on(endpoint)(desc.path, desc.query, desc.mode);
-            std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(schema_str.c_str(), schema_str.size());
+            InitScanRespStub resp = init_scan.on(endpoint)(desc.path, desc.query, desc.mode);
+            std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(resp.schema.c_str(), resp.schema.size());
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::io::BufferReader buff_reader(schema_buff);
             std::shared_ptr<arrow::Schema> schema = arrow::ipc::ReadSchema(&buff_reader, &dict_memo).ValueOrDie();
             info.schema = schema;
+            info.uuid = uuid;
         }
 
         void Warmup() {
             tl::remote_procedure get_next_batch = this->engine.define("get_next_batch");
-            get_next_batch.on(endpoint)(1);
+            get_next_batch.on(endpoint)(1, "x");
         }
 
         std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
@@ -107,7 +109,7 @@ class ThalliumClient {
             
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
-            int e = get_next_batch.on(endpoint)(0);
+            int e = get_next_batch.on(endpoint)(0, info.uuid);
             if (e == 0) {
                 return batch;
             } else {

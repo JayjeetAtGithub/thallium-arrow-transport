@@ -19,32 +19,39 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    std::shared_ptr<arrow::RecordBatchReader> reader;
+    std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
     std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
-        [&reader](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
+        [&reader_map](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
             std::cout << "Request: " << query << "@" << path << "@" << mode << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
+
+            std::shared_ptr<arrow::RecordBatchReader> reader;
             if (mode == "t") {
                 reader = db->ExecuteEager(query);
             }
             else {
                 reader = db->Execute(query);
             }
+            std::string uuid = boost::uuids::to_string(boost::uuids::random_generator()());
+            reader_map[uuid] = reader;
             std::shared_ptr<arrow::Buffer> buff = arrow::ipc::SerializeSchema(*(reader->schema())).ValueOrDie();
-            return req.respond(
-                std::string(reinterpret_cast<const char*>(buff->data()), static_cast<size_t>(buff->size())));
+
+            InitScanRespStub resp;
+            resp.schema = std::string(reinterpret_cast<const char*>(buff->data()), static_cast<size_t>(buff->size()));
+            resp.uuid = uuid;
+            return req.respond(resp);
         };
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
-    std::function<void(const tl::request&, const int&)> get_next_batch = 
-        [&do_rdma, &reader, &engine](const tl::request &req, const int& warmup) {
+    std::function<void(const tl::request&, const int&, const std::string&)> get_next_batch = 
+        [&do_rdma, &reader_map, &engine](const tl::request &req, const int& warmup, const std::string &uuid) {
             if (warmup) {
                 return req.respond(0);
             }
-
+            
             std::shared_ptr<arrow::RecordBatch> batch;
-            reader->ReadNext(&batch);
+            reader_map[uuid]->ReadNext(&batch);
 
             if (batch != nullptr) {
                 std::vector<int64_t> data_buff_sizes;
