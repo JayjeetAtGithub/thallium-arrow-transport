@@ -52,7 +52,7 @@ class ThalliumClient {
             arrow::io::BufferReader buff_reader(schema_buff);
             std::shared_ptr<arrow::Schema> schema = arrow::ipc::ReadSchema(&buff_reader, &dict_memo).ValueOrDie();
             info.schema = schema;
-            info.uuid = uuid;
+            info.uuid = resp.uuid;
         }
 
         void Warmup() {
