@@ -59,9 +59,7 @@ int main(int argc, char** argv) {
                 if (batch->num_rows() < 131072) {
                     std::cout << "Using RPC\n";
                     auto buffer = PackBatch(batch);
-                    resp.buffer = buffer->mutable_data();
-                    resp.size = buffer->size();
-                    resp.ret_code = RPC_BATCH;
+                    resp = GetNextBatchRespStub(buffer->mutable_data(), buffer->size(), RPC_BATCH);
                     return req.respond(resp);
                 }
 
