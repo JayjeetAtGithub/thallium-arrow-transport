@@ -105,7 +105,7 @@ class GetNextBatchRespStub {
         int ret_code;
 
         GetNextBatchRespStub() {}
-        GetNextBatchRespStub(uint8_t *buffer, size_t size, int ret_code) 
+        GetNextBatchRespStub(const uint8_t *buffer, size_t size, int ret_code) 
             : buffer(buffer), size(size), ret_code(ret_code) {}
 
         template<typename A>
