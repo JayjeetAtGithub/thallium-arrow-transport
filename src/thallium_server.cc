@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
             GetNextBatchRespStub resp;
             if (batch != nullptr) {
                 std::cout << "Batch size: " << batch->num_rows() << std::endl;
-                if (batch->num_rows() < 131072) {
+                if (batch->num_rows() < 2000) {
                     std::cout << "Using RPC\n";
                     auto buffer = PackBatch(batch);
                     std::string str_buffer = 
