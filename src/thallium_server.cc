@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
             if (batch != nullptr) {
 
                 if (batch->num_rows() < 131072) {
+                    std::cout << "Using RPC\n";
                     auto buffer = PackBatch(batch);
                     std::string str_buffer = 
                         std::string(reinterpret_cast<const char*>(buffer->data()), static_cast<size_t>(buffer->size()));
