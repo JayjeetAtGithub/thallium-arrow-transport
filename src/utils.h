@@ -107,7 +107,7 @@ std::shared_ptr<arrow::Buffer> SerializeBatch(std::shared_ptr<arrow::RecordBatch
 std::shared_ptr<arrow::RecordBatch> DeserializeBatch(std::shared_ptr<arrow::Buffer> buffer, std::shared_ptr<arrow::Schema> schema) {
     std::shared_ptr<arrow::RecordBatch> batch;
     arrow::io::BufferReader buffer_reader(buffer);
-    arrow::DictionaryMemo dictionary_memo;
+    arrow::ipc::DictionaryMemo dictionary_memo;
     arrow::ipc::IpcReadOptions read_options;
-    return ReadRecordBatch(schema, &dictionary_memo, read_options, &buf_reader).ValueOrDie();
+    return ReadRecordBatch(schema, &dictionary_memo, read_options, &buffer_reader).ValueOrDie();
 }
