@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <ctime>
 #include <arrow/api.h>
+#include <arrow/ipc/api.h>
+#include <arrow/io/api.h>
 
 
 std::string PrintTimestamp() {
@@ -95,3 +97,17 @@ class InitScanRespStub {
             ar & uuid;
         }
 };
+
+
+std::shared_ptr<arrow::Buffer> SerializeBatch(std::shared_ptr<arrow::RecordBatch> batch) {
+    arrow::ipc::IpcWriteOptions options;
+    return arrow::ipc::SerializeRecordBatch(*batch, options).ValueOrDie();
+}
+
+std::shared_ptr<arrow::RecordBatch> DeserializeBatch(std::shared_ptr<arrow::Buffer> buffer, std::shared_ptr<arrow::Schema> schema) {
+    std::shared_ptr<arrow::RecordBatch> batch;
+    arrow::io::BufferReader buffer_reader(buffer);
+    arrow::DictionaryMemo dictionary_memo;
+    arrow::ipc::IpcReadOptions read_options;
+    return ReadRecordBatch(schema, &dictionary_memo, read_options, &buf_reader).ValueOrDie();
+}
