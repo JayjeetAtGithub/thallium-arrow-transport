@@ -98,6 +98,26 @@ class InitScanRespStub {
         }
 };
 
+class GetNextBatchRespStub {
+    public:
+        std::string buffer;
+        int ret_code;
+
+        GetNextBatchRespStub() {}
+        GetNextBatchRespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
+
+        template<typename A>
+        void save(A& ar) const {
+            ar & buffer;
+            ar & ret_code;
+        }
+
+        template<typename A>
+        void load(A& ar) {
+            ar & buffer;
+            ar & ret_code;
+        }        
+};
 
 std::shared_ptr<arrow::Buffer> PackBatch(std::shared_ptr<arrow::RecordBatch> batch) {
     arrow::ipc::IpcWriteOptions options;

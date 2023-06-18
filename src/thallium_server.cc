@@ -53,7 +53,18 @@ int main(int argc, char** argv) {
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
 
+            GetNextBatchRespStub resp;
             if (batch != nullptr) {
+
+                if (batch->num_rows() < 131072) {
+                    auto buffer = PackBatch(batch);
+                    std::string str_buffer = 
+                        std::string(reinterpret_cast<const char*>(buffer->data()), static_cast<size_t>(buffer->size()));
+                    resp.buffer = str_buffer;
+                    resp.ret_code = RPC_BATCH;
+                    return req.respond(resp);
+                }
+
                 std::vector<int64_t> data_buff_sizes;
                 std::vector<int64_t> offset_buff_sizes;
                 int64_t num_rows = batch->num_rows();
@@ -97,11 +108,12 @@ int main(int argc, char** argv) {
                 }
 
                 tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
-                int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
-                return req.respond(e);
+                resp.ret_code = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
+                return req.respond(resp);
             } else {
                 reader_map.erase(uuid);
-                return req.respond(1);
+                resp.ret_code = NO_BATCH;
+                return req.respond(resp);
             }
         };
 
