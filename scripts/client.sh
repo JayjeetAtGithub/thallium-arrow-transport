@@ -23,7 +23,7 @@ else
 fi
 
 while IFS= read -r query; do
-    for i in {1..5}; do
+    for i in {1..10}; do
         # clean_client_cache
         # clean_server_cache
 
