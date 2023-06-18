@@ -99,12 +99,12 @@ class InitScanRespStub {
 };
 
 
-std::shared_ptr<arrow::Buffer> SerializeBatch(std::shared_ptr<arrow::RecordBatch> batch) {
+std::shared_ptr<arrow::Buffer> PackBatch(std::shared_ptr<arrow::RecordBatch> batch) {
     arrow::ipc::IpcWriteOptions options;
     return arrow::ipc::SerializeRecordBatch(*batch, options).ValueOrDie();
 }
 
-std::shared_ptr<arrow::RecordBatch> DeserializeBatch(std::shared_ptr<arrow::Buffer> buffer, std::shared_ptr<arrow::Schema> schema) {
+std::shared_ptr<arrow::RecordBatch> UnpackBatch(std::shared_ptr<arrow::Buffer> buffer, std::shared_ptr<arrow::Schema> schema) {
     std::shared_ptr<arrow::RecordBatch> batch;
     arrow::io::BufferReader buffer_reader(buffer);
     arrow::ipc::DictionaryMemo dictionary_memo;
