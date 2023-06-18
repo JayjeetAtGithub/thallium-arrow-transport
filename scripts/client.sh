@@ -16,16 +16,19 @@ function clean_server_cache {
     ssh node1 "sync"
 }
 
-query=$(cat /tmp/query)
 
-for i in {1..5}; do
-    # clean_client_cache
-    # clean_server_cache
+while IFS= read -r query; do
+    for i in {1..5}; do
+        # clean_client_cache
+        # clean_server_cache
 
-    if [ "$binary" == "tc" ]; then
-        uri=$(cat /proj/schedock-PG0/thallium_uri)
-        $PWD/bin/"$binary" $uri "/mnt/cephfs/dataset/*" "$query" "$mode" || true
-    else
-        $PWD/bin/"$binary" "/mnt/cephfs/dataset/*" "$query" "$mode" || true
-    fi
-done
+        if [ "$binary" == "tc" ]; then
+            echo "" > /proj/schedock-PG0/thallium_results
+            uri=$(cat /proj/schedock-PG0/thallium_uri)
+            $PWD/bin/"$binary" $uri "/mnt/cephfs/dataset/*" "$query" "$mode" || true
+        else
+            echo "" > /proj/schedock-PG0/flight_results
+            $PWD/bin/"$binary" "/mnt/cephfs/dataset/*" "$query" "$mode" || true
+        fi
+    done
+done < queries.txt
