@@ -100,21 +100,26 @@ class InitScanRespStub {
 
 class GetNextBatchRespStub {
     public:
-        std::string buffer;
+        uint8_t *buffer;
+        size_t size;
         int ret_code;
 
         GetNextBatchRespStub() {}
-        GetNextBatchRespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
+        GetNextBatchRespStub(uint8_t *buffer, size_t size, int ret_code) 
+            : buffer(buffer), size(size), ret_code(ret_code) {}
 
         template<typename A>
         void save(A& ar) const {
-            ar & buffer;
+            ar & size;
+            ar.write(buffer, size);
             ar & ret_code;
         }
 
         template<typename A>
         void load(A& ar) {
-            ar & buffer;
+            ar & size;
+            buffer = new uint8_t[size];
+            ar.read(buffer, size);
             ar & ret_code;
         }        
 };
@@ -124,8 +129,8 @@ std::shared_ptr<arrow::Buffer> PackBatch(std::shared_ptr<arrow::RecordBatch> bat
     return arrow::ipc::SerializeRecordBatch(*batch, options).ValueOrDie();
 }
 
-std::shared_ptr<arrow::RecordBatch> UnpackBatch(std::string str_buffer, std::shared_ptr<arrow::Schema> schema) {
-    std::shared_ptr<arrow::Buffer> buffer = arrow::Buffer::Wrap(str_buffer.c_str(), str_buffer.size());
+std::shared_ptr<arrow::RecordBatch> UnpackBatch(uint8_t *buffer, size_t size, std::shared_ptr<arrow::Schema> schema) {
+    std::shared_ptr<arrow::Buffer> buffer = arrow::Buffer::Wrap(buffer, size);
     std::shared_ptr<arrow::RecordBatch> batch;
     arrow::io::BufferReader buffer_reader(buffer);
     arrow::ipc::DictionaryMemo dictionary_memo;

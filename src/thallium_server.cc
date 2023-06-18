@@ -59,9 +59,8 @@ int main(int argc, char** argv) {
                 if (batch->num_rows() < 2000) {
                     std::cout << "Using RPC\n";
                     auto buffer = PackBatch(batch);
-                    std::string str_buffer = 
-                        std::string(reinterpret_cast<const char*>(buffer->data()), static_cast<size_t>(buffer->size()));
-                    resp.buffer = str_buffer;
+                    resp.buffer = buffer->data();
+                    resp.size = buffer->size();
                     resp.ret_code = RPC_BATCH;
                     return req.respond(resp);
                 }

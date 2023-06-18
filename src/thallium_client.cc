@@ -113,7 +113,7 @@ class ThalliumClient {
             if (resp.ret_code == RDMA_BATCH) {
                 return batch;
             } else if (resp.ret_code == RPC_BATCH) {
-                return UnpackBatch(resp.buffer, info.schema);
+                return UnpackBatch(resp.buffer, resp.size, info.schema);
             } else {
                 return nullptr;
             }
