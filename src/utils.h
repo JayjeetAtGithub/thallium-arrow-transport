@@ -124,7 +124,8 @@ std::shared_ptr<arrow::Buffer> PackBatch(std::shared_ptr<arrow::RecordBatch> bat
     return arrow::ipc::SerializeRecordBatch(*batch, options).ValueOrDie();
 }
 
-std::shared_ptr<arrow::RecordBatch> UnpackBatch(std::shared_ptr<arrow::Buffer> buffer, std::shared_ptr<arrow::Schema> schema) {
+std::shared_ptr<arrow::RecordBatch> UnpackBatch(std::string str_buffer, std::shared_ptr<arrow::Schema> schema) {
+    std::shared_ptr<arrow::Buffer> buffer = arrow::Buffer::Wrap(str_buffer.c_str(), str_buffer.size());
     std::shared_ptr<arrow::RecordBatch> batch;
     arrow::io::BufferReader buffer_reader(buffer);
     arrow::ipc::DictionaryMemo dictionary_memo;
