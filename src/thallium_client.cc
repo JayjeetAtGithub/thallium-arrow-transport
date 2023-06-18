@@ -109,11 +109,11 @@ class ThalliumClient {
             
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
-            auto resp = get_next_batch.on(endpoint)(0, info.uuid);
+            GetNextBatchRespStub resp = get_next_batch.on(endpoint)(0, info.uuid);
             if (resp.ret_code == RDMA_BATCH) {
                 return batch;
             } else if (resp.ret_code == RPC_BATCH) {
-                return UnpackBatch(resp.batch, info.schema);
+                return UnpackBatch(resp.buffer, info.schema);
             } else {
                 return nullptr;
             }
