@@ -19,8 +19,8 @@ function clean_server_cache {
 query=$(cat /tmp/query)
 
 for i in {1..5}; do
-    clean_client_cache
-    clean_server_cache
+    # clean_client_cache
+    # clean_server_cache
 
     if [ "$binary" == "tc" ]; then
         uri=$(cat /proj/schedock-PG0/thallium_uri)
