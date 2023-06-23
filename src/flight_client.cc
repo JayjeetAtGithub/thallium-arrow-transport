@@ -53,9 +53,12 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<arrow::flight::FlightStreamReader> stream;
     client->DoGet(flight_info->endpoints()[0].ticket, &stream);
     
-    std::shared_ptr<arrow::Table> table;
+    arrow::flight::FlightStreamChunk chunk;
     auto start = std::chrono::high_resolution_clock::now();
-    stream->ReadAll(&table);
+    stream->Next(&chunk);
+    while (chunk.data != nullptr) {
+        stream->Next(&chunk);
+    }
     auto end = std::chrono::high_resolution_clock::now();
     
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
