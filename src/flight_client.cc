@@ -53,14 +53,18 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<arrow::flight::FlightStreamReader> stream;
     client->DoGet(flight_info->endpoints()[0].ticket, &stream);
     
-    std::shared_ptr<arrow::Table> table;
+    int64_t total_rows_read = 0;
+    arrow::flight::FlightStreamChunk chunk;
     auto start = std::chrono::high_resolution_clock::now();
-    stream->ReadAll(&table);
+    stream->Next(&chunk);
+    while (chunk.data != nullptr) {
+        total_rows_read += chunk.data->num_rows();
+        stream->Next(&chunk);
+    }
     auto end = std::chrono::high_resolution_clock::now();
-    
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
     WriteToFile(exec_time_ms, FL_RES_PATH, true);
     
-    std::cout << table->num_rows() << " rows read in " << exec_time_ms << " ms" << std::endl;
+    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms" << std::endl;
     return 0;
 }
