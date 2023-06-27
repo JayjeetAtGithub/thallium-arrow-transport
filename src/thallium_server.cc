@@ -58,7 +58,10 @@ int main(int argc, char** argv) {
                 std::cout << "Batch size: " << batch->num_rows() << std::endl;
                 if (batch->num_rows() < 131072) {
                     std::cout << "Using RPC\n";
+                    auto start = std::chrono::high_resolution_clock::now();
                     auto buffer = PackBatch(batch);
+                    auto end = std::chrono::high_resolution_clock::now();
+                    std::cout << "Pack time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms\n";
                     resp = GetNextBatchRespStub(const_cast<uint8_t*>(buffer->data()), buffer->size(), RPC_BATCH);
                     return req.respond(resp);
                 }
