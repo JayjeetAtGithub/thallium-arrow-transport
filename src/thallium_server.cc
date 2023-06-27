@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
                     auto start = std::chrono::high_resolution_clock::now();
                     auto buffer = PackBatch(batch);
                     auto end = std::chrono::high_resolution_clock::now();
-                    std::cout << "Pack time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms\n";
+                    std::cout << "Pack time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "ms\n";
                     resp = GetNextBatchRespStub(const_cast<uint8_t*>(buffer->data()), buffer->size(), RPC_BATCH);
                     return req.respond(resp);
                 }
