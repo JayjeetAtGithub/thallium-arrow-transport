@@ -116,7 +116,7 @@ class ThalliumClient {
                 auto start = std::chrono::high_resolution_clock::now();
                 auto b = UnpackBatch(resp.buffer, info.schema);
                 auto end = std::chrono::high_resolution_clock::now();
-                std::cout << "UnpackBatch took " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+                std::cout << "UnpackBatch took " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "ms" << std::endl;
                 return b;
             } else {
                 return nullptr;
