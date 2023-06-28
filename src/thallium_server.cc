@@ -11,7 +11,7 @@ namespace tl = thallium;
 int finalize = 0;
 
 void finalize_signal_handler(int num) {
-   cout << "Interrupt signal (" << num << ") received.\n";
+   std::cout << "Interrupt signal (" << num << ") received.\n";
    finalize = 1;
 }
 
