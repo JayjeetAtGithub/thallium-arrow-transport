@@ -60,6 +60,11 @@ class ThalliumClient {
             get_next_batch.on(endpoint)(1, "x");
         }
 
+        void Finalize() {
+            tl::remote_procedure finalize = this->engine.define("finalize").disable_response();
+            finalize.on(endpoint)();
+        }
+
         std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
             auto schema = info.schema;
             auto engine = this->engine;
@@ -150,6 +155,7 @@ arrow::Status Main(int argc, char **argv) {
     WriteToFile(exec_time_ms, TL_RES_PATH, true);
     
     std::cout << table->num_rows() << " rows read in " << exec_time_ms << " ms" << std::endl;
+    client->Finalize();
     return arrow::Status::OK();
 }
 

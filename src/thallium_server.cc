@@ -8,13 +8,6 @@
 
 namespace tl = thallium;
 
-int finalize = 0;
-
-void finalize_signal_handler(int num) {
-   std::cout << "Interrupt signal (" << num << ") received.\n";
-   finalize = 1;
-}
-
 int main(int argc, char** argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
     margo_instance_id mid = engine.get_margo_instance();
@@ -25,8 +18,6 @@ int main(int argc, char** argv) {
         margo_finalize(mid);
         return -1;
     }
-
-    signal(SIGINT, finalize_signal_handler);  
 
     std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
     std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
@@ -50,6 +41,12 @@ int main(int argc, char** argv) {
             resp.schema = std::string(reinterpret_cast<const char*>(buff->data()), static_cast<size_t>(buff->size()));
             resp.uuid = uuid;
             return req.respond(resp);
+        };
+
+    std::function<void(const tl::request&)> finalize = 
+        [&reader_map, &engine](const tl::request &req) {
+            reader_map.clear();
+            engine.finalize();
         };
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
@@ -126,8 +123,8 @@ int main(int argc, char** argv) {
 
     engine.define("init_scan", init_scan);
     engine.define("get_next_batch", get_next_batch);
+    engine.define("finalize", finalize).disable_response();
     WriteToFile(engine.self(), TL_URI_PATH, false);
     std::cout << "Serving at: " << engine.self() << std::endl;
-    while (!finalize) {};
-    engine.finalize();
+    engine.wait_for_finalize();
 };
