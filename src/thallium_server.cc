@@ -51,27 +51,15 @@ int main(int argc, char** argv) {
             }
             
             std::shared_ptr<arrow::RecordBatch> batch;
-            auto start = std::chrono::high_resolution_clock::now();
             reader_map[uuid]->ReadNext(&batch);
-            auto end = std::chrono::high_resolution_clock::now();
-            std::cout << "Read time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "ms\n";
 
             GetNextBatchRespStub resp;
             if (batch != nullptr) {
                 std::cout << "Batch size: " << batch->num_rows() << std::endl;
                 if (batch->num_rows() < 131072) {
                     std::cout << "Using RPC\n";
-                    
-                    start = std::chrono::high_resolution_clock::now();
                     auto buffer = PackBatch(batch);
-                    end = std::chrono::high_resolution_clock::now();
-                    std::cout << "Pack time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "ms\n";
-                    
-                    start = std::chrono::high_resolution_clock::now();
                     resp = GetNextBatchRespStub(std::string((char*)buffer->data(), buffer->size()), RPC_BATCH);
-                    end = std::chrono::high_resolution_clock::now();
-                    std::cout << "Serialize time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "ms\n";
-                    
                     return req.respond(resp);
                 }
 
