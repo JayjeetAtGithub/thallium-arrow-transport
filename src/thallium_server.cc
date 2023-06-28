@@ -1,4 +1,5 @@
 #include <iostream>
+#include <csignal>
 
 #include "utils.h"
 #include "headers.h"
@@ -7,6 +8,12 @@
 
 namespace tl = thallium;
 
+int finalize = 0;
+
+void finalize_signal_handler(int num) {
+   cout << "Interrupt signal (" << num << ") received.\n";
+   finalize = 1;
+}
 
 int main(int argc, char** argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
@@ -18,6 +25,8 @@ int main(int argc, char** argv) {
         margo_finalize(mid);
         return -1;
     }
+
+    signal(SIGINT, finalize_signal_handler);  
 
     std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
     std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
@@ -119,5 +128,6 @@ int main(int argc, char** argv) {
     engine.define("get_next_batch", get_next_batch);
     WriteToFile(engine.self(), TL_URI_PATH, false);
     std::cout << "Serving at: " << engine.self() << std::endl;
-    engine.wait_for_finalize();
+    while (!finalize) {};
+    engine.finalize();
 };
