@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thallium.hpp>
+#include <thallium/serialization/stl/string.hpp>
 
 namespace tl = thallium;
 

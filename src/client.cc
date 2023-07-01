@@ -1,5 +1,6 @@
 #include <thallium.hpp>
 #include <chrono>
+#include <thallium/serialization/stl/string.hpp>
 
 
 namespace tl = thallium;
