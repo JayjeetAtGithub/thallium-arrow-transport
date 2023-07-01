@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     }
 
     tl::engine myEngine("tcp", THALLIUM_CLIENT_MODE);
-    tl::remote_procedure hello = myEngine.define("hello").disable_response();
+    tl::remote_procedure hello = myEngine.define("hello");
     tl::endpoint server = myEngine.lookup(argv[1]);
     
     auto start = std::chrono::high_resolution_clock::now();
