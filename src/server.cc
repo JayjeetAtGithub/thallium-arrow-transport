@@ -4,7 +4,7 @@
 namespace tl = thallium;
 
 
-std::function<void(const tl::request&)> hello = 
+std::function<void(const tl::request&, const int&, std::string&)> hello = 
     [](const tl::request &req, const int& a, const std::string &s) {
         return req.respond(0);
     };
