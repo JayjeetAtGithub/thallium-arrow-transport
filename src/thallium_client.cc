@@ -122,7 +122,7 @@ class ThalliumClient {
             start = std::chrono::high_resolution_clock::now();
             GetNextBatchRespStub resp = get_next_batch.on(endpoint)(0, info.uuid);
             end = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+            duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
             std::cout << "RPC took " << duration << " microseconds" << std::endl;
 
 
