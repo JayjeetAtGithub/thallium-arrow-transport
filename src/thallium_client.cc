@@ -142,20 +142,18 @@ arrow::Status Main(int argc, char **argv) {
     // Do a warmup blank RPC to get around libfabrics cold start
     client->Warmup();
 
-    auto start = std::chrono::high_resolution_clock::now();
-    std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+    int64_t total_rows_read = 0;
     std::shared_ptr<arrow::RecordBatch> batch;
+    auto start = std::chrono::high_resolution_clock::now();
     while ((batch = client->GetNextBatch(info)) != nullptr) {
-        batches.push_back(batch);
+        total_rows_read += batch->num_rows();
     }
-    auto table = arrow::Table::FromRecordBatches(info.schema, batches).ValueOrDie();
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
     WriteToFile(exec_time_ms, TL_RES_PATH, true);
     
-    std::cout << table->num_rows() << " rows read in " << exec_time_ms << " ms" << std::endl;
-    client->Finalize();
+    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms" << std::endl;
     return arrow::Status::OK();
 }
 
