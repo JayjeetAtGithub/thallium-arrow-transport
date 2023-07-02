@@ -112,11 +112,16 @@ class ThalliumClient {
                     return req.respond(RDMA_BATCH);
                 };
             
+            auto start = std::chrono::high_resolution_clock::now();
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
-            auto start = std::chrono::high_resolution_clock::now();
-            GetNextBatchRespStub resp = get_next_batch.on(endpoint)(0, info.uuid);
             auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();   
+            std::cout << "Define took " << duration << " microseconds" << std::endl; 
+            
+            start = std::chrono::high_resolution_clock::now();
+            GetNextBatchRespStub resp = get_next_batch.on(endpoint)(0, info.uuid);
+            end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
             std::cout << "RPC took " << duration << " microseconds" << std::endl;
 
