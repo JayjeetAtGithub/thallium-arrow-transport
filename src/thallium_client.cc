@@ -129,7 +129,12 @@ class ThalliumClient {
             if (resp.ret_code == RDMA_BATCH) {
                 return batch;
             } else if (resp.ret_code == RPC_BATCH) {
-                return UnpackBatch(resp.buffer, info.schema);
+                start = std::chrono::high_resolution_clock::now();
+                auto bb = UnpackBatch(resp.buffer, info.schema);
+                end = std::chrono::high_resolution_clock::now();
+                duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+                std::cout << "Unpack took " << duration << " microseconds" << std::endl;
+                return bb;
             } else {
                 return nullptr;
             }
