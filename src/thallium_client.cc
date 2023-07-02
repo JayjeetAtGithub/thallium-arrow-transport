@@ -156,9 +156,11 @@ arrow::Status Main(int argc, char **argv) {
     int64_t total_rows_read = 0;
     std::shared_ptr<arrow::RecordBatch> batch;
     auto start = std::chrono::high_resolution_clock::now();
-    while ((batch = client->GetNextBatch(info)) != nullptr) {
-        total_rows_read += batch->num_rows();
-    }
+    // while ((batch = client->GetNextBatch(info)) != nullptr) {
+    //     total_rows_read += batch->num_rows();
+    // }
+
+    client->GetNextBatch(info);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
