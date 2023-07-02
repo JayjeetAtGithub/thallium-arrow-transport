@@ -65,6 +65,11 @@ class ThalliumClient {
             finalize.on(endpoint)();
         }
 
+        std::shared_ptr<arrow::RecordBatch> GetNextBatchCallMeasure(ThalliumInfo &info) {
+            std::shared_ptr<arrow::RecordBatch> batch;
+            return batch;
+        }
+
         std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
             auto schema = info.schema;
             auto engine = this->engine;
@@ -165,7 +170,7 @@ arrow::Status Main(int argc, char **argv) {
     //     total_rows_read += batch->num_rows();
     // }
 
-    client->GetNextBatch(info);
+    client->GetNextBatchCallMeasure(info);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
