@@ -22,10 +22,8 @@ else
     echo "" > /proj/schedock-PG0/flight_results
 fi
 
-export MARGO_ENABLE_MONITORING=1
-
 while IFS= read -r query; do
-    for i in {1..1}; do
+    for i in {1..10}; do
         # clean_client_cache
         # clean_server_cache
 
