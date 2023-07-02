@@ -139,7 +139,9 @@ arrow::Status Main(int argc, char **argv) {
     ThalliumInfo info;
     client->GetThalliumInfo(desc, info);
 
-    // Do a warmup blank RPC to get around libfabrics cold start
+    // Do a couple of warmup blank RPC to get around libfabrics cold start
+    client->Warmup();
+    client->Warmup();
     client->Warmup();
 
     int64_t total_rows_read = 0;
