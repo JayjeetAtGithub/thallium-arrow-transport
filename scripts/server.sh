@@ -2,5 +2,6 @@
 set -e
 
 binary=$1
+optimize=$2
 
-$PWD/bin/"$binary"
+$PWD/bin/"$binary" "$optimize"

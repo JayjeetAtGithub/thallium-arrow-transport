@@ -19,6 +19,8 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    bool optimize = std::atoi(argv[1]);
+
     std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
     std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
         [&reader_map](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
@@ -51,7 +53,7 @@ int main(int argc, char** argv) {
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
     std::function<void(const tl::request&, const int&, const std::string&)> get_next_batch = 
-        [&do_rdma, &reader_map, &engine](const tl::request &req, const int& warmup, const std::string &uuid) {
+        [&do_rdma, &reader_map, &engine, &optimize](const tl::request &req, const int& warmup, const std::string &uuid) {
             if (warmup) {
                 return req.respond(0);
             }
@@ -61,11 +63,13 @@ int main(int argc, char** argv) {
 
             GetNextBatchRespStub resp;
             if (batch != nullptr) {
-                if (batch->num_rows() < 131072) {
-                    std::cout << "Using RPC\n";
-                    auto buffer = PackBatch(batch);
-                    resp = GetNextBatchRespStub(std::string((char*)buffer->data(), buffer->size()), RPC_BATCH);
-                    return req.respond(resp);
+                if (optimize)
+                    if (batch->num_rows() < 131072) {
+                        std::cout << "Using RPC\n";
+                        auto buffer = PackBatch(batch);
+                        resp = GetNextBatchRespStub(std::string((char*)buffer->data(), buffer->size()), RPC_BATCH);
+                        return req.respond(resp);
+                    }
                 }
 
                 std::vector<int64_t> data_buff_sizes;
