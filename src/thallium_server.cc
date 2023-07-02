@@ -56,16 +56,22 @@ int main(int argc, char** argv) {
                 return req.respond(0);
             }
             
+            auto start = std::chrono::high_resolution_clock::now();
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+            std::cout << "ReadNext: " << duration << " microseconds" << std::endl;
 
             GetNextBatchRespStub resp;
             if (batch != nullptr) {
-                std::cout << "Batch size: " << batch->num_rows() << std::endl;
                 if (batch->num_rows() < 131072) {
-                    std::cout << "Using RPC\n";
+                    start = std::chrono::high_resolution_clock::now();
                     auto buffer = PackBatch(batch);
                     resp = GetNextBatchRespStub(std::string((char*)buffer->data(), buffer->size()), RPC_BATCH);
+                    end = std::chrono::high_resolution_clock::now();
+                    duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+                    std::cout << "PackBatch: " << duration << " microseconds" << std::endl;
                     return req.respond(resp);
                 }
 
