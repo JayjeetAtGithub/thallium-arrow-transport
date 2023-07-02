@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <ctime>
 #include <arrow/api.h>
+#include <arrow/ipc/api.h>
+#include <arrow/io/api.h>
 
 
 std::string PrintTimestamp() {
@@ -95,3 +97,38 @@ class InitScanRespStub {
             ar & uuid;
         }
 };
+
+class GetNextBatchRespStub {
+    public:
+        std::string buffer;
+        int ret_code;
+
+        GetNextBatchRespStub() {}
+        GetNextBatchRespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
+
+        template<typename A>
+        void save(A& ar) const {
+            ar & buffer;
+            ar & ret_code;
+        }
+
+        template<typename A>
+        void load(A& ar) {
+            ar & buffer;
+            ar & ret_code;
+        }
+};
+
+std::shared_ptr<arrow::Buffer> PackBatch(std::shared_ptr<arrow::RecordBatch> batch) {
+    arrow::ipc::IpcWriteOptions options;
+    return arrow::ipc::SerializeRecordBatch(*batch, options).ValueOrDie();
+}
+
+std::shared_ptr<arrow::RecordBatch> UnpackBatch(std::string buffer, std::shared_ptr<arrow::Schema> schema) {
+    std::shared_ptr<arrow::Buffer> buff = arrow::Buffer::Wrap((uint8_t*)buffer.c_str(), buffer.length());
+    std::shared_ptr<arrow::RecordBatch> batch;
+    arrow::io::BufferReader buff_reader(buff);
+    arrow::ipc::DictionaryMemo dictionary_memo;
+    arrow::ipc::IpcReadOptions read_options;
+    return ReadRecordBatch(schema, &dictionary_memo, read_options, &buff_reader).ValueOrDie();
+}

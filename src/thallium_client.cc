@@ -60,6 +60,11 @@ class ThalliumClient {
             get_next_batch.on(endpoint)(1, "x");
         }
 
+        void Finalize() {
+            tl::remote_procedure finalize = this->engine.define("finalize").disable_response();
+            finalize.on(endpoint)();
+        }
+
         std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
             auto schema = info.schema;
             auto engine = this->engine;
@@ -104,14 +109,16 @@ class ThalliumClient {
                     }
 
                     batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-                    return req.respond(0);
+                    return req.respond(RDMA_BATCH);
                 };
             
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure get_next_batch = engine.define("get_next_batch");
-            int e = get_next_batch.on(endpoint)(0, info.uuid);
-            if (e == 0) {
+            GetNextBatchRespStub resp = get_next_batch.on(endpoint)(0, info.uuid);
+            if (resp.ret_code == RDMA_BATCH) {
                 return batch;
+            } else if (resp.ret_code == RPC_BATCH) {
+                return UnpackBatch(resp.buffer, info.schema);
             } else {
                 return nullptr;
             }

@@ -1,30 +1,46 @@
 #include <iostream>
 #include <thallium.hpp>
-#include "utils.h"
+#include <thallium/serialization/stl/string.hpp>
 
 namespace tl = thallium;
 
+class GetNextBatchRespStub {
+    public:
+        std::string buffer;
+        int ret_code;
+
+        GetNextBatchRespStub() {}
+        GetNextBatchRespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
+
+        template<typename A>
+        void save(A& ar) const {
+            ar & buffer;
+            ar & ret_code;
+        }
+
+        template<typename A>
+        void load(A& ar) {
+            ar & buffer;
+            ar & ret_code;
+        }
+};
+
+
+std::function<void(const tl::request&, const int&, std::string&)> hello = 
+    [](const tl::request &req, const int& a, const std::string &s) {
+        GetNextBatchRespStub resp;
+        resp.buffer = "hello world";
+        resp.ret_code = 0;
+        return req.respond(resp);
+    };
+
 
 int main(int argc, char** argv) {
-    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
-    margo_instance_id mid = engine.get_margo_instance();
-    hg_addr_t svr_addr;
-    hg_return_t hret = margo_addr_self(mid, &svr_addr);
-    if (hret != HG_SUCCESS) {
-        std::cerr << "Error: margo_addr_lookup()\n";
-        margo_finalize(mid);
-        return -1;
-    }
 
-    std::function<void(const tl::request&)> scan = 
-        [](const tl::request &req) {
-            std::cout << "Server: Reached inside RPC body at: " << PrintTimestamp() << std::endl;
-            return req.respond(0);
-        };
+    tl::engine myEngine("tcp", THALLIUM_SERVER_MODE);
+    myEngine.define("hello", hello);
+    std::cout << "Server running at address " << myEngine.self() << std::endl;
 
+    return 0;
+}
 
-    engine.define("scan", scan);
-    WriteToFile(engine.self(), "/proj/schedock-PG0/thallium_uri", false);
-    std::cout << "Serving at: " << engine.self() << std::endl;
-    engine.wait_for_finalize();
-};

@@ -1,30 +1,28 @@
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <fstream>
-#include <unistd.h>
-
-
 #include <thallium.hpp>
-#include "utils.h"
+#include <chrono>
+#include <thallium/serialization/stl/string.hpp>
+
 
 namespace tl = thallium;
 
 int main(int argc, char** argv) {
-    std::string uri = argv[1];
-    std::string path = argv[2];
-    std::string query = argv[3];
-    std::string mode = argv[4];
 
-    std::cout << uri << std::endl;
-
-    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
-    tl::endpoint endpoint = engine.lookup(uri);
-    tl::remote_procedure scan = engine.define("scan");
-
-    for (int i = 0; i < 5; i++) {
-        std::cout << "Client: Calling RPC at : " << PrintTimestamp() << std::endl;
-        scan.on(endpoint)();
-        sleep(2);
+    if(argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <address>" << std::endl;
+        exit(0);
     }
+
+    tl::engine myEngine("tcp", THALLIUM_CLIENT_MODE);
+    tl::remote_procedure hello = myEngine.define("hello");
+    tl::endpoint server = myEngine.lookup(argv[1]);
+
+    std::string s = "hello world";
+
+    hello.on(server)(1, s);
+    auto start = std::chrono::high_resolution_clock::now();
+    hello.on(server)(2, s);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
+    std::cout << exec_time_ms << std::endl;
+    return 0;
 }

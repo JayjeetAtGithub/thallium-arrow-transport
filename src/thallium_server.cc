@@ -1,4 +1,5 @@
 #include <iostream>
+#include <csignal>
 
 #include "utils.h"
 #include "headers.h"
@@ -6,7 +7,6 @@
 #include "constants.h"
 
 namespace tl = thallium;
-
 
 int main(int argc, char** argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
@@ -43,6 +43,12 @@ int main(int argc, char** argv) {
             return req.respond(resp);
         };
 
+    std::function<void(const tl::request&)> finalize = 
+        [&reader_map, &engine](const tl::request &req) {
+            reader_map.clear();
+            engine.finalize();
+        };
+
     tl::remote_procedure do_rdma = engine.define("do_rdma");
     std::function<void(const tl::request&, const int&, const std::string&)> get_next_batch = 
         [&do_rdma, &reader_map, &engine](const tl::request &req, const int& warmup, const std::string &uuid) {
@@ -53,7 +59,16 @@ int main(int argc, char** argv) {
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
 
+            GetNextBatchRespStub resp;
             if (batch != nullptr) {
+                std::cout << "Batch size: " << batch->num_rows() << std::endl;
+                if (batch->num_rows() < 131072) {
+                    std::cout << "Using RPC\n";
+                    auto buffer = PackBatch(batch);
+                    resp = GetNextBatchRespStub(std::string((char*)buffer->data(), buffer->size()), RPC_BATCH);
+                    return req.respond(resp);
+                }
+
                 std::vector<int64_t> data_buff_sizes;
                 std::vector<int64_t> offset_buff_sizes;
                 int64_t num_rows = batch->num_rows();
@@ -97,16 +112,18 @@ int main(int argc, char** argv) {
                 }
 
                 tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
-                int e = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
-                return req.respond(e);
+                resp.ret_code = do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
+                return req.respond(resp);
             } else {
                 reader_map.erase(uuid);
-                return req.respond(1);
+                resp.ret_code = NO_BATCH;
+                return req.respond(resp);
             }
         };
 
     engine.define("init_scan", init_scan);
     engine.define("get_next_batch", get_next_batch);
+    engine.define("finalize", finalize).disable_response();
     WriteToFile(engine.self(), TL_URI_PATH, false);
     std::cout << "Serving at: " << engine.self() << std::endl;
     engine.wait_for_finalize();
