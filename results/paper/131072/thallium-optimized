@@ -64,7 +64,7 @@ SELECT * FROM dataset WHERE total_amount > 520;
 3.645000
 4.016000
 4.815000
-SELECT total_amount, fare_amount, tip_amount FROM dataset WHERE total_amount > 520; (RPC)
+SELECT total_amount, fare_amount, tip_amount FROM dataset WHERE total_amount > 520;
 2.300000
 1.839000
 1.897000
@@ -75,7 +75,7 @@ SELECT total_amount, fare_amount, tip_amount FROM dataset WHERE total_amount > 5
 2.374000
 2.449000
 2.364000
-SELECT sum(total_amount) FROM dataset; (RPC)
+SELECT sum(total_amount) FROM dataset;
 2.941000
 2.083000
 1.667000
