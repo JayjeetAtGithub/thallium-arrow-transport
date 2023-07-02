@@ -162,6 +162,8 @@ arrow::Status Main(int argc, char **argv) {
 
     // Do a warmup blank RPC to get around libfabrics cold start
     client->Warmup();
+    client->Warmup();
+    client->Warmup();
 
     int64_t total_rows_read = 0;
     std::shared_ptr<arrow::RecordBatch> batch;
@@ -170,7 +172,7 @@ arrow::Status Main(int argc, char **argv) {
     //     total_rows_read += batch->num_rows();
     // }
 
-    client->GetNextBatchCallMeasure(info);
+    client->GetNextBatch(info);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
