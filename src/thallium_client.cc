@@ -174,11 +174,13 @@ arrow::Status Main(int argc, char **argv) {
 
     client->GetNextBatch(info);
     auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    std::cout << "Total time " << duration << " microseconds" << std::endl;
 
-    std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-    WriteToFile(exec_time_ms, TL_RES_PATH, true);
+    // std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
+    // WriteToFile(exec_time_ms, TL_RES_PATH, true);
     
-    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms" << std::endl;
+    // std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms" << std::endl;
     return arrow::Status::OK();
 }
 
