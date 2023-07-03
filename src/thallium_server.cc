@@ -22,19 +22,12 @@ int main(int argc, char** argv) {
     bool optimize = 1;
 
     std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
-    std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
-        [&reader_map](const tl::request &req, const std::string& path, const std::string& query, const std::string& mode) {
-            std::cout << "Request: " << query << "@" << path << "@" << mode << std::endl;
+    std::function<void(const tl::request&, const std::string&, const std::string&)> init_scan = 
+        [&reader_map](const tl::request &req, const std::string& path, const std::string& query) {
+            std::cout << "Request: " << query << "@" << path << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
-
-            std::shared_ptr<arrow::RecordBatchReader> reader;
-            if (mode == "t") {
-                reader = db->ExecuteEager(query);
-            }
-            else {
-                reader = db->Execute(query);
-            }
+            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
             std::string uuid = boost::uuids::to_string(boost::uuids::random_generator()());
             reader_map[uuid] = reader;
             std::shared_ptr<arrow::Buffer> buff = arrow::ipc::SerializeSchema(*(reader->schema())).ValueOrDie();

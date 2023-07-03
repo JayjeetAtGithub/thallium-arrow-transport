@@ -13,13 +13,11 @@ class ThalliumDescriptor {
     public:
         std::string query;
         std::string path;
-        std::string mode;
 
-    static ThalliumDescriptor Create(std::string &query, std::string &path, std::string &mode) {
+    static ThalliumDescriptor Create(std::string &query, std::string &path) {
         ThalliumDescriptor desc;
         desc.query = query;
         desc.path = path;
-        desc.mode = mode;
         return desc;
     }
 };
@@ -46,7 +44,7 @@ class ThalliumClient {
 
         void GetThalliumInfo(ThalliumDescriptor &desc, ThalliumInfo &info) {
             tl::remote_procedure init_scan = engine.define("init_scan");
-            InitScanRespStub resp = init_scan.on(endpoint)(desc.path, desc.query, desc.mode);
+            InitScanRespStub resp = init_scan.on(endpoint)(desc.path, desc.query);
             std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(resp.schema.c_str(), resp.schema.size());
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::io::BufferReader buff_reader(schema_buff);
@@ -129,12 +127,11 @@ arrow::Status Main(int argc, char **argv) {
     std::string uri = argv[1];
     std::string path = argv[2];
     std::string query = argv[3];
-    std::string mode = argv[4];
 
     auto client = std::make_shared<ThalliumClient>(uri);
     client->Connect();
 
-    auto desc = ThalliumDescriptor::Create(query, path, mode);
+    auto desc = ThalliumDescriptor::Create(query, path);
 
     ThalliumInfo info;
     client->GetThalliumInfo(desc, info);

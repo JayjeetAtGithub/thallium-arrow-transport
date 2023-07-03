@@ -94,7 +94,6 @@ class QueryEngine {
     public:
         virtual void Create(const std::string &path) = 0;
         virtual std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) = 0;
-        virtual std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) = 0;
 };
 
 
@@ -113,12 +112,6 @@ class DuckDBEngine : public QueryEngine {
         }
 
         std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
-            auto statement = con->Prepare(query);
-            auto result = statement->Execute();
-            return std::make_shared<DuckDBRecordBatchReader>(std::move(result));
-        }
-
-        std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) {
             auto statement = con->Prepare(query);
             auto result = statement->Execute();
             auto reader = std::make_shared<DuckDBRecordBatchReader>(std::move(result));
@@ -153,14 +146,10 @@ class AceroEngine : public QueryEngine {
         }
 
         std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
-           return ExecuteEager(query);
-        }
-
-        std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) {
             if (query == "SELECT sum(total_amount) FROM dataset;") {
                 std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
                 db->Create(dataset_path);
-                return db->ExecuteEager(query);
+                return db->Execute(query);
             }
 
             std::string path;
