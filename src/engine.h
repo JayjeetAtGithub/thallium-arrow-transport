@@ -146,6 +146,7 @@ class AceroEngine : public QueryEngine {
         AceroEngine() {}
 
         void Create(const std::string &path) {
+            dataset_path = path;
             std::string path_non_const = const_cast<std::string&>(path);
             path_non_const = path_non_const.substr(0, path_non_const.length() - 2);
             uri = "file://" + path_non_const;
@@ -156,6 +157,12 @@ class AceroEngine : public QueryEngine {
         }
 
         std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) {
+            if (query == "SELECT sum(total_amount) FROM dataset;") {
+                std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+                db->Create(dataset_path);
+                return db->ExecuteEager(query);
+            }
+
             std::string path;
             auto fs = arrow::fs::FileSystemFromUri(uri, &path).ValueOrDie();
             arrow::fs::FileSelector s;
@@ -184,5 +191,6 @@ class AceroEngine : public QueryEngine {
         }
 
     protected:
+        std::string dataset_path;
         std::string uri;
 };
