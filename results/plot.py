@@ -5,16 +5,21 @@ import seaborn as sns
 
 if __name__ == "__main__":
     # Load data
-    with open('results/131072/flight-duckdb-2-8-nopt', 'r') as f:
-        data_duckdb = f.readlines()
-        data_duckdb = [float(x.strip()) for x in data_duckdb]
+    with open('paper/w_o_opt/flight', 'r') as f:
+        data_flight = f.readlines()
+        data_flight = [float(x.strip()) for x in data_flight]
 
-    with open('results/131072/thallium-duckdb-2-8-nopt', 'r') as f:
-        data_thallium = f.readlines()
-        data_thallium = [float(x.strip()) for x in data_thallium]
+    with open('paper/w_o_opt/thallium-optimized', 'r') as f:
+        data_thallium_opt = f.readlines()
+        data_thallium_opt = [float(x.strip()) for x in data_thallium_opt]
 
-    queries_large = [1, 2, 3]
-    queries_small = [4, 5, 6, 7, 8]
+    with open('paper/w_o_opt/thallium-nonoptimized', 'r') as f:
+        data_thallium_noopt = f.readlines()
+        data_thallium_noopt = [float(x.strip()) for x in data_thallium_noopt]
+
+    queries_large = [1, 2]
+    queries_medium = [3, 4, 5]
+    queries_small = [6, 7, 8]
 
     # Plot Queries Large
     table = {
@@ -26,13 +31,16 @@ if __name__ == "__main__":
     for q in queries_large:
         for i in range(0, 10):
             table["query"].append(q)
-            table["format"].append("duckdb")
-            table["latency"].append(data_duckdb[10*(q-1)+i])
+            table["format"].append("flight")
+            table["latency"].append(data_flight[10*(q-1)+i])
 
-        for i in range(0, 10):
             table["query"].append(q)
-            table["format"].append("thallium")
-            table["latency"].append(data_thallium[10*(q-1)+i])
+            table["format"].append("thallium-no-opt")
+            table["latency"].append(data_thallium_noopt[10*(q-1)+i])
+
+            table["query"].append(q)
+            table["format"].append("thallium-opt")
+            table["latency"].append(data_thallium_opt[10*(q-1)+i])
 
     df = pd.DataFrame(table)
     print(df)
@@ -41,7 +49,37 @@ if __name__ == "__main__":
     sns.set_context("paper", font_scale=1.5)
     plt = sns.catplot(x="query", y="latency", hue="format", data=df, kind="bar", palette="muted")
     plt.set(xlabel="Query", ylabel="Latency (ms)")
-    plt.savefig("results/131072/plot_large.pdf")
+    plt.savefig("paper/w_o_opt/plot_large.pdf")
+
+    # Plot Queries Medium
+    table = {
+        "query": [],
+        "format": [],
+        "latency": [],
+    }
+
+    for q in queries_medium:
+        for i in range(0, 10):
+            table["query"].append(q)
+            table["format"].append("flight")
+            table["latency"].append(data_flight[10*(q-1)+i])
+
+            table["query"].append(q)
+            table["format"].append("thallium-no-opt")
+            table["latency"].append(data_thallium_noopt[10*(q-1)+i])
+
+            table["query"].append(q)
+            table["format"].append("thallium-opt")
+            table["latency"].append(data_thallium_opt[10*(q-1)+i])
+
+    df = pd.DataFrame(table)
+    print(df)
+
+    sns.set_theme(style="whitegrid")
+    sns.set_context("paper", font_scale=1.5)
+    plt = sns.catplot(x="query", y="latency", hue="format", data=df, kind="bar", palette="muted")
+    plt.set(xlabel="Query", ylabel="Latency (ms)")
+    plt.savefig("paper/w_o_opt/plot_medium.pdf")
 
     # Plot Queries Small
     table = {
@@ -53,13 +91,16 @@ if __name__ == "__main__":
     for q in queries_small:
         for i in range(0, 10):
             table["query"].append(q)
-            table["format"].append("duckdb")
-            table["latency"].append(data_duckdb[10*(q-1)+i])
+            table["format"].append("flight")
+            table["latency"].append(data_flight[10*(q-1)+i])
 
-        for i in range(0, 10):
             table["query"].append(q)
-            table["format"].append("thallium")
-            table["latency"].append(data_thallium[10*(q-1)+i])
+            table["format"].append("thallium-no-opt")
+            table["latency"].append(data_thallium_noopt[10*(q-1)+i])
+
+            table["query"].append(q)
+            table["format"].append("thallium-opt")
+            table["latency"].append(data_thallium_opt[10*(q-1)+i])
 
     df = pd.DataFrame(table)
     print(df)
@@ -68,4 +109,4 @@ if __name__ == "__main__":
     sns.set_context("paper", font_scale=1.5)
     plt = sns.catplot(x="query", y="latency", hue="format", data=df, kind="bar", palette="muted")
     plt.set(xlabel="Query", ylabel="Latency (ms)")
-    plt.savefig("results/131072/plot_small.pdf")
+    plt.savefig("paper/w_o_opt/plot_small.pdf")
