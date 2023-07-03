@@ -9,6 +9,20 @@
 #include "constants.h"
 
 
+arrow::compute::Expression GetFilter(std::string &query) {
+    if (selectivity_ == "SELECT * FROM dataset;") {
+        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
+                                        arrow::compute::literal(-200));
+    } else if (selectivity_ == "SELECT * FROM dataset WHERE total_amount > 27;") {
+        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
+                                        arrow::compute::literal(27));
+    } else if (selectivity_ == "SELECT * FROM dataset WHERE total_amount > 69;") {
+        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
+                                        arrow::compute::literal(69));
+    }
+}
+
+
 class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
     public:
         DuckDBRecordBatchReader(std::shared_ptr<duckdb::QueryResult> result) : result_(result) {
@@ -118,7 +132,27 @@ class AceroEngine : public QueryEngine {
             arrow::dataset::FinishOptions finish_options;
             auto dataset = factory->Finish(finish_options).ValueOrDie();
 
-            auto scanner_builder, dataset->NewScan();
+            auto schema = arrow::schema({
+                arrow::field("VendorID", arrow::int64()),
+                arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
+                arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
+                arrow::field("passenger_count", arrow::int64()),
+                arrow::field("trip_distance", arrow::float64()),
+                arrow::field("RatecodeID", arrow::int64()),
+                arrow::field("store_and_fwd_flag", arrow::utf8()),
+                arrow::field("PULocationID", arrow::int64()),
+                arrow::field("DOLocationID", arrow::int64()),
+                arrow::field("payment_type", arrow::int64()),
+                arrow::field("fare_amount", arrow::float64()),
+                arrow::field("extra", arrow::float64()),
+                arrow::field("mta_tax", arrow::float64()),
+                arrow::field("tip_amount", arrow::float64()),
+                arrow::field("tolls_amount", arrow::float64()),
+                arrow::field("improvement_surcharge", arrow::float64()),
+                arrow::field("total_amount", arrow::float64())
+            });
+
+            auto scanner_builder = dataset->NewScan().ValueOrDie();
             scanner_builder->Filter(GetFilter());
             scanner_builder->UseThreads(true);
             scanner_builder->Project(schema->field_names());
