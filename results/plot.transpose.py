@@ -6,7 +6,7 @@ import seaborn as sns
 def plot_graph(df, path):
     sns.set_theme(style="whitegrid")
     sns.set_context("paper", font_scale=1.5)
-    plt = sns.catplot(x="query", y="latency", hue="format", data=df, errwidth=1, capsize=0.1, errorbar="sd", kind="bar", palette="muted")
+    plt = sns.catplot(x="format", y="latency", hue="query", data=df, errwidth=1, capsize=0.1, errorbar="sd", kind="bar", palette="muted")
     plt.despine(left=False, bottom=False, top=False, right=False)
     plt.set(xlabel="Query No.", ylabel="Duration (ms)")
     plt.savefig(path)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(table)
     print(df)
-    plot_graph(df, "paper/final/plot_large.pdf")
+    plot_graph(df, "paper/final/plot_large.transpose.pdf")
 
     # Plot Queries Medium
     table = {
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(table)
     print(df)
-    plot_graph(df, "paper/final/plot_medium.pdf")
+    plot_graph(df, "paper/final/plot_medium.transpose.pdf")
 
     # Plot Queries Small
     table = {
@@ -103,4 +103,4 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(table)
     print(df)
-    plot_graph(df, "paper/final/plot_small.pdf")
+    plot_graph(df, "paper/final/plot_small.transpose.pdf")
