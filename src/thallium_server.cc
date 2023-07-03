@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
                     int64_t data_size = 0;
                     int64_t offset_size = 0;
 
-                    if (is_base_binary_like(type)) {
+                    if (is_base_binary_like(type->id())) {
                         std::shared_ptr<arrow::Buffer> data_buff = 
                             std::static_pointer_cast<arrow::BinaryArray>(col_arr)->value_data();
                         std::shared_ptr<arrow::Buffer> offset_buff = 
