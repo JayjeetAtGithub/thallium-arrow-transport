@@ -8,6 +8,25 @@
 
 #include "constants.h"
 
+auto schema = arrow::schema({
+    arrow::field("VendorID", arrow::int64()),
+    arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
+    arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
+    arrow::field("passenger_count", arrow::int64()),
+    arrow::field("trip_distance", arrow::float64()),
+    arrow::field("RatecodeID", arrow::int64()),
+    arrow::field("store_and_fwd_flag", arrow::utf8()),
+    arrow::field("PULocationID", arrow::int64()),
+    arrow::field("DOLocationID", arrow::int64()),
+    arrow::field("payment_type", arrow::int64()),
+    arrow::field("fare_amount", arrow::float64()),
+    arrow::field("extra", arrow::float64()),
+    arrow::field("mta_tax", arrow::float64()),
+    arrow::field("tip_amount", arrow::float64()),
+    arrow::field("tolls_amount", arrow::float64()),
+    arrow::field("improvement_surcharge", arrow::float64()),
+    arrow::field("total_amount", arrow::float64())
+});
 
 arrow::compute::Expression GetFilter(const std::string &query) {
     if (query == "SELECT * FROM dataset;") {
@@ -26,6 +45,14 @@ arrow::compute::Expression GetFilter(const std::string &query) {
         return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
                                         arrow::compute::literal(199));
     } else if (query == "SELECT * FROM dataset WHERE total_amount > 520;") {
+        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
+                                        arrow::compute::literal(520));
+    } else if (query == "SELECT total_amount, fare_amount, tip_amount FROM dataset WHERE total_amount > 520;") {
+        schema = arrow::schema({
+            arrow::field("total_amount", arrow::float64()),
+            arrow::field("fare_amount", arrow::float64()),
+            arrow::field("tip_amount", arrow::float64())
+        });
         return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
                                         arrow::compute::literal(520));
     }
@@ -169,6 +196,8 @@ class AceroEngine : public QueryEngine {
             scanner_builder->Project(schema->field_names());
             auto scanner = scanner_builder->Finish().ValueOrDie();
             auto table = scanner->ToTable().ValueOrDie();
+            std::cout << "Table size: " << table->num_rows() << std::endl;
+            std::cout << "Table columns: " << table->num_columns() << std::endl;
 
             auto ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
             scanner_builder = ds->NewScan().ValueOrDie();
