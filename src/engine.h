@@ -110,8 +110,9 @@ class AceroEngine : public QueryEngine {
         AceroEngine() {}
 
         void Create(const std::string &path) {
-            path = path.substr(0, path.length() - 2);
-            uri = "file://" + path;
+            std::string path_non_const = const_cast<std::string>(path);
+            path_non_const = path_non_const.substr(0, path_non_const.length() - 2);
+            uri = "file://" + path_non_const;
         }
 
         std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
