@@ -12,17 +12,19 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    tl::engine myEngine("tcp", THALLIUM_CLIENT_MODE);
+    tl::engine myEngine("verbs", THALLIUM_CLIENT_MODE);
     tl::remote_procedure hello = myEngine.define("hello");
     tl::endpoint server = myEngine.lookup(argv[1]);
 
     std::string s = "hello world";
 
     hello.on(server)(1, s);
-    auto start = std::chrono::high_resolution_clock::now();
-    hello.on(server)(2, s);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-    std::cout << exec_time_ms << std::endl;
+    for (int i = 0; i < 100; i++) {
+        auto start = std::chrono::high_resolution_clock::now();
+        hello.on(server)(2, s);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+        std::cout << duration << std::endl;
+    }
     return 0;
 }

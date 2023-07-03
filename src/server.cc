@@ -37,7 +37,7 @@ std::function<void(const tl::request&, const int&, std::string&)> hello =
 
 int main(int argc, char** argv) {
 
-    tl::engine myEngine("tcp", THALLIUM_SERVER_MODE);
+    tl::engine myEngine("verbs", THALLIUM_SERVER_MODE);
     myEngine.define("hello", hello);
     std::cout << "Server running at address " << myEngine.self() << std::endl;
 
