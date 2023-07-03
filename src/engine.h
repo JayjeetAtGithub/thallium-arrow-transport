@@ -19,6 +19,15 @@ arrow::compute::Expression GetFilter(const std::string &query) {
     } else if (query == "SELECT * FROM dataset WHERE total_amount > 69;") {
         return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
                                         arrow::compute::literal(69));
+    } else if (query == "SELECT * FROM dataset WHERE total_amount > 104;") {
+        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
+                                        arrow::compute::literal(104));
+    } else if (query == "SELECT * FROM dataset WHERE total_amount > 199;") {
+        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
+                                        arrow::compute::literal(199));
+    } else if (query == "SELECT * FROM dataset WHERE total_amount > 520;") {
+        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
+                                        arrow::compute::literal(520));
     }
 }
 
