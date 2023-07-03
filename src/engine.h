@@ -90,3 +90,47 @@ class DuckDBEngine : public QueryEngine {
         std::shared_ptr<duckdb::DuckDB> db;
         std::shared_ptr<duckdb::Connection> con;
 };
+
+class AceroEngine : public QueryEngine {
+    public:
+        AceroEngine() {}
+
+        void Create(const std::string &path) {
+            uri = "file://" + path;
+        }
+
+        std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
+           return ExecuteEager(query);
+        }
+
+        std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) {
+            std::string path;
+            ARROW_ASSIGN_OR_RAISE(auto fs, arrow::fs::FileSystemFromUri(uri, &path));
+            arrow::fs::FileSelector s;
+            s.base_dir = std::move(path);
+            s.recursive = true;
+
+            arrow::dataset::FileSystemFactoryOptions options;
+            auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
+
+            ARROW_ASSIGN_OR_RAISE(auto factory,
+                arrow::dataset::FileSystemDatasetFactory::Make(std::move(fs), s, std::move(format), options));
+            arrow::dataset::FinishOptions finish_options;
+            ARROW_ASSIGN_OR_RAISE(auto dataset,factory->Finish(finish_options));
+
+            ARROW_ASSIGN_OR_RAISE(auto scanner_builder, dataset->NewScan());
+            ARROW_RETURN_NOT_OK(scanner_builder->Filter(GetFilter()));
+            ARROW_RETURN_NOT_OK(scanner_builder->UseThreads(true));
+            ARROW_RETURN_NOT_OK(scanner_builder->Project(schema->field_names()));
+            ARROW_ASSIGN_OR_RAISE(auto scanner, scanner_builder->Finish());
+            ARROW_ASSIGN_OR_RAISE(auto table, scanner->ToTable());
+
+            auto ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
+            scanner_builder = ds->NewScan().ValueOrDie();
+            scanner = scanner_builder->Finish().ValueOrDie();
+            return scanner->ToRecordBatchReader().ValueOrDie();
+        }
+
+    protected:
+        std::string uri;
+}
