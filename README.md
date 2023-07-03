@@ -17,5 +17,5 @@ cd thallium-arrow-transport/
 
 ```bash
 sudo ./scripts/server.sh [ts]/[fs]
-sudo ./scripts/client.sh [tc]/[fc] [t]/[r]
+sudo ./scripts/client.sh [tc]/[fc]
 ```
