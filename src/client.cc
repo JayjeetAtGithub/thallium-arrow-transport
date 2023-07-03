@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
         hello.on(server)(2, s);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-        std::cout << duration << std::endl;
+        std::cout << "Iteration: " << i << " took " << duration << std::endl;
     }
     return 0;
 }
