@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
             std::cout << "Request: " << query << "@" << path << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
-            std::shared_ptr<arrow::RecordBatchReader> reader = db->ExecuteEager(query);
+            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
             std::string uuid = boost::uuids::to_string(boost::uuids::random_generator()());
             reader_map[uuid] = reader;
             std::shared_ptr<arrow::Buffer> buff = arrow::ipc::SerializeSchema(*(reader->schema())).ValueOrDie();
