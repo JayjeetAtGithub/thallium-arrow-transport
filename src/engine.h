@@ -105,7 +105,7 @@ class AceroEngine : public QueryEngine {
 
         std::shared_ptr<arrow::RecordBatchReader> ExecuteEager(const std::string &query) {
             std::string path;
-            ARROW_ASSIGN_OR_RAISE(auto fs, arrow::fs::FileSystemFromUri(uri, &path));
+            auto fs = arrow::fs::FileSystemFromUri(uri, &path).ValueOrDie();
             arrow::fs::FileSelector s;
             s.base_dir = std::move(path);
             s.recursive = true;
@@ -113,17 +113,17 @@ class AceroEngine : public QueryEngine {
             arrow::dataset::FileSystemFactoryOptions options;
             auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
 
-            ARROW_ASSIGN_OR_RAISE(auto factory,
-                arrow::dataset::FileSystemDatasetFactory::Make(std::move(fs), s, std::move(format), options));
+            auto factory =
+                arrow::dataset::FileSystemDatasetFactory::Make(std::move(fs), s, std::move(format), options).ValueOrDie();
             arrow::dataset::FinishOptions finish_options;
-            ARROW_ASSIGN_OR_RAISE(auto dataset,factory->Finish(finish_options));
+            auto dataset = factory->Finish(finish_options).ValueOrDie();
 
-            ARROW_ASSIGN_OR_RAISE(auto scanner_builder, dataset->NewScan());
-            ARROW_RETURN_NOT_OK(scanner_builder->Filter(GetFilter()));
-            ARROW_RETURN_NOT_OK(scanner_builder->UseThreads(true));
-            ARROW_RETURN_NOT_OK(scanner_builder->Project(schema->field_names()));
-            ARROW_ASSIGN_OR_RAISE(auto scanner, scanner_builder->Finish());
-            ARROW_ASSIGN_OR_RAISE(auto table, scanner->ToTable());
+            auto scanner_builder, dataset->NewScan();
+            scanner_builder->Filter(GetFilter());
+            scanner_builder->UseThreads(true);
+            scanner_builder->Project(schema->field_names());
+            auto scanner = scanner_builder->Finish().ValueOrDie();
+            auto table = scanner->ToTable().ValueOrDie();
 
             auto ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
             scanner_builder = ds->NewScan().ValueOrDie();
@@ -133,4 +133,4 @@ class AceroEngine : public QueryEngine {
 
     protected:
         std::string uri;
-}
+};
