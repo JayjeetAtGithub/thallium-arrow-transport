@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
             GetNextBatchRespStub resp;
             if (batch != nullptr) {
                 if (optimize) {
-                    if (batch->num_rows() < 131072) {
+                    if (batch->num_rows() <= 1600) {
                         std::cout << "Using RPC\n";
                         auto buffer = PackBatch(batch);
                         resp = GetNextBatchRespStub(std::string((char*)buffer->data(), buffer->size()), RPC_BATCH);
