@@ -146,6 +146,7 @@ arrow::Status Main(int argc, char **argv) {
     std::shared_ptr<arrow::RecordBatch> batch;
     auto start = std::chrono::high_resolution_clock::now();
     while ((batch = client->GetNextBatch(info)) != nullptr) {
+        std::cout << batch->ToString() << std::endl;
         total_rows_read += batch->num_rows();
         total_round_trips += 1;
     }
