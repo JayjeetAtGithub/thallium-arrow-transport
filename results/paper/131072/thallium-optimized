@@ -1,4 +1,3 @@
-SELECT * FROM dataset;
 11880.184000
 12365.452000
 13176.215000
@@ -9,7 +8,6 @@ SELECT * FROM dataset;
 9880.455000
 9997.248000
 10107.968000
-SELECT * FROM dataset WHERE total_amount > 27;
 1599.039000
 1296.045000
 1476.104000
@@ -20,7 +18,6 @@ SELECT * FROM dataset WHERE total_amount > 27;
 1225.391000
 1117.530000
 1319.396000
-SELECT * FROM dataset WHERE total_amount > 69;
 272.632000
 241.388000
 232.188000
@@ -31,7 +28,6 @@ SELECT * FROM dataset WHERE total_amount > 69;
 201.573000
 198.595000
 238.272000
-SELECT * FROM dataset WHERE total_amount > 104;
 80.896000
 59.060000
 79.343000
@@ -42,7 +38,6 @@ SELECT * FROM dataset WHERE total_amount > 104;
 59.639000
 82.161000
 78.843000
-SELECT * FROM dataset WHERE total_amount > 199;
 22.121000
 28.551000
 27.936000
@@ -53,7 +48,6 @@ SELECT * FROM dataset WHERE total_amount > 199;
 19.634000
 27.469000
 22.009000
-SELECT * FROM dataset WHERE total_amount > 520;
 3.716000
 3.910000
 3.582000
@@ -64,7 +58,6 @@ SELECT * FROM dataset WHERE total_amount > 520;
 3.645000
 4.016000
 4.815000
-SELECT total_amount, fare_amount, tip_amount FROM dataset WHERE total_amount > 520;
 2.300000
 1.839000
 1.897000
@@ -75,7 +68,6 @@ SELECT total_amount, fare_amount, tip_amount FROM dataset WHERE total_amount > 5
 2.374000
 2.449000
 2.364000
-SELECT sum(total_amount) FROM dataset;
 2.941000
 2.083000
 1.667000
