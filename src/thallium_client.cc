@@ -97,7 +97,7 @@ class ThalliumClient {
 
                     for (int64_t i = 0; i < num_cols; i++) {
                         std::shared_ptr<arrow::DataType> type = schema->field(i)->type();  
-                        if (is_base_binary_like(type->id())) {
+                        if (is_base_binary_like(type)) {
                             std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::StringArray>(num_rows, std::move(offset_buffs[i]), std::move(data_buffs[i]));
                             columns.push_back(col_arr);
                         } else {
