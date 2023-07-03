@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 
     hello.on(server)(1, s);
     std::cout << "Warmup done" << std::endl;
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 1000; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         hello.on(server)(2, s);
         auto end = std::chrono::high_resolution_clock::now();
