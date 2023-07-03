@@ -3,12 +3,14 @@ import pandas as pd
 import seaborn as sns
 
 
-def plot_graph(df, path):
+def plot_graph(df, path, constraint_axes=None, legend=False):
     sns.set_theme(style="whitegrid")
     sns.set_context("paper", font_scale=1.5)
-    plt = sns.catplot(x="query", y="latency", hue="format", data=df, errwidth=1, capsize=0.1, errorbar="sd", kind="bar", palette="muted")
+    plt = sns.catplot(x="query", y="latency", hue="Protocol", data=df, errwidth=1, capsize=0.1, errorbar="sd", kind="bar", palette="muted", legend=legend)
+    if constraint_axes:
+        plt.set(ylim=(0, 20))
     plt.despine(left=False, bottom=False, top=False, right=False)
-    plt.set(xlabel="Query No.", ylabel="Duration (ms)")
+    plt.set(xlabel="Query No/Result Size", ylabel="Duration (ms)")
     plt.savefig(path)
 
 
@@ -33,7 +35,7 @@ if __name__ == "__main__":
     # Plot Queries Large
     table = {
         "query": [],
-        "format": [],
+        "Protocol": [],
         "latency": [],
     }
 
@@ -41,15 +43,15 @@ if __name__ == "__main__":
         a, b = q.split("/")
         for i in range(0, 10):
             table["query"].append(q)
-            table["format"].append("flight-acero")
+            table["Protocol"].append("flight-acero")
             table["latency"].append(data_flight_acero[10*(int(a)-1)+i])
 
             table["query"].append(q)
-            table["format"].append("flight-duckdb")
+            table["Protocol"].append("flight-duckdb")
             table["latency"].append(data_flight_duckdb[10*(int(a)-1)+i])
 
             table["query"].append(q)
-            table["format"].append("thallium-duckdb")
+            table["Protocol"].append("thallium-duckdb")
             table["latency"].append(data_thallium_duckdb[10*(int(a)-1)+i])
 
     df = pd.DataFrame(table)
@@ -59,7 +61,7 @@ if __name__ == "__main__":
     # Plot Queries Medium
     table = {
         "query": [],
-        "format": [],
+        "Protocol": [],
         "latency": [],
     }
 
@@ -67,15 +69,15 @@ if __name__ == "__main__":
         a, b = q.split("/")
         for i in range(0, 10):
             table["query"].append(q)
-            table["format"].append("flight-acero")
+            table["Protocol"].append("flight-acero")
             table["latency"].append(data_flight_acero[10*(int(a)-1)+i])
 
             table["query"].append(q)
-            table["format"].append("flight-duckdb")
+            table["Protocol"].append("flight-duckdb")
             table["latency"].append(data_flight_duckdb[10*(int(a)-1)+i])
 
             table["query"].append(q)
-            table["format"].append("thallium-duckdb")
+            table["Protocol"].append("thallium-duckdb")
             table["latency"].append(data_thallium_duckdb[10*(int(a)-1)+i])
 
     df = pd.DataFrame(table)
@@ -85,7 +87,7 @@ if __name__ == "__main__":
     # Plot Queries Small
     table = {
         "query": [],
-        "format": [],
+        "Protocol": [],
         "latency": [],
     }
 
@@ -93,17 +95,17 @@ if __name__ == "__main__":
         a, b = q.split("/")
         for i in range(0, 10):
             table["query"].append(q)
-            table["format"].append("flight-acero")
+            table["Protocol"].append("flight-acero")
             table["latency"].append(data_flight_acero[10*(int(a)-1)+i])
 
             table["query"].append(q)
-            table["format"].append("flight-duckdb")
+            table["Protocol"].append("flight-duckdb")
             table["latency"].append(data_flight_duckdb[10*(int(a)-1)+i])
 
             table["query"].append(q)
-            table["format"].append("thallium-duckdb")
+            table["Protocol"].append("thallium-duckdb")
             table["latency"].append(data_thallium_duckdb[10*(int(a)-1)+i])
 
     df = pd.DataFrame(table)
     print(df)
-    plot_graph(df, "paper/final/plot_small.pdf")
+    plot_graph(df, "paper/final/plot_small.pdf", True, True)
