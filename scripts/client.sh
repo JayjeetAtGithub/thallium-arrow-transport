@@ -2,7 +2,6 @@
 set -e
 
 binary=$1
-mode=$2
 
 function clean_client_cache {
     sync
@@ -29,9 +28,9 @@ while IFS= read -r query; do
 
         if [ "$binary" == "tc" ]; then            
             uri=$(cat /proj/schedock-PG0/thallium_uri)
-            $PWD/bin/"$binary" $uri "/mnt/dataset/*" "$query" "$mode" || true
+            $PWD/bin/"$binary" $uri "/mnt/dataset/*" "$query" || true
         else
-            $PWD/bin/"$binary" "/mnt/dataset/*" "$query" "$mode" || true
+            $PWD/bin/"$binary" "/mnt/dataset/*" "$query" || true
         fi
     done
 done < queries.txt
