@@ -176,8 +176,6 @@ class AceroEngine : public QueryEngine {
             scanner_builder->Project(schema->field_names());
             auto scanner = scanner_builder->Finish().ValueOrDie();
             auto table = scanner->ToTable().ValueOrDie();
-            std::cout << "Table size: " << table->num_rows() << std::endl;
-            std::cout << "Table columns: " << table->num_columns() << std::endl;
 
             auto ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
             scanner_builder = ds->NewScan().ValueOrDie();
