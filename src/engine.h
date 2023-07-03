@@ -110,6 +110,7 @@ class AceroEngine : public QueryEngine {
         AceroEngine() {}
 
         void Create(const std::string &path) {
+            path = path.substr(0, path.length() - 2);
             uri = "file://" + path;
         }
 
