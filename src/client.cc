@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
     std::string s = "hello world";
 
     hello.on(server)(1, s);
+    std::cout << "Warmup done" << std::endl;
     for (int i = 0; i < 100; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         hello.on(server)(2, s);
