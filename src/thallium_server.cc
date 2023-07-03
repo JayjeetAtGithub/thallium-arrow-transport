@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    bool optimize = std::atoi(argv[1]);
+    bool optimize = 1;
 
     std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
     std::function<void(const tl::request&, const std::string&, const std::string&, const std::string&)> init_scan = 
