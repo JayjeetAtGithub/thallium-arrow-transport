@@ -9,7 +9,7 @@
 #include "constants.h"
 
 
-arrow::compute::Expression GetFilter(std::string &query) {
+arrow::compute::Expression GetFilter(const std::string &query) {
     if (query == "SELECT * FROM dataset;") {
         return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
                                         arrow::compute::literal(-200));
