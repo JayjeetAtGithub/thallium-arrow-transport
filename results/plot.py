@@ -3,6 +3,14 @@ import pandas as pd
 import seaborn as sns
 
 
+def plot_graph(df, path):
+    sns.set_theme(style="whitegrid")
+    sns.set_context("paper", font_scale=1.5)
+    plt = sns.catplot(x="query", y="latency", hue="format", data=df, errwidth=1, capsize=0.1, errorbar="sd", kind="bar", palette="muted")
+    plt.set(xlabel="Query", ylabel="Duration (ms)")
+    plt.savefig(path)
+
+
 if __name__ == "__main__":
     # Load data
     with open('paper/w_o_opt/flight', 'r') as f:
@@ -44,12 +52,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(table)
     print(df)
-
-    sns.set_theme(style="whitegrid")
-    sns.set_context("paper", font_scale=1.5)
-    plt = sns.catplot(x="query", y="latency", hue="format", data=df, kind="bar", palette="muted")
-    plt.set(xlabel="Query", ylabel="Latency (ms)")
-    plt.savefig("paper/w_o_opt/plot_large.pdf")
+    plot_graph(df, "paper/w_o_opt/plot_large.pdf")
 
     # Plot Queries Medium
     table = {
@@ -74,12 +77,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(table)
     print(df)
-
-    sns.set_theme(style="whitegrid")
-    sns.set_context("paper", font_scale=1.5)
-    plt = sns.catplot(x="query", y="latency", hue="format", data=df, kind="bar", palette="muted")
-    plt.set(xlabel="Query", ylabel="Latency (ms)")
-    plt.savefig("paper/w_o_opt/plot_medium.pdf")
+    plot_graph(df, "paper/w_o_opt/plot_medium.pdf")
 
     # Plot Queries Small
     table = {
@@ -104,9 +102,4 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(table)
     print(df)
-
-    sns.set_theme(style="whitegrid")
-    sns.set_context("paper", font_scale=1.5)
-    plt = sns.catplot(x="query", y="latency", hue="format", data=df, kind="bar", palette="muted")
-    plt.set(xlabel="Query", ylabel="Latency (ms)")
-    plt.savefig("paper/w_o_opt/plot_small.pdf")
+    plot_graph(df, "paper/w_o_opt/plot_small.pdf")
