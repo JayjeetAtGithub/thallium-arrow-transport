@@ -142,17 +142,19 @@ arrow::Status Main(int argc, char **argv) {
     client->Warmup();
 
     int64_t total_rows_read = 0;
+    int64_t total_round_trips = 0;
     std::shared_ptr<arrow::RecordBatch> batch;
     auto start = std::chrono::high_resolution_clock::now();
     while ((batch = client->GetNextBatch(info)) != nullptr) {
         total_rows_read += batch->num_rows();
+        total_round_trips += 1;
     }
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
     WriteToFile(exec_time_ms, TL_RES_PATH, true);
     
-    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms" << std::endl;
+    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms and " << total_round_trips << " round trips" << std::endl;
     return arrow::Status::OK();
 }
 
