@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    tl::engine myEngine("verbs", THALLIUM_CLIENT_MODE);
+    tl::engine myEngine("ofi+verbs", THALLIUM_CLIENT_MODE);
     tl::remote_procedure hello = myEngine.define("hello");
     tl::endpoint server = myEngine.lookup(argv[1]);
 
