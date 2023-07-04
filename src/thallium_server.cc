@@ -76,13 +76,11 @@ int main(int argc, char** argv) {
 
                 for (int64_t i = 0; i < batch->num_columns(); i++) {
                     std::shared_ptr<arrow::Array> col_arr = batch->column(i);
-                    arrow::Type::type type = col_arr->type_id();
-                    int64_t null_count = col_arr->null_count();
 
                     int64_t data_size = 0;
                     int64_t offset_size = 0;
 
-                    if (is_binary_like(type) || is_large_binary_like(type)) {
+                    if (is_base_binary_like(col_arr->type_id())) {
                         std::shared_ptr<arrow::Buffer> data_buff = 
                             std::static_pointer_cast<arrow::BinaryArray>(col_arr)->value_data();
                         std::shared_ptr<arrow::Buffer> offset_buff = 
