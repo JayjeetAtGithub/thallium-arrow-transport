@@ -108,13 +108,17 @@ class ThalliumClient {
 
                     batch = arrow::RecordBatch::Make(schema, num_rows, columns);
                     total_rows_read += batch->num_rows();
-                    std::cout << "Total rows read: " << total_rows_read << std::endl;
                     return req.respond(0);
                 };
             
             engine.define("do_rdma", do_rdma);
             tl::remote_procedure iterate = engine.define("iterate");
-            return iterate.on(endpoint)(0, info.uuid);
+            IterateRespStub resp = iterate.on(endpoint)(0, info.uuid);
+            if (resp.ret_code == RPC_DONE_WITH_BATCH) {
+                batch = UnpackBatch(resp.buffer, schema);
+                total_rows_read += batch->num_rows();
+            }
+            return 0;
         }
 };
 
@@ -137,8 +141,6 @@ arrow::Status Main(int argc, char **argv) {
     client->Warmup();
 
     int64_t total_rows_read = 0;
-    // int64_t total_round_trips = 0;
-    std::shared_ptr<arrow::RecordBatch> batch;
     auto start = std::chrono::high_resolution_clock::now();
     client->Iterate(info, total_rows_read);
     auto end = std::chrono::high_resolution_clock::now();
@@ -146,7 +148,7 @@ arrow::Status Main(int argc, char **argv) {
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
     WriteToFile(exec_time_ms, TL_RES_PATH, true);
     std::cout << exec_time_ms << std::endl;    
-    // std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms and " << total_round_trips << " round trips" << std::endl;
+    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms and " << std::endl;
     return arrow::Status::OK();
 }
 

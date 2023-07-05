@@ -49,13 +49,13 @@ class InitScanRespStub {
         }
 };
 
-class GetNextBatchRespStub {
+class IterateRespStub {
     public:
         std::string buffer;
         int ret_code;
 
-        GetNextBatchRespStub() {}
-        GetNextBatchRespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
+        IterateRespStub() {}
+        IterateRespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
 
         template<typename A>
         void save(A& ar) const {

@@ -64,8 +64,6 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    bool optimize = 1;
-
     std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
     std::function<void(const tl::request&, const std::string&, const std::string&)> init_scan = 
         [&reader_map](const tl::request &req, const std::string& path, const std::string& query) {
@@ -95,15 +93,23 @@ int main(int argc, char** argv) {
             if (warmup) {
                 return req.respond(0);
             }
-            
+
+            IterateRespStub resp;
+
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
             while (batch != nullptr) {
+                if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
+                    auto buffer = PackBatch(batch);
+                    resp = IterateRespStub(std::string((char*)buffer->data(), buffer->size()), RPC_DONE_WITH_BATCH);
+                    return req.respond(resp);
+                }
                 int ret = push_batch(do_rdma, engine, req, batch);
                 reader_map[uuid]->ReadNext(&batch);
             }
 
-            return req.respond(0);
+            resp.ret_code = RPC_DONE;
+            return req.respond(resp);
         };
 
     engine.define("init_scan", init_scan);
