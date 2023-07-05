@@ -63,7 +63,7 @@ class ThalliumClient {
             finalize.on(endpoint)();
         }
 
-        std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
+        std::shared_ptr<arrow::RecordBatch> Iterate(ThalliumInfo &info) {    
             auto schema = info.schema;
             auto engine = this->engine;
 
@@ -111,15 +111,8 @@ class ThalliumClient {
                 };
             
             engine.define("do_rdma", do_rdma);
-            tl::remote_procedure get_next_batch = engine.define("get_next_batch");
-            GetNextBatchRespStub resp = get_next_batch.on(endpoint)(0, info.uuid);
-            if (resp.ret_code == RDMA_BATCH) {
-                return batch;
-            } else if (resp.ret_code == RPC_BATCH) {
-                return UnpackBatch(resp.buffer, info.schema);
-            } else {
-                return nullptr;
-            }
+            tl::remote_procedure iterate = engine.define("iterate");
+            return iterate.on(endpoint)(0, info.uuid);
         }
 };
 
@@ -141,14 +134,11 @@ arrow::Status Main(int argc, char **argv) {
     client->Warmup();
     client->Warmup();
 
-    int64_t total_rows_read = 0;
-    int64_t total_round_trips = 0;
+    // int64_t total_rows_read = 0;
+    // int64_t total_round_trips = 0;
     std::shared_ptr<arrow::RecordBatch> batch;
     auto start = std::chrono::high_resolution_clock::now();
-    while ((batch = client->GetNextBatch(info)) != nullptr) {
-        total_rows_read += batch->num_rows();
-        total_round_trips += 1;
-    }
+    client->Iterate(info);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
