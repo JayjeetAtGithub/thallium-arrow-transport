@@ -100,6 +100,7 @@ int main(int argc, char** argv) {
             reader_map[uuid]->ReadNext(&batch);
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
+                    std::cout << "Using RPC for small batch\n";
                     auto buffer = PackBatch(batch);
                     resp = IterateRespStub(std::string((char*)buffer->data(), buffer->size()), RPC_DONE_WITH_BATCH);
                     return req.respond(resp);
