@@ -63,7 +63,7 @@ class ThalliumClient {
             finalize.on(endpoint)();
         }
 
-        std::shared_ptr<arrow::RecordBatch> Iterate(ThalliumInfo &info) {    
+        int Iterate(ThalliumInfo &info) {    
             auto schema = info.schema;
             auto engine = this->engine;
 
@@ -107,7 +107,7 @@ class ThalliumClient {
                     }
 
                     batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-                    return req.respond(RDMA_BATCH);
+                    return req.respond(0);
                 };
             
             engine.define("do_rdma", do_rdma);
