@@ -51,21 +51,26 @@ class InitScanRespStub {
 
 class IterateRespStub {
     public:
-        std::string buffer;
+        std::shared_ptr<arrow::Buffer> buffer;
         int ret_code;
 
         IterateRespStub() {}
-        IterateRespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
+        IterateRespStub(std::shared_ptr<arrow::Buffer> buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
 
         template<typename A>
         void save(A& ar) const {
-            ar & buffer;
+            size_t size = buffer->size();
+            ar & size;
+            ar.write(buffer->data(), size);
             ar & ret_code;
         }
 
         template<typename A>
         void load(A& ar) {
-            ar & buffer;
+            size_t size;
+            ar & size;
+            buffer = arrow::AllocateBuffer(size).ValueOrDie();
+            ar.read(buffer->mutable_data(), size);
             ar & ret_code;
         }
 };
