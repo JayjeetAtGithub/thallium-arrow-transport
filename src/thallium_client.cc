@@ -54,8 +54,8 @@ class ThalliumClient {
         }
 
         void Warmup() {
-            tl::remote_procedure get_next_batch = this->engine.define("get_next_batch");
-            get_next_batch.on(endpoint)(1, "x");
+            tl::remote_procedure iterate = this->engine.define("iterate");
+            iterate.on(endpoint)(1, "x");
         }
 
         void Finalize() {
