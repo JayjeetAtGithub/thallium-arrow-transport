@@ -63,7 +63,7 @@ class ThalliumClient {
             finalize.on(endpoint)();
         }
 
-        int Iterate(ThalliumInfo &info) {    
+        int Iterate(ThalliumInfo &info, int64_t &total_rows_read) {    
             auto schema = info.schema;
             auto engine = this->engine;
 
@@ -107,6 +107,8 @@ class ThalliumClient {
                     }
 
                     batch = arrow::RecordBatch::Make(schema, num_rows, columns);
+                    total_rows_read += batch->num_rows();
+                    std::cout << "Total rows read: " << total_rows_read << std::endl;
                     return req.respond(0);
                 };
             
@@ -134,11 +136,11 @@ arrow::Status Main(int argc, char **argv) {
     client->Warmup();
     client->Warmup();
 
-    // int64_t total_rows_read = 0;
+    int64_t total_rows_read = 0;
     // int64_t total_round_trips = 0;
     std::shared_ptr<arrow::RecordBatch> batch;
     auto start = std::chrono::high_resolution_clock::now();
-    client->Iterate(info);
+    client->Iterate(info, total_rows_read);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
