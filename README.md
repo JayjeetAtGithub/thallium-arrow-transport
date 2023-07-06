@@ -1,4 +1,4 @@
-# thallium-arrow-transport
+# thallium-arrow-transport v0.1
 
 [![Benchmark](https://github.com/JayjeetAtGithub/thallium-arrow-transport/actions/workflows/benchmark.yml/badge.svg)](https://github.com/JayjeetAtGithub/thallium-arrow-transport/actions/workflows/benchmark.yml)
 
