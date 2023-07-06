@@ -3,6 +3,6 @@
 #define TL_RES_PATH "/proj/schedock-PG0/thallium_results"
 #define TL_URI_PATH "/proj/schedock-PG0/thallium_uri"
 #define FL_RES_PATH "/proj/schedock-PG0/flight_results"
-#define RPC_BATCH 10
-#define RDMA_BATCH 11
-#define NO_BATCH 12
+#define RPC_WARMUP 9
+#define RPC_DONE 10
+#define RPC_DONE_WITH_BATCH 11

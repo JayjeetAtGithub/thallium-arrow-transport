@@ -54,8 +54,8 @@ class ThalliumClient {
         }
 
         void Warmup() {
-            tl::remote_procedure get_next_batch = this->engine.define("get_next_batch");
-            get_next_batch.on(endpoint)(1, "x");
+            tl::remote_procedure iterate = this->engine.define("iterate");
+            iterate.on(endpoint)(1, "x");
         }
 
         void Finalize() {
@@ -63,13 +63,13 @@ class ThalliumClient {
             finalize.on(endpoint)();
         }
 
-        std::shared_ptr<arrow::RecordBatch> GetNextBatch(ThalliumInfo &info) {    
+        int Iterate(ThalliumInfo &info, int64_t &total_rows_read) {    
             auto schema = info.schema;
             auto engine = this->engine;
 
             std::shared_ptr<arrow::RecordBatch> batch;
             std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma =
-                [&schema, &batch, &engine](const tl::request& req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk& b) {
+                [&schema, &batch, &engine, &total_rows_read](const tl::request& req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk& b) {
                     int num_cols = schema->num_fields();
                     
                     std::vector<std::shared_ptr<arrow::Array>> columns;
@@ -107,19 +107,18 @@ class ThalliumClient {
                     }
 
                     batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-                    return req.respond(RDMA_BATCH);
+                    total_rows_read += batch->num_rows();
+                    return req.respond(0);
                 };
             
             engine.define("do_rdma", do_rdma);
-            tl::remote_procedure get_next_batch = engine.define("get_next_batch");
-            GetNextBatchRespStub resp = get_next_batch.on(endpoint)(0, info.uuid);
-            if (resp.ret_code == RDMA_BATCH) {
-                return batch;
-            } else if (resp.ret_code == RPC_BATCH) {
-                return UnpackBatch(resp.buffer, info.schema);
-            } else {
-                return nullptr;
+            tl::remote_procedure iterate = engine.define("iterate");
+            IterateRespStub resp = iterate.on(endpoint)(0, info.uuid);
+            if (resp.ret_code == RPC_DONE_WITH_BATCH) {
+                batch = UnpackBatch(resp.buffer, schema);
+                total_rows_read += batch->num_rows();
             }
+            return 0;
         }
 };
 
@@ -142,19 +141,13 @@ arrow::Status Main(int argc, char **argv) {
     client->Warmup();
 
     int64_t total_rows_read = 0;
-    int64_t total_round_trips = 0;
-    std::shared_ptr<arrow::RecordBatch> batch;
     auto start = std::chrono::high_resolution_clock::now();
-    while ((batch = client->GetNextBatch(info)) != nullptr) {
-        total_rows_read += batch->num_rows();
-        total_round_trips += 1;
-    }
+    client->Iterate(info, total_rows_read);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
     WriteToFile(exec_time_ms, TL_RES_PATH, true);
-    
-    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms and " << total_round_trips << " round trips" << std::endl;
+    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms " << std::endl;
     return arrow::Status::OK();
 }
 
