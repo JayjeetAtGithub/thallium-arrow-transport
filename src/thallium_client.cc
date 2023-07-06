@@ -63,13 +63,15 @@ class ThalliumClient {
             finalize.on(endpoint)();
         }
 
-        int Iterate(ThalliumInfo &info, int64_t &total_rows_read) {    
+        int Iterate(ThalliumInfo &info, int64_t &total_rows_read, int64_t &total_rpcs_made) {
             auto schema = info.schema;
             auto engine = this->engine;
 
             std::shared_ptr<arrow::RecordBatch> batch;
             std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma =
-                [&schema, &batch, &engine, &total_rows_read](const tl::request& req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk& b) {
+                [&schema, &batch, &engine, &total_rows_read, &total_rpcs_made](const tl::request& req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk& b) {
+                    total_rpcs_made += 1;
+
                     int num_cols = schema->num_fields();
                     
                     std::vector<std::shared_ptr<arrow::Array>> columns;
@@ -141,13 +143,19 @@ arrow::Status Main(int argc, char **argv) {
     client->Warmup();
 
     int64_t total_rows_read = 0;
+    int64_t total_rpcs_made = 0;
+
     auto start = std::chrono::high_resolution_clock::now();
-    client->Iterate(info, total_rows_read);
+    client->Iterate(info, total_rows_read, total_rpcs_made);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
     WriteToFile(exec_time_ms, TL_RES_PATH, true);
-    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms " << std::endl;
+
+    std::cout << "Total time taken (ms): " << exec_time_ms;
+    std::cout << "Total Rows read: " << total_rows_read << std::endl;
+    std::cout << "Total RPCs made: " << total_rpcs_made << std::endl;
+
     return arrow::Status::OK();
 }
 
