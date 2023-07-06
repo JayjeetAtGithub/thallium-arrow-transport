@@ -59,9 +59,12 @@ class IterateRespStub {
 
         template<typename A>
         void save(A& ar) const {
-            size_t size = buffer->size();
+            size_t size = (buffer == nullptr) ? 0 : buffer->size();
             ar & size;
-            ar.write(buffer->data(), size);
+            if (size != 0) {
+                ar.write(buffer->data(), size);
+
+            }
             ar & ret_code;
         }
 
@@ -69,8 +72,10 @@ class IterateRespStub {
         void load(A& ar) {
             size_t size;
             ar & size;
-            buffer = arrow::AllocateBuffer(size).ValueOrDie();
-            ar.read(buffer->mutable_data(), size);
+            if (size != 0) {
+                buffer = arrow::AllocateBuffer(size).ValueOrDie();
+                ar.read(buffer->mutable_data(), size);
+            }
             ar & ret_code;
         }
 };
