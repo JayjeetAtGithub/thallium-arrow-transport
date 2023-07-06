@@ -100,12 +100,15 @@ int main(int argc, char** argv) {
             reader_map[uuid]->ReadNext(&batch);
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
-                    std::cout << "Using RPC for small batch\n";
                     auto buffer = PackBatch(batch);
                     resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
                     return req.respond(resp);
                 }
                 int ret = push_batch(do_rdma, engine, req, batch);
+                if (ret != 0) {
+                    std::cerr << "Error: push_batch()" << std::endl;
+                    exit(ret);
+                }
                 reader_map[uuid]->ReadNext(&batch);
             }
 
