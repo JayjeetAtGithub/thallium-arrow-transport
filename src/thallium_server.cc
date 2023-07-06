@@ -102,6 +102,7 @@ int main(int argc, char** argv) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
                     auto buffer = PackBatch(batch);
                     resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
+                    reader_map.erase(uuid);
                     return req.respond(resp);
                 }
                 int ret = push_batch(do_rdma, engine, req, batch);
@@ -113,6 +114,7 @@ int main(int argc, char** argv) {
             }
 
             resp.ret_code = RPC_DONE;
+            reader_map.erase(uuid);
             return req.respond(resp);
         };
 
