@@ -143,7 +143,7 @@ arrow::Status Main(int argc, char **argv) {
     client->Warmup();
 
     int64_t total_rows_read = 0;
-    int64_t total_rpcs_made = 0;
+    int64_t total_rpcs_made = 1;
 
     auto start = std::chrono::high_resolution_clock::now();
     client->Iterate(info, total_rows_read, total_rpcs_made);
