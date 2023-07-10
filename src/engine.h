@@ -169,7 +169,7 @@ class AceroEngine : public QueryEngine {
             auto scanner_builder = dataset->NewScan().ValueOrDie();
             scanner_builder->Filter(GetFilter(query));
             scanner_builder->UseThreads(true);
-            scanner_builder->BatchSize(131072);
+            scanner_builder->BatchSize(BATCH_SIZE);
             scanner_builder->Project(schema->field_names());
             auto scanner = scanner_builder->Finish().ValueOrDie();
             auto table = scanner->ToTable().ValueOrDie();
