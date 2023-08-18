@@ -18,8 +18,8 @@ target_link_libraries(tc thallium arrow arrow_dataset duckdb)
 add_executable(ts thallium_server.cc)
 target_link_libraries(ts thallium arrow arrow_dataset duckdb)
 
-add_executable(fc flight_client.cc)
-target_link_libraries(fc arrow arrow_dataset arrow_flight parquet duckdb)
+# add_executable(fc flight_client.cc)
+# target_link_libraries(fc arrow arrow_dataset arrow_flight parquet duckdb)
 
-add_executable(fs flight_server.cc)
-target_link_libraries(fs arrow arrow_dataset arrow_flight parquet duckdb)
+# add_executable(fs flight_server.cc)
+# target_link_libraries(fs arrow arrow_dataset arrow_flight parquet duckdb)
