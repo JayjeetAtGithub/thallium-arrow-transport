@@ -13,7 +13,7 @@ git clone -b releases/v0.18 -c feature.manyFiles=true https://github.com/spack/s
 
 rm -rf ~/mochi-spack-packages
 git clone https://github.com/mochi-hpc/mochi-spack-packages.git ~/mochi-spack-packages
-spack repo add ~/mochi-spack-packages
+spack repo add ~/mochi-spack-packages || true
 
 spack install libfabric fabrics=tcp,udp,sockets,verbs,rxm
 spack install --reuse mercury +ucx ^ucx+verbs
