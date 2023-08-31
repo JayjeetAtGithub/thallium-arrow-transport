@@ -16,7 +16,8 @@ int main(int argc, char** argv) {
     tl::remote_procedure hello = myEngine.define("hello");
     tl::endpoint server = myEngine.lookup(argv[1]);
 
-    std::string s = "hello world";
+    std::string s = "helloworldhelloworldhelloworldhe";
+    std::cout << "Size of request: " << s.size() << std::endl;
 
     hello.on(server)(1, s);
     std::cout << "Warmup done" << std::endl;
