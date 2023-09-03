@@ -27,17 +27,15 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
             return MakeFlightInfo(descriptor);
         }
 
-        arrow::Status DoGet(const arrow::flight::ServerCallContext&,
-                            const arrow::flight::Ticket& request,
-                            std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
+        arrow::Result<std::unique_ptr<arrow::flight::FlightDataStream>> DoGet(const arrow::flight::ServerCallContext&,
+                                                               const arrow::flight::Ticket& request) {
             std::cout << "Request: " << request.ticket << std::endl;
             std::shared_ptr<AceroEngine> db = std::make_shared<AceroEngine>();
             std::pair<std::string, std::string> tuple = SplitString(request.ticket);
             db->Create(tuple.second);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(tuple.first);
-            *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
+            return std::unique_ptr<arrow::flight::FlightDataStream>(
                 new arrow::flight::RecordBatchStream(reader));
-            return arrow::Status::OK();
         }
 
     private:
