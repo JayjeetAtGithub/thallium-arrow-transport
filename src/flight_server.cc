@@ -22,10 +22,9 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
 
         int32_t Port() { return port_; }
 
-        arrow::flight::FlightInfo GetFlightInfo(const arrow::flight::ServerCallContext&,
+        arrow::Result<arrow::flight::FlightInfo> GetFlightInfo(const arrow::flight::ServerCallContext&,
                                     const arrow::flight::FlightDescriptor& descriptor) {
-            ARROW_ASSIGN_OR_RAISE(auto flight_info, MakeFlightInfo(descriptor));
-            return flight_info;
+            return MakeFlightInfo(descriptor);
         }
 
         arrow::Status DoGet(const arrow::flight::ServerCallContext&,
