@@ -35,7 +35,7 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
                             const arrow::flight::Ticket& request,
                             std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
             std::cout << "Request: " << request.ticket << std::endl;
-            std::shared_ptr<AceroEngine> db = std::make_shared<AceroEngine>();
+            std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             std::pair<std::string, std::string> tuple = SplitString(request.ticket);
             db->Create(tuple.second);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(tuple.first);
