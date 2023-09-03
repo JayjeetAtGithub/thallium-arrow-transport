@@ -22,7 +22,7 @@ else
 fi
 
 while IFS= read -r query; do
-    for i in {1..10}; do
+    for i in {1..5}; do
         if [ "$binary" == "tc" ]; then            
             uri=$(cat /proj/schedock-PG0/thallium_uri)
             $PWD/bin/"$binary" $uri "/mnt/dataset/nyc.parquet.1" "$query" || true
