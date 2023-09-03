@@ -151,7 +151,7 @@ arrow::Status Main(int argc, char **argv) {
     }
 
     int64_t total_rows_read = 0;
-    int64_t total_rpcs_made = 1;
+    int64_t total_rpcs_made = 2;
 
     auto start = std::chrono::high_resolution_clock::now();
     client->Iterate(info, total_rows_read, total_rpcs_made);
@@ -161,8 +161,8 @@ arrow::Status Main(int argc, char **argv) {
     WriteToFile(exec_time_ms, TL_RES_PATH, true);
 
     std::cout << "Total time taken (ms): " << exec_time_ms;
-    std::cout << "Total Rows read: " << total_rows_read << std::endl;
-    std::cout << "Total RPCs made: " << total_rpcs_made << std::endl;
+    std::cout << "Total rows read: " << total_rows_read << std::endl;
+    std::cout << "Total messages exchanged: " << total_rpcs_made << std::endl;
 
     return arrow::Status::OK();
 }

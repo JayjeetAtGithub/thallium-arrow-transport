@@ -66,6 +66,8 @@ int main(int argc, char *argv[]) {
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
     WriteToFile(exec_time_ms, FL_RES_PATH, true);
     
-    std::cout << total_rows_read << " rows read in " << exec_time_ms << " ms and " << total_round_trips << " round trips" << std::endl;
+    std::cout << "Total time taken (ms): " << exec_time_ms;
+    std::cout << "Total rows read: " << total_rows_read << std::endl;
+    std::cout << "Total messages exchanged: " << total_round_trips * 2 << std::endl;
     return 0;
 }
