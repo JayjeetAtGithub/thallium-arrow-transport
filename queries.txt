@@ -18,5 +18,3 @@ SELECT * FROM dataset WHERE total_amount >= 98.76;
 SELECT * FROM dataset WHERE total_amount >= 92.3;
 SELECT * FROM dataset WHERE total_amount >= 76.8;
 SELECT * FROM dataset WHERE total_amount >= 48.3;
-SELECT * FROM dataset WHERE total_amount >= 30.24;
-SELECT * FROM dataset WHERE total_amount >= 20.52;
