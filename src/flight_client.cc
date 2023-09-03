@@ -42,8 +42,7 @@ int main(int argc, char *argv[]) {
 
     auto descriptor = arrow::flight::FlightDescriptor::Command(request);
     auto flight_info = client->GetFlightInfo(descriptor);
-
-    auto stream = client->DoGet(flight_info->endpoints()[0].ticket);
+    auto stream = client->DoGet(flight_info.endpoints()[0].ticket);
     
     int64_t total_rows_read = 0;
     int64_t total_round_trips = 0;

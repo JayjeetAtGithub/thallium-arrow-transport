@@ -22,13 +22,10 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
 
         int32_t Port() { return port_; }
 
-        arrow::Status GetFlightInfo(const arrow::flight::ServerCallContext&,
-                                    const arrow::flight::FlightDescriptor& descriptor,
-                                    std::unique_ptr<arrow::flight::FlightInfo>* info) {
+        arrow::flight::FlightInfo GetFlightInfo(const arrow::flight::ServerCallContext&,
+                                    const arrow::flight::FlightDescriptor& descriptor) {
             ARROW_ASSIGN_OR_RAISE(auto flight_info, MakeFlightInfo(descriptor));
-            *info = std::unique_ptr<arrow::flight::FlightInfo>(
-                new arrow::flight::FlightInfo(std::move(flight_info)));
-            return arrow::Status::OK();
+            return flight_info;
         }
 
         arrow::Status DoGet(const arrow::flight::ServerCallContext&,
