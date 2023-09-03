@@ -101,7 +101,6 @@ int main(int argc, char** argv) {
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
                     auto buffer = PackBatch(batch);
-                    std::cout << "Response size: " << buffer->size() << std::endl;
                     resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
                     return req.respond(resp);
                 }
