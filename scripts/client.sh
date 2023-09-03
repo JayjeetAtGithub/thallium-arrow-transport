@@ -27,7 +27,6 @@ while IFS= read -r query; do
             uri=$(cat /proj/schedock-PG0/thallium_uri)
             $PWD/bin/"$binary" $uri "/mnt/dataset/*" "$query" || true
         elif [ "$binary" == "c" ]; then
-            # broken
             uri=$(cat /proj/schedock-PG0/thallium_uri)
             $PWD/bin/"$binary" $uri || true
         else
