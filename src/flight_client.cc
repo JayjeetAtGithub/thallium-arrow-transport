@@ -24,7 +24,7 @@ struct ConnectionInfo {
 
 arrow::Result<std::unique_ptr<arrow::flight::FlightClient>> ConnectToFlightServer(ConnectionInfo info) {
     auto location = arrow::flight::Location::ForGrpcTcp(info.host, info.port).ValueOrDie();
-    return arrow::flight::FlightClient::Connect(location).ValueOrDie();
+    return arrow::flight::FlightClient::Connect(location);
 }
 
 int main(int argc, char *argv[]) {
