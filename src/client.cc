@@ -35,7 +35,8 @@ int main(int argc, char** argv) {
 
     tl::engine myEngine("ofi+verbs", THALLIUM_CLIENT_MODE);
     tl::remote_procedure hello = myEngine.define("hello");
-    tl::endpoint server = myEngine.lookup(argv[1]);
+    std::string uri = argv[1];
+    tl::endpoint server = myEngine.lookup(uri);
 
     std::string s = "helloworldhelloworldhelloworldhe";
     std::cout << "Size of request: " << s.size() << std::endl;
