@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
 
     tl::engine myEngine("ofi+verbs", THALLIUM_CLIENT_MODE);
     tl::remote_procedure hello = myEngine.define("hello");
+    
     std::string uri = argv[1];
     tl::endpoint server = myEngine.lookup(uri);
 
