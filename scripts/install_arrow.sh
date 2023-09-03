@@ -18,6 +18,7 @@ if [ ! -d "/tmp/arrow" ]; then
 fi
 
 cd /tmp/arrow
+git checkout apache-arrow-13.0.0
 git submodule update --init --recursive
 git pull
 
