@@ -123,7 +123,11 @@ class ThalliumClient {
                 };
             
             engine.define("do_rdma", do_rdma);
+            auto start = std::chrono::high_resolution_clock::now();
             IterateRespStub resp = this->iterate.on(endpoint)(0, info.uuid);
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+            std::cout << "iterate.on() took " << duration << " us" << std::endl;
             if (resp.ret_code == RPC_DONE_WITH_BATCH) {
                 batch = UnpackBatch(resp.buffer, schema);
                 total_rows_read += batch->num_rows();

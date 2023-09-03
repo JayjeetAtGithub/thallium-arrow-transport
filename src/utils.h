@@ -59,6 +59,7 @@ class IterateRespStub {
 
         template<typename A>
         void save(A& ar) const {
+            auto start = std::chrono::high_resolution_clock::now();
             size_t size = (buffer == nullptr) ? 0 : buffer->size();
             ar & size;
             if (size != 0) {
@@ -66,10 +67,14 @@ class IterateRespStub {
 
             }
             ar & ret_code;
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+            std::cout << "IterateRespStub::save() took " << duration << " us" << std::endl;
         }
 
         template<typename A>
         void load(A& ar) {
+            auto start = std::chrono::high_resolution_clock::now();
             size_t size;
             ar & size;
             if (size != 0) {
@@ -77,6 +82,9 @@ class IterateRespStub {
                 ar.read(buffer->mutable_data(), size);
             }
             ar & ret_code;
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+            std::cout << "IterateRespStub::load() took " << duration << " us" << std::endl;
         }
 };
 
