@@ -32,6 +32,7 @@ class ThalliumClient {
     public:
         tl::engine engine;
         tl::endpoint endpoint;
+        tl::remote_procedure iterate;
         std::string uri;
 
         ThalliumClient(std::string &uri) : uri(uri) {}
@@ -54,7 +55,7 @@ class ThalliumClient {
         }
 
         void Warmup() {
-            tl::remote_procedure iterate = this->engine.define("iterate");
+            this->iterate = this->engine.define("iterate");
             iterate.on(endpoint)(1, "x");
         }
 
@@ -138,9 +139,9 @@ arrow::Status Main(int argc, char **argv) {
     client->GetThalliumInfo(desc, info);
 
     // Do a couple of warmup blank RPC to get around libfabrics cold start
-    client->Warmup();
-    client->Warmup();
-    client->Warmup();
+    for (int i = 0; i < 30; i++) {
+        client->Warmup();
+    }
 
     int64_t total_rows_read = 0;
     int64_t total_rpcs_made = 1;
