@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     std::string request = query + "@" + path;
 
     auto descriptor = arrow::flight::FlightDescriptor::Command(request);
-    auto flight_info = client->GetFlightInfo(descriptor);
+    auto flight_info = client->GetFlightInfo(descriptor).ValueOrDie();
     auto stream = client->DoGet(flight_info.endpoints()[0].ticket);
     
     int64_t total_rows_read = 0;
