@@ -23,9 +23,8 @@ struct ConnectionInfo {
 };
 
 arrow::Result<std::unique_ptr<arrow::flight::FlightClient>> ConnectToFlightServer(ConnectionInfo info) {
-    arrow::flight::Location location = arrow::flight::Location::ForGrpcTcp(info.host, info.port).ValueOrDie();
-    std::unique_ptr<arrow::flight::FlightClient> client = arrow::flight::FlightClient::Connect(location).ValueOrDie();
-    return client;
+    auto location = arrow::flight::Location::ForGrpcTcp(info.host, info.port).ValueOrDie();
+    return arrow::flight::FlightClient::Connect(location).ValueOrDie();
 }
 
 int main(int argc, char *argv[]) {
@@ -42,20 +41,18 @@ int main(int argc, char *argv[]) {
     std::string request = query + "@" + path;
 
     auto descriptor = arrow::flight::FlightDescriptor::Command(request);
-    std::unique_ptr<arrow::flight::FlightInfo> flight_info;
-    client->GetFlightInfo(descriptor, &flight_info);
+    auto flight_info = client->GetFlightInfo(descriptor);
 
     auto stream = client->DoGet(flight_info->endpoints()[0].ticket);
     
     int64_t total_rows_read = 0;
     int64_t total_round_trips = 0;
-    arrow::flight::FlightStreamChunk chunk;
     auto start = std::chrono::high_resolution_clock::now();
-    stream->Next(&chunk);
+    auto chunk = stream->Next();
     while (chunk.data != nullptr) {
         total_rows_read += chunk.data->num_rows();
         total_round_trips += 1;
-        stream->Next(&chunk);
+        chunk = stream->Next();
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
