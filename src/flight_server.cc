@@ -44,12 +44,9 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
         arrow::Result<arrow::flight::FlightInfo> MakeFlightInfo(
             const arrow::flight::FlightDescriptor& descriptor) {
             std::shared_ptr<arrow::Schema> schema = arrow::schema({});
-
             arrow::flight::FlightEndpoint endpoint;
             endpoint.ticket.ticket = descriptor.cmd;
-            arrow::flight::Location location;
-            ARROW_RETURN_NOT_OK(
-                arrow::flight::Location::ForGrpcTcp(host_, port(), &location));
+            auto location = arrow::flight::Location::ForGrpcTcp(host_, port()).ValueOrDie();
             endpoint.locations.push_back(location);
 
             return arrow::flight::FlightInfo::Make(*schema, descriptor, {endpoint}, 0, 0);
