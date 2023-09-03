@@ -22,29 +22,38 @@ class ParquetStorageService : public arrow::flight::FlightServerBase {
 
         int32_t Port() { return port_; }
 
-        arrow::Result<arrow::flight::FlightInfo> GetFlightInfo(const arrow::flight::ServerCallContext&,
-                                    const arrow::flight::FlightDescriptor& descriptor) {
-            return MakeFlightInfo(descriptor);
+        arrow::Status GetFlightInfo(const arrow::flight::ServerCallContext&,
+                                    const arrow::flight::FlightDescriptor& descriptor,
+                                    std::unique_ptr<arrow::flight::FlightInfo>* info) {
+            ARROW_ASSIGN_OR_RAISE(auto flight_info, MakeFlightInfo(descriptor));
+            *info = std::unique_ptr<arrow::flight::FlightInfo>(
+                new arrow::flight::FlightInfo(std::move(flight_info)));
+            return arrow::Status::OK();
         }
 
-        arrow::Result<std::unique_ptr<arrow::flight::FlightDataStream>> DoGet(const arrow::flight::ServerCallContext&,
-                                                               const arrow::flight::Ticket& request) {
+        arrow::Status DoGet(const arrow::flight::ServerCallContext&,
+                            const arrow::flight::Ticket& request,
+                            std::unique_ptr<arrow::flight::FlightDataStream>* stream) {
             std::cout << "Request: " << request.ticket << std::endl;
             std::shared_ptr<AceroEngine> db = std::make_shared<AceroEngine>();
             std::pair<std::string, std::string> tuple = SplitString(request.ticket);
             db->Create(tuple.second);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(tuple.first);
-            return std::unique_ptr<arrow::flight::FlightDataStream>(
+            *stream = std::unique_ptr<arrow::flight::FlightDataStream>(
                 new arrow::flight::RecordBatchStream(reader));
+            return arrow::Status::OK();
         }
 
     private:
         arrow::Result<arrow::flight::FlightInfo> MakeFlightInfo(
             const arrow::flight::FlightDescriptor& descriptor) {
             std::shared_ptr<arrow::Schema> schema = arrow::schema({});
+
             arrow::flight::FlightEndpoint endpoint;
             endpoint.ticket.ticket = descriptor.cmd;
-            auto location = arrow::flight::Location::ForGrpcTcp(host_, port()).ValueOrDie();
+            arrow::flight::Location location;
+            ARROW_RETURN_NOT_OK(
+                arrow::flight::Location::ForGrpcTcp(host_, port(), &location));
             endpoint.locations.push_back(location);
 
             return arrow::flight::FlightInfo::Make(*schema, descriptor, {endpoint}, 0, 0);
@@ -59,7 +68,9 @@ int main(int argc, char *argv[]) {
     int32_t port = 3000;
     std::string transport = "tcp+grpc";
 
-    auto server_location = arrow::flight::Location::ForGrpcTcp(host, port).ValueOrDie();
+    arrow::flight::Location server_location;
+    arrow::flight::Location::ForGrpcTcp(host, port, &server_location);
+
     arrow::flight::FlightServerOptions options(server_location);
     auto server = std::unique_ptr<arrow::flight::FlightServerBase>(new ParquetStorageService(host, port));
     server->Init(options);
