@@ -23,12 +23,8 @@ struct ConnectionInfo {
 };
 
 arrow::Result<std::unique_ptr<arrow::flight::FlightClient>> ConnectToFlightServer(ConnectionInfo info) {
-    arrow::flight::Location location;
-    ARROW_RETURN_NOT_OK(
-      arrow::flight::Location::ForGrpcTcp(info.host, info.port, &location));
-
-    std::unique_ptr<arrow::flight::FlightClient> client;
-    ARROW_RETURN_NOT_OK(arrow::flight::FlightClient::Connect(location, &client));
+    arrow::flight::Location location = arrow::flight::Location::ForGrpcTcp(info.host, info.port).ValueOrDie();
+    std::unique_ptr<arrow::flight::FlightClient> client = arrow::flight::FlightClient::Connect(location).ValueOrDie();
     return client;
 }
 
@@ -49,8 +45,7 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<arrow::flight::FlightInfo> flight_info;
     client->GetFlightInfo(descriptor, &flight_info);
 
-    std::unique_ptr<arrow::flight::FlightStreamReader> stream;
-    client->DoGet(flight_info->endpoints()[0].ticket, &stream);
+    auto stream = client->DoGet(flight_info->endpoints()[0].ticket);
     
     int64_t total_rows_read = 0;
     int64_t total_round_trips = 0;

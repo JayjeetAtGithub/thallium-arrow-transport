@@ -68,9 +68,7 @@ int main(int argc, char *argv[]) {
     int32_t port = 3000;
     std::string transport = "tcp+grpc";
 
-    arrow::flight::Location server_location;
-    arrow::flight::Location::ForGrpcTcp(host, port, &server_location);
-
+    arrow::flight::Location server_location = arrow::flight::Location::ForGrpcTcp(host, port).ValueOrDie();
     arrow::flight::FlightServerOptions options(server_location);
     auto server = std::unique_ptr<arrow::flight::FlightServerBase>(new ParquetStorageService(host, port));
     server->Init(options);
