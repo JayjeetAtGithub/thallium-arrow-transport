@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
     auto start = std::chrono::high_resolution_clock::now();
     auto chunk = stream->Next();
     while (chunk.data != nullptr) {
-        total_rows_read += chunk.data->num_rows();
+        // total_rows_read += chunk.data->num_rows();
         total_round_trips += 1;
         chunk = stream->Next();
     }
