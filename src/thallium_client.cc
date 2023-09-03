@@ -32,11 +32,21 @@ class ThalliumClient {
     public:
         tl::engine engine;
         tl::endpoint endpoint;
+
+        tl::remote_procedure init_scan;
         tl::remote_procedure iterate;
+        tl::remote_procedure finalize;
+
         std::string uri;
 
         ThalliumClient(std::string &uri) : uri(uri) {}
         ~ThalliumClient() { engine.finalize(); }
+
+        void DefineProcedures() {
+            this->init_scan = engine.define("init_scan");
+            this->iterate = engine.define("iterate");
+            this->finalize = engine.define("finalize").disable_response();
+        }
 
         void Connect() {
             engine = tl::engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
@@ -44,8 +54,7 @@ class ThalliumClient {
         }
 
         void GetThalliumInfo(ThalliumDescriptor &desc, ThalliumInfo &info) {
-            tl::remote_procedure init_scan = engine.define("init_scan");
-            InitScanRespStub resp = init_scan.on(endpoint)(desc.path, desc.query);
+            InitScanRespStub resp = this->init_scan.on(endpoint)(desc.path, desc.query);
             std::shared_ptr<arrow::Buffer> schema_buff = arrow::Buffer::Wrap(resp.schema.c_str(), resp.schema.size());
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::io::BufferReader buff_reader(schema_buff);
@@ -55,13 +64,11 @@ class ThalliumClient {
         }
 
         void Warmup() {
-            this->iterate = this->engine.define("iterate");
-            iterate.on(endpoint)(1, "x");
+            this->iterate.on(endpoint)(1, "x");
         }
 
         void Finalize() {
-            tl::remote_procedure finalize = this->engine.define("finalize").disable_response();
-            finalize.on(endpoint)();
+            this->finalize.on(endpoint)();
         }
 
         int Iterate(ThalliumInfo &info, int64_t &total_rows_read, int64_t &total_rpcs_made) {
@@ -115,8 +122,7 @@ class ThalliumClient {
                 };
             
             engine.define("do_rdma", do_rdma);
-            tl::remote_procedure iterate = engine.define("iterate");
-            IterateRespStub resp = iterate.on(endpoint)(0, info.uuid);
+            IterateRespStub resp = this->iterate.on(endpoint)(0, info.uuid);
             if (resp.ret_code == RPC_DONE_WITH_BATCH) {
                 batch = UnpackBatch(resp.buffer, schema);
                 total_rows_read += batch->num_rows();
