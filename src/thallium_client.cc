@@ -51,6 +51,7 @@ class ThalliumClient {
         void Connect() {
             engine = tl::engine("ofi+verbs", THALLIUM_SERVER_MODE, true);
             endpoint = engine.lookup(uri);
+            this->DefineProcedures();
         }
 
         void GetThalliumInfo(ThalliumDescriptor &desc, ThalliumInfo &info) {
