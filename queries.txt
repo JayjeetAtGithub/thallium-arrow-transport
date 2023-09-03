@@ -1,3 +1,4 @@
+SELECT total_amount FROM dataset WHERE total_amount >= 6304.9;
 SELECT * FROM dataset WHERE total_amount >= 6304.9;
 SELECT * FROM dataset WHERE total_amount >= 1715.95;
 SELECT * FROM dataset WHERE total_amount >= 1327.52;
