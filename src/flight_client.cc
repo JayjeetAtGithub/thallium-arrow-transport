@@ -47,11 +47,11 @@ int main(int argc, char *argv[]) {
     int64_t total_rows_read = 0;
     int64_t total_round_trips = 0;
     auto start = std::chrono::high_resolution_clock::now();
-    auto chunk = stream->Next().ValueOrDie();
+    auto chunk = stream->Next();
     while (chunk.data != nullptr) {
         total_rows_read += chunk.data->num_rows();
         total_round_trips += 1;
-        stream->Next().Value(&chunk);
+        chunk = stream->Next();
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
