@@ -15,7 +15,7 @@ rm -rf ~/mochi-spack-packages
 git clone https://github.com/mochi-hpc/mochi-spack-packages.git ~/mochi-spack-packages
 spack repo add ~/mochi-spack-packages || true
 
-spack install libfabric fabrics=tcp,udp,sockets,verbs,rxm
-spack install --reuse mercury ~checksum ~boostsys
+spack install libfabric@1.18.1 fabrics=tcp,udp,sockets,verbs,rxm
+spack install --reuse mercury@2.3.0 ~checksum ~boostsys
 spack install --reuse mochi-margo@main
-spack install --reuse mochi-thallium
+spack install --reuse mochi-thallium@0.11.2
