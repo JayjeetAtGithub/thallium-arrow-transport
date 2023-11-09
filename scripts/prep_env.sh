@@ -8,7 +8,7 @@ sudo apt install -y ibverbs-utils pslist
 ./scripts/install_duckdb.sh
 
 rm -rf ~/spack
-git clone -b releases/v0.18 -c feature.manyFiles=true https://github.com/spack/spack.git ~/spack
+git clone --depth=100 --branch=backports/v0.21.0 https://github.com/spack/spack.git ~/spack
 . ~/spack/share/spack/setup-env.sh
 
 rm -rf ~/mochi-spack-packages
