@@ -133,7 +133,7 @@ class IterateRespStub {
         void save(Archive& ar) const {
             ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
             arrow::ipc::IpcWriteOptions options;
-	        arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
+	        arrow::ipc::SerializeRecordBatch(*batch, &options, &output_stream);
             std::cout << "serializing batch" << std::endl;
         }
 
@@ -143,7 +143,7 @@ class IterateRespStub {
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::ipc::IpcReadOptions options;
             auto schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo).ValueOrDie();
-	        auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
+	        auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, &options,  &input_stream).ValueOrDie();
             batch = std::move(result);
         }
 };
