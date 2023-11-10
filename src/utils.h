@@ -132,12 +132,12 @@ class IterateRespStub {
 
         template<typename Archive>
         void save(Archive& ar) const {
-            ar & ret_code;
             if (ret_code == RPC_DONE_WITH_BATCH) {
                 ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
                 arrow::ipc::IpcWriteOptions options;
                 arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
             }
+            ar & ret_code;
         }
 
         template<typename Archive>
