@@ -151,6 +151,8 @@ class IterateRespStub {
             if (!schema.ok()) {
                 std::cout << "schema not ok\n";
                 return;
+            } else {
+                schema = schema.ValueOrDie();
             }
             std::cout << "schema->num_fields() = " << schema->num_fields() << std::endl;
             auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
