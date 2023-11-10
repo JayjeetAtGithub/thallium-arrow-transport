@@ -84,7 +84,10 @@ template<typename Archive>
 struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 
 	ThalliumInputStreamAdaptor(Archive& ar)
-	: m_archive(ar) {}
+	: m_archive(ar) {
+        char *junk = (char*)malloc(4)
+        m_archive.read(junk, 4);
+    }
 
 	arrow::Status Close() override {
 		m_closed = true;
@@ -107,7 +110,7 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 	
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override {
         std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateBuffer(nbytes).ValueOrDie();
-        m_archive.read(reinterpret_cast<char*>(buffer->mutable_data()) + 4, static_cast<size_t>(nbytes));
+        m_archive.read(reinterpret_cast<char*>(buffer->mutable_data()), static_cast<size_t>(nbytes));
         m_read += nbytes;
         return buffer;
 	}
