@@ -107,7 +107,7 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 	
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override {
         std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateBuffer(nbytes).ValueOrDie();
-        m_archive.read(reinterpret_cast<char*>(buffer->mutable_data()), static_cast<size_t>(nbytes));
+        m_archive.read(reinterpret_cast<char*>(buffer->mutable_data()) + 4, static_cast<size_t>(nbytes));
         m_read += nbytes;
         return buffer;
 	}
@@ -132,12 +132,12 @@ class IterateRespStub {
 
         template<typename Archive>
         void save(Archive& ar) const {
+            ar & ret_code;
             if (ret_code == RPC_DONE_WITH_BATCH) {
                 ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
                 arrow::ipc::IpcWriteOptions options;
                 arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
             }
-            ar & ret_code;
         }
 
         template<typename Archive>
