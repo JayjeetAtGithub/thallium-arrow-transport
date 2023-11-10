@@ -98,6 +98,8 @@ int main(int argc, char** argv) {
 
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
+            std::cout << "Read batch: " << batch->num_rows() << std::endl;
+
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
                     auto buffer = PackBatch(batch);
