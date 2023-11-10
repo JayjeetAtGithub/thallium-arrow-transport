@@ -49,37 +49,6 @@ class InitScanRespStub {
         }
 };
 
-class IterateRespStub {
-    public:
-        std::shared_ptr<arrow::Buffer> buffer;
-        int ret_code;
-
-        IterateRespStub() {}
-        IterateRespStub(std::shared_ptr<arrow::Buffer> buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
-
-        template<typename A>
-        void save(A& ar) const {
-            size_t size = (buffer == nullptr) ? 0 : buffer->size();
-            ar & size;
-            if (size != 0) {
-                ar.write(buffer->data(), size);
-
-            }
-            ar & ret_code;
-        }
-
-        template<typename A>
-        void load(A& ar) {
-            size_t size;
-            ar & size;
-            if (size != 0) {
-                buffer = arrow::AllocateBuffer(size).ValueOrDie();
-                ar.read(buffer->mutable_data(), size);
-            }
-            ar & ret_code;
-        }
-};
-
 template<typename Archive>
 struct ThalliumOutputStreamAdaptor : public arrow::io::OutputStream {
 	ThalliumOutputStreamAdaptor(Archive& ar)
@@ -129,12 +98,12 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 	}
 	
 	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override {
-		m_archive.read(static_cast<const char*>(data), static_cast<size_t>(nbytes));
+		m_archive.read(static_cast<const char*>(out), static_cast<size_t>(nbytes));
         m_read += nbytes;
-		return nbytes; // not sure this is the way to return a Result<T>
+		return nbytes;
 	}
 	
-	arrow::Result<std::shared_ptr<Buffer>> Read(int64_t nbytes) override {
+	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override {
 		// I *think* we should be able to just do that, since zero-copy is
 		// not supported by out InputStream, it should not be called...
 		return nullptr;
@@ -150,14 +119,27 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 
 };
 
-std::shared_ptr<arrow::Buffer> PackBatch(std::shared_ptr<arrow::RecordBatch> batch) {
-    arrow::ipc::IpcWriteOptions options;
-    return arrow::ipc::SerializeRecordBatch(*batch, options).ValueOrDie();
-}
+class IterateRespStub {
+    public:
+        std::shared_ptr<arrow::RecordBatch> batch;
+        int ret_code;
 
-std::shared_ptr<arrow::RecordBatch> UnpackBatch(std::shared_ptr<arrow::Buffer> buff, std::shared_ptr<arrow::Schema> schema) {
-    arrow::io::BufferReader buff_reader(buff);
-    arrow::ipc::DictionaryMemo dictionary_memo;
-    arrow::ipc::IpcReadOptions read_options;
-    return ReadRecordBatch(schema, &dictionary_memo, read_options, &buff_reader).ValueOrDie();
-}
+        IterateRespStub() {}
+        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch, int ret_code) : batch(batch), ret_code(ret_code) {}
+
+        template<typename A>
+        void save(A& ar, std::shared_ptr<arrow::RecordBatch> &batch) const {
+            ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
+	        arrow::ipc::SerializeRecordBatch(batch, options, &output_stream);
+        }
+
+        template<typename A>
+        void load(A& ar, std::shared_ptr<arrow::RecordBatch> &batch) {
+            ThalliumInputStreamAdaptor<Archive> input_stream{ar};
+            arrow::ipc::DictionaryMemo dict_memo;
+            arrow::ipc::IpcReadOptions options;
+            auto schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo).ValueOrDie();
+	        auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
+            batch = std::move(result);
+        }
+};

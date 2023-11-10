@@ -126,8 +126,7 @@ class ThalliumClient {
             engine.define("do_rdma", do_rdma);
             IterateRespStub resp = this->iterate.on(endpoint)(0, info.uuid);
             if (resp.ret_code == RPC_DONE_WITH_BATCH) {
-                batch = UnpackBatch(resp.buffer, schema);
-                total_rows_read += batch->num_rows();
+                total_rows_read += resp.batch->num_rows();
             }
             return 0;
         }

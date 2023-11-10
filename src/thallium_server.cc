@@ -100,8 +100,7 @@ int main(int argc, char** argv) {
 
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
-                    auto buffer = PackBatch(batch);
-                    resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
+                    resp = IterateRespStub(batch, RPC_DONE_WITH_BATCH);
                     return req.respond(resp);
                 }
                 int ret = push_batch(do_rdma, engine, req, batch);
