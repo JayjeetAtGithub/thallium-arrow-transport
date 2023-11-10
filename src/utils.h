@@ -131,7 +131,7 @@ class IterateRespStub {
         void save(Archive& ar) const {
             ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
             arrow::ipc::IpcWriteOptions options;
-	        arrow::ipc::SerializeRecordBatch(batch, options, &output_stream);
+	        arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
         }
 
         template<typename Archive>
