@@ -147,13 +147,12 @@ class IterateRespStub {
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::ipc::IpcReadOptions options;
             std::cout << "trying to read schema\n";
-            arrow::Result<std::shared_ptr<arrow::Schema>> schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo);
-            if (!schema.ok()) {
+            arrow::Result<std::shared_ptr<arrow::Schema>> schema_res = arrow::ipc::ReadSchema(&input_stream, &dict_memo);
+            if (!schema_res.ok()) {
                 std::cout << "schema not ok\n";
                 return;
-            } else {
-                schema = schema.ValueOrDie();
             }
+            std::shared_ptr<arrow::Schema> schema = schema_res.ValueOrDie();
             auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
             batch = std::move(result);
             std::cout << "batch->num_rows() = " << batch->num_rows() << std::endl;
