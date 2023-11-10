@@ -148,6 +148,7 @@ class IterateRespStub {
                 arrow::ipc::DictionaryMemo dict_memo;
                 arrow::ipc::IpcReadOptions options;
                 auto schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo).ValueOrDie();
+                std::cout << "schema->num_fields() = " << schema->num_fields() << std::endl;
                 auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
                 batch = std::move(result);
                 std::cout << "batch->num_rows() = " << batch->num_rows() << std::endl;
