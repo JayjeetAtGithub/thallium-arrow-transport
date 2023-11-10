@@ -90,14 +90,13 @@ int main(int argc, char** argv) {
     tl::remote_procedure do_rdma = engine.define("do_rdma");
     std::function<void(const tl::request&, const int&, const std::string&)> iterate = 
         [&do_rdma, &reader_map, &engine](const tl::request &req, const int& warmup, const std::string &uuid) {
-            IterateRespStub resp;
             if (warmup) {
-                resp = IterateRespStub(nullptr, RPC_WARMUP);
-                return req.respond(resp);
+                return req.respond(0);
             }
 
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
+            IterateRespStub resp;
 
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
