@@ -72,7 +72,6 @@ struct ThalliumOutputStreamAdaptor : public arrow::io::OutputStream {
 		m_written += nbytes;
         std::cout << "writing " << nbytes << " bytes into archive\n";
 		m_archive.write(static_cast<const char*>(data), static_cast<size_t>(nbytes));
-        std::cout << "wrote into archive\n";
 		return arrow::Status::OK();
 	}
 	
@@ -107,8 +106,6 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 	}
 	
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override {
-		// I *think* we should be able to just do that, since zero-copy is
-		// not supported by out InputStream, it should not be called...
 		return nullptr;
 	}
 	
