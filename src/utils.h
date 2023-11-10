@@ -147,6 +147,7 @@ class IterateRespStub {
                 ThalliumInputStreamAdaptor<Archive> input_stream{ar};
                 arrow::ipc::DictionaryMemo dict_memo;
                 arrow::ipc::IpcReadOptions options;
+                std::cout << "trying to read schema\n";
                 auto schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo).ValueOrDie();
                 std::cout << "schema->num_fields() = " << schema->num_fields() << std::endl;
                 auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
