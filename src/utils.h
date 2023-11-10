@@ -100,8 +100,8 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 	}
 	
 	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override {
-		auto buffer = Read(nbytes);
-        out = buffer->data();
+		auto buffer = Read(nbytes).ValueOrDie();
+        out = reinterpret_cast<void*>buffer->data();
         return nbytes;
 	}
 	
