@@ -131,18 +131,24 @@ class IterateRespStub {
 
         template<typename Archive>
         void save(Archive& ar) const {
-            ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
-            arrow::ipc::IpcWriteOptions options;
-	        arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
+            if (ret_code == RPC_DONE_WITH_BATCH) {
+                ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
+                arrow::ipc::IpcWriteOptions options;
+                arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
+            }
+            ar & ret_code;
         }
 
         template<typename Archive>
         void load(Archive& ar) {
-            ThalliumInputStreamAdaptor<Archive> input_stream{ar};
-            arrow::ipc::DictionaryMemo dict_memo;
-            arrow::ipc::IpcReadOptions options;
-            auto schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo).ValueOrDie();
-	        auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
-            batch = std::move(result);
+            if (ret_code == RPC_DONE_WITH_BATCH) {
+                ThalliumInputStreamAdaptor<Archive> input_stream{ar};
+                arrow::ipc::DictionaryMemo dict_memo;
+                arrow::ipc::IpcReadOptions options;
+                auto schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo).ValueOrDie();
+                auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
+                batch = std::move(result);
+            }
+            ar & ret_code;
         }
 };
