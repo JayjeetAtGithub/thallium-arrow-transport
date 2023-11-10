@@ -85,7 +85,7 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 
 	ThalliumInputStreamAdaptor(Archive& ar)
 	: m_archive(ar) {
-        char *junk = (char*)malloc(4)
+        char *junk = (char*)malloc(4);
         m_archive.read(junk, 4);
     }
 
