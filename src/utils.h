@@ -9,6 +9,7 @@
 #include <arrow/ipc/api.h>
 #include <arrow/io/api.h>
 
+#include "constants.h"
 
 void WriteToFile(std::string data, std::string path, bool append) {
     std::ofstream file;
