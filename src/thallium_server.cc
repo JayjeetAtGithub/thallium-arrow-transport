@@ -98,6 +98,7 @@ int main(int argc, char** argv) {
 
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
+            std::cout << "iterate() rpc: read next batch\n";
 
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
