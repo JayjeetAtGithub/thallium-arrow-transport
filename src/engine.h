@@ -109,6 +109,7 @@ class DuckDBEngine : public QueryEngine {
             con->Query("PRAGMA threads=32;");
             std::string table_create_query = "CREATE TABLE dataset AS SELECT * FROM read_parquet('" + path + "');";
             con->Query(table_create_query);    
+            std::cout << "engine: created table successfully: " << path << std::endl;
         }
 
         std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
@@ -126,6 +127,7 @@ class DuckDBEngine : public QueryEngine {
             auto ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
             auto scanner_builder = ds->NewScan().ValueOrDie();
             auto scanner = scanner_builder->Finish().ValueOrDie();
+            std::cout << "engine: executed query successfully: " << query << std::endl;
             return scanner->ToRecordBatchReader().ValueOrDie();
         }
 
