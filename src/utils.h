@@ -128,18 +128,13 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 class IterateRespStub {
     public:
         std::shared_ptr<arrow::RecordBatch> batch;
-        int32_t ret_code;
 
-        IterateRespStub() {
-            ret_code = RPC_DONE;
-        }
-        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch) : batch(batch) {
-            ret_code = RPC_DONE_WITH_BATCH;
-        }
+        IterateRespStub() {}
+        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch) : batch(batch) {}
 
         template<typename Archive>
         void save(Archive& ar) const {
-            if (ret_code == RPC_DONE_WITH_BATCH) {
+            if (batch) {
                 ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
                 arrow::ipc::IpcWriteOptions options;
                 arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
@@ -148,16 +143,18 @@ class IterateRespStub {
 
         template<typename Archive>
         void load(Archive& ar) {
-            if (ret_code == RPC_DONE_WITH_BATCH) {
-                ThalliumInputStreamAdaptor<Archive> input_stream{ar};
-                arrow::ipc::DictionaryMemo dict_memo;
-                arrow::ipc::IpcReadOptions options;
-                std::cout << "trying to read schema\n";
-                auto schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo).ValueOrDie();
-                std::cout << "schema->num_fields() = " << schema->num_fields() << std::endl;
-                auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
-                batch = std::move(result);
-                std::cout << "batch->num_rows() = " << batch->num_rows() << std::endl;
+            ThalliumInputStreamAdaptor<Archive> input_stream{ar};
+            arrow::ipc::DictionaryMemo dict_memo;
+            arrow::ipc::IpcReadOptions options;
+            std::cout << "trying to read schema\n";
+            arrow::Result<std::shared_ptr<arrow::Schema>> schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo);
+            if (!schema.ok()) {
+                std::cout << "schema not ok\n";
+                return;
             }
+            std::cout << "schema->num_fields() = " << schema->num_fields() << std::endl;
+            auto result = arrow::ipc::ReadRecordBatch(schema, &dict_memo, options,  &input_stream).ValueOrDie();
+            batch = std::move(result);
+            std::cout << "batch->num_rows() = " << batch->num_rows() << std::endl;
         }
 };
