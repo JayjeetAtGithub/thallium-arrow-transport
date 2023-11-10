@@ -135,7 +135,7 @@ class IterateRespStub {
 
         template<typename Archive>
         void load(Archive& ar, std::shared_ptr<arrow::RecordBatch> &batch) {
-            ThalliumInputStreamAdaptor<A> input_stream{ar};
+            ThalliumInputStreamAdaptor<Archive> input_stream{ar};
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::ipc::IpcReadOptions options;
             auto schema = arrow::ipc::ReadSchema(&input_stream, &dict_memo).ValueOrDie();
