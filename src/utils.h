@@ -98,7 +98,7 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 	}
 	
 	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override {
-		m_archive.read(static_cast<const char*>(out), static_cast<size_t>(nbytes));
+		m_archive.read(static_cast<char*>(out), static_cast<size_t>(nbytes));
         m_read += nbytes;
 		return nbytes;
 	}
