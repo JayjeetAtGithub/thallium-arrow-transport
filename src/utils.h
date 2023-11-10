@@ -90,7 +90,7 @@ struct ThalliumOutputStreamAdaptor : public arrow::io::OutputStream {
 		return arrow::Status::OK();
 	}
 	
-	Result<int64_t> Tell() const override {
+	arrow::Result<int64_t> Tell() const override {
 		return m_written;
 	}
 	
@@ -120,7 +120,7 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 		return arrow::Status::OK();
 	}
 	
-	Result<int64_t> Tell() const override {
+	arrow::Result<int64_t> Tell() const override {
 		return m_read;
 	}
 	
@@ -128,13 +128,13 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 		return m_closed;
 	}
 	
-	Result<int64_t> Read(int64_t nbytes, void* out) override {
+	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override {
 		m_archive.read(static_cast<const char*>(data), static_cast<size_t>(nbytes));
         m_read += nbytes;
 		return nbytes; // not sure this is the way to return a Result<T>
 	}
 	
-	Result<std::shared_ptr<Buffer>> Read(int64_t nbytes) override {
+	arrow::Result<std::shared_ptr<Buffer>> Read(int64_t nbytes) override {
 		// I *think* we should be able to just do that, since zero-copy is
 		// not supported by out InputStream, it should not be called...
 		return nullptr;
