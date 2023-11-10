@@ -84,10 +84,7 @@ template<typename Archive>
 struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 
 	ThalliumInputStreamAdaptor(Archive& ar)
-	: m_archive(ar) {
-        char *junk = (char*)malloc(4);
-        m_archive.read(junk, 4);
-    }
+	: m_archive(ar) {}
 
 	arrow::Status Close() override {
 		m_closed = true;
