@@ -127,13 +127,12 @@ class IterateRespStub {
         int ret_code;
 
         IterateRespStub() {}
-        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch, int ret_code) : batch(std::move(batch)), ret_code(ret_code) {}
+        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch, int ret_code) : batch(batch), ret_code(ret_code) {}
 
         template<typename Archive>
         void save(Archive& ar) const {
             ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
             arrow::ipc::IpcWriteOptions options;
-            std::cout << "serializing batch : " << (batch == nullptr) << std::endl;
 	        arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
         }
 
