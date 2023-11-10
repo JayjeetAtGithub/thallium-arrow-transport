@@ -65,7 +65,7 @@ class ThalliumClient {
         }
 
         void Warmup() {
-            this->iterate.on(endpoint)(1, "x");
+            // this->iterate.on(endpoint)(1, "x");
         }
 
         void Finalize() {
