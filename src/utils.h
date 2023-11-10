@@ -128,14 +128,17 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 class IterateRespStub {
     public:
         std::shared_ptr<arrow::RecordBatch> batch;
-        int ret_code;
+        int32_t ret_code;
 
-        IterateRespStub() {}
-        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch, int ret_code) : batch(batch), ret_code(ret_code) {}
+        IterateRespStub() {
+            ret_code = RPC_DONE;
+        }
+        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch) : batch(batch) {
+            ret_code = RPC_DONE_WITH_BATCH;
+        }
 
         template<typename Archive>
         void save(Archive& ar) const {
-            ar & ret_code;
             if (ret_code == RPC_DONE_WITH_BATCH) {
                 ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
                 arrow::ipc::IpcWriteOptions options;
@@ -145,7 +148,6 @@ class IterateRespStub {
 
         template<typename Archive>
         void load(Archive& ar) {
-            ar & ret_code;
             if (ret_code == RPC_DONE_WITH_BATCH) {
                 ThalliumInputStreamAdaptor<Archive> input_stream{ar};
                 arrow::ipc::DictionaryMemo dict_memo;
