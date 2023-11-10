@@ -97,6 +97,7 @@ int main(int argc, char** argv) {
             }
 
             std::shared_ptr<arrow::RecordBatch> batch;
+            std::cout << "iterate() rpc: about to read next batch\n";
             reader_map[uuid]->ReadNext(&batch);
             std::cout << "iterate() rpc: read next batch\n";
 
