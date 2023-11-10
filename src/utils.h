@@ -69,7 +69,9 @@ struct ThalliumOutputStreamAdaptor : public arrow::io::OutputStream {
 	
 	arrow::Status Write(const void* data, int64_t nbytes) override {
 		m_written += nbytes;
+        std::cout << "writing " << nbytes << " bytes into archive\n";
 		m_archive.write(static_cast<const char*>(data), static_cast<size_t>(nbytes));
+        std::cout << "wrote into archive\n";
 		return arrow::Status::OK();
 	}
 	
