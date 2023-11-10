@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
         [&do_rdma, &reader_map, &engine](const tl::request &req, const int& warmup, const std::string &uuid) {
             IterateRespStub resp;
             if (warmup) {
-                resp.ret_code = RPC_WARMUP;
+                resp = IterateRespStub(nullptr, RPC_WARMUP);
                 return req.respond(resp);
             }
 
