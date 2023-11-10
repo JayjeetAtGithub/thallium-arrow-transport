@@ -150,6 +150,8 @@ arrow::Status Main(int argc, char **argv) {
         client->Warmup();
     }
 
+    std::cout << "client: done warming up" << std::endl;
+
     int64_t total_rows_read = 0;
     int64_t total_rpcs_made = 2;
 
