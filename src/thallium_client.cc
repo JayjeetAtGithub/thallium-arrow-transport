@@ -144,12 +144,13 @@ arrow::Status Main(int argc, char **argv) {
 
     ThalliumInfo info;
     client->GetThalliumInfo(desc, info);
-    std::cout << "client: done getting desc info" << std::endl;
 
 
     // Do a couple of warmup blank RPC to get around libfabrics cold start
     for (int i = 0; i < 30; i++) {
         client->Warmup();
+            std::cout << "client: done warming up" << std::endl;
+
     }
 
     int64_t total_rows_read = 0;
