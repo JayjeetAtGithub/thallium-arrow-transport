@@ -100,13 +100,16 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 	}
 	
 	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override {
-		m_archive.read(static_cast<char*>(out), static_cast<size_t>(nbytes));
-        m_read += nbytes;
-		return nbytes;
+		auto buffer = Read(nbytes);
+        out = buffer->data();
+        return nbytes;
 	}
 	
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override {
-		return nullptr;
+        std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateBuffer(nbytes).ValueOrDie();
+        m_archive.read(static_cast<char*>(buffer->mutable_data()), static_cast<size_t>(nbytes));
+        m_read += nbytes;
+        return mutable_buffer;
 	}
 	
 	bool supports_zero_copy() const override {
