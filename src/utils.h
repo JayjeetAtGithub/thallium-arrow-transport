@@ -132,16 +132,17 @@ class IterateRespStub {
 
         template<typename Archive>
         void save(Archive& ar) const {
+            ar & ret_code;
             if (ret_code == RPC_DONE_WITH_BATCH) {
                 ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
                 arrow::ipc::IpcWriteOptions options;
                 arrow::ipc::SerializeRecordBatch(*batch, options, &output_stream);
             }
-            ar & ret_code;
         }
 
         template<typename Archive>
         void load(Archive& ar) {
+            ar & ret_code;
             if (ret_code == RPC_DONE_WITH_BATCH) {
                 ThalliumInputStreamAdaptor<Archive> input_stream{ar};
                 arrow::ipc::DictionaryMemo dict_memo;
@@ -151,6 +152,5 @@ class IterateRespStub {
                 batch = std::move(result);
                 std::cout << "batch->num_rows() = " << batch->num_rows() << std::endl;
             }
-            ar & ret_code;
         }
 };
