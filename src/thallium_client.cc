@@ -65,7 +65,8 @@ class ThalliumClient {
         }
 
         void Warmup() {
-            // this->iterate.on(endpoint)(1, "x");
+            std::string fake_uuid = "x";
+            this->iterate.on(endpoint)(1, fake_uuid);
         }
 
         void Finalize() {
