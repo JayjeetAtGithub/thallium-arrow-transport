@@ -125,7 +125,7 @@ class IterateRespStub {
         int ret_code;
 
         IterateRespStub() {}
-        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch, int ret_code) : batch(batch), ret_code(ret_code) {}
+        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch, int ret_code) : batch(std::move(batch)), ret_code(ret_code) {}
 
         template<typename Archive>
         void save(Archive& ar) const {
