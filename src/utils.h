@@ -153,6 +153,7 @@ class IterateRespStub {
             arrow::Result<std::shared_ptr<arrow::Schema>> schema_res = arrow::ipc::ReadSchema(&input_stream, &dict_memo);
             if (!schema_res.ok()) {
                 std::cout << "schema not ok\n";
+                std::cout << "error message: " << schema_res.status().message() << std::endl;
                 return;
             }
             std::shared_ptr<arrow::Schema> schema = schema_res.ValueOrDie();
