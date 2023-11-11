@@ -149,6 +149,12 @@ class IterateRespStub {
             ThalliumInputStreamAdaptor<Archive> input_stream{ar};
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::ipc::IpcReadOptions options;
+            std::cout << "check size of stream: " << std::endl;
+
+            auto buff = input_stream->Read(4);
+            std::cout << buff->size() << std::endl;
+            
+            
             std::cout << "trying to read schema\n";
             arrow::Result<std::shared_ptr<arrow::Schema>> schema_res = arrow::ipc::ReadSchema(&input_stream, &dict_memo);
             if (!schema_res.ok()) {
