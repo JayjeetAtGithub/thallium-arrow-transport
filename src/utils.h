@@ -147,10 +147,13 @@ class IterateRespStub {
         template<typename Archive>
         void load(Archive& ar) {
             ThalliumInputStreamAdaptor<Archive> input_stream{ar};
-            auto reader = arrow::ipc::RecordBatchStreamReader::Open(&input_stream).ValueOrDie();
-            arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = reader->Next();
+            arrow::Result<std::shared_ptr<arrow::ipc::RecordBatchStreamReader>> stream = 
+                arrow::ipc::RecordBatchStreamReader::Open(&input_stream);
+            if (!stream.ok()) {
+                std::cout << "nothing sent back with RPC result" << std::endl;
+            }
+            arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = stream->Next();
             if (!result.ok()) {
-                std::cout << "result not ok\n";
                 std::cout << "error message: " << result.status().message() << std::endl;
                 return;
             }
