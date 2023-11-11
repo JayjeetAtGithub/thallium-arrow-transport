@@ -153,7 +153,8 @@ class IterateRespStub {
                 std::cout << "nothing sent back with RPC result" << std::endl;
                 return;
             }
-            arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = stream->Next();
+            auto reader = stream.ValueOrDie();
+            arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = reader->Next();
             batch = std::move(result.ValueOrDie());
         }
 };
