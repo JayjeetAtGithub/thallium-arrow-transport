@@ -56,6 +56,7 @@ struct ThalliumOutputStreamAdaptor : public arrow::io::OutputStream {
 	: m_archive(ar) {}
 
 	arrow::Status Close() override {
+        if (m_closed) return arrow::Status::OK();
 	    m_closed = true;
 		return arrow::Status::OK();
 	}
@@ -69,9 +70,9 @@ struct ThalliumOutputStreamAdaptor : public arrow::io::OutputStream {
 	}
 	
 	arrow::Status Write(const void* data, int64_t nbytes) override {
-		m_written += nbytes;
-        std::cout << "writing " << nbytes << " bytes into archive\n";
-		m_archive.write(static_cast<const char*>(data), static_cast<size_t>(nbytes));
+        if (closed()) return Status::Invalid("Cannot write to a closed stream");
+		m_archive.write(reinterpret_cast<const char*>(data), nbytes);
+        m_written += nbytes;
 		return arrow::Status::OK();
 	}
 	
@@ -98,18 +99,22 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 	bool closed() const override {
 		return m_closed;
 	}
+
 	
 	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override {
-		auto buffer = Read(nbytes).ValueOrDie();
-        out = reinterpret_cast<void*>(buffer->mutable_data());
+        if (closed()) return Status::Invalid("Cannot read from a closed stream");
+        m_archive.read(static_cast<char*>(out), nbytes);
+        m_read += nbytes;
         return nbytes;
 	}
-	
+    
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override {
-        std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateBuffer(nbytes).ValueOrDie();
-        m_archive.read(reinterpret_cast<char*>(buffer->mutable_data()), static_cast<size_t>(nbytes));
+        if (closed()) return Status::Invalid("Cannot read from a closed stream");
+        std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateResizableBuffer(nbytes).ValueOrDie();
+        m_archive.read(reinterpret_cast<char*>(buffer->mutable_data()), nbytes);
         m_read += nbytes;
-        return buffer;
+        buffer->Resize(nbytes, true);
+        return std::shared_ptr<arrow::Buffer>(std::move(buffer));
 	}
 	
 	bool supports_zero_copy() const override {
