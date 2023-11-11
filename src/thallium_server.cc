@@ -100,6 +100,7 @@ int main(int argc, char** argv) {
 
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
+                    std::cout << "Using rpc piggy-back" << std::endl;
                     resp = IterateRespStub(batch);
                     return req.respond(resp);
                 }
