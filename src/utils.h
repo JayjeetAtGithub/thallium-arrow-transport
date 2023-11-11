@@ -70,6 +70,7 @@ struct ThalliumOutputStreamAdaptor : public arrow::io::OutputStream {
 	}
 	
 	arrow::Status Write(const void* data, int64_t nbytes) override {
+        std::cout << "writing " << nbytes << " bytes\n";
         if (closed()) return arrow::Status::Invalid("Cannot write to a closed stream");
 		m_archive.write(reinterpret_cast<const char*>(data), nbytes);
         m_written += nbytes;
