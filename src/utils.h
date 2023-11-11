@@ -148,7 +148,7 @@ class IterateRespStub {
         void load(Archive& ar) {
             ThalliumInputStreamAdaptor<Archive> input_stream{ar};
             auto reader = arrow::ipc::RecordBatchStreamReader::Open(&input_stream).ValueOrDie();
-            arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = reader->ReadRecordBatch(0);
+            arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = reader->Next();
             if (!result.ok()) {
                 std::cout << "result not ok\n";
                 std::cout << "error message: " << result.status().message() << std::endl;
