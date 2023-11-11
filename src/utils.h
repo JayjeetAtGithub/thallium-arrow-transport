@@ -154,10 +154,6 @@ class IterateRespStub {
                 return;
             }
             arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = stream->Next();
-            if (!result.ok()) {
-                std::cout << "error message: " << result.status().message() << std::endl;
-                return;
-            }
             batch = std::move(result.ValueOrDie());
         }
 };
