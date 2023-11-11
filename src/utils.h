@@ -110,7 +110,7 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
     
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override {
         if (closed()) return arrow::Status::Invalid("Cannot read from a closed stream");
-        std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateResizableBuffer(nbytes).ValueOrDie();
+        auto buffer = arrow::AllocateResizableBuffer(nbytes).ValueOrDie();
         m_archive.read(reinterpret_cast<char*>(buffer->mutable_data()), nbytes);
         m_read += nbytes;
         buffer->Resize(nbytes, true);
