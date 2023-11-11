@@ -151,6 +151,7 @@ class IterateRespStub {
                 arrow::ipc::RecordBatchStreamReader::Open(&input_stream);
             if (!stream.ok()) {
                 std::cout << "nothing sent back with RPC result" << std::endl;
+                return;
             }
             arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = stream->Next();
             if (!result.ok()) {
