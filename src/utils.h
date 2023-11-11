@@ -70,7 +70,7 @@ struct ThalliumOutputStreamAdaptor : public arrow::io::OutputStream {
 	}
 	
 	arrow::Status Write(const void* data, int64_t nbytes) override {
-        if (closed()) return Status::Invalid("Cannot write to a closed stream");
+        if (closed()) return arrow::Status::Invalid("Cannot write to a closed stream");
 		m_archive.write(reinterpret_cast<const char*>(data), nbytes);
         m_written += nbytes;
 		return arrow::Status::OK();
@@ -102,14 +102,14 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 
 	
 	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override {
-        if (closed()) return Status::Invalid("Cannot read from a closed stream");
+        if (closed()) return arrow::Status::Invalid("Cannot read from a closed stream");
         m_archive.read(static_cast<char*>(out), nbytes);
         m_read += nbytes;
         return nbytes;
 	}
     
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override {
-        if (closed()) return Status::Invalid("Cannot read from a closed stream");
+        if (closed()) return arrow::Status::Invalid("Cannot read from a closed stream");
         std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateResizableBuffer(nbytes).ValueOrDie();
         m_archive.read(reinterpret_cast<char*>(buffer->mutable_data()), nbytes);
         m_read += nbytes;
