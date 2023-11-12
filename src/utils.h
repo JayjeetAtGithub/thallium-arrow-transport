@@ -154,6 +154,7 @@ class IterateRespStub {
                 return;
             }
             auto reader = stream.ValueOrDie();
+            std::cout << "Schema: " << reader->schema()->ToString() << std::endl;
             arrow::Result<std::shared_ptr<arrow::RecordBatch>> result = reader->Next();
             batch = std::move(result.ValueOrDie());
         }
