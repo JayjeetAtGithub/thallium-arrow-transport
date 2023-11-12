@@ -127,6 +127,7 @@ class ThalliumClient {
             engine.define("do_rdma", do_rdma);
             IterateRespStub resp = this->iterate.on(endpoint)(0, info.uuid);
             if (resp.batch) {
+                std::cout << resp.batch->ToString() << std::endl;
                 total_rows_read += resp.batch->num_rows();
             }
             return 0;
