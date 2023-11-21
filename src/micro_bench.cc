@@ -6,23 +6,23 @@
 #include "engine.h"
 #include "constants.h"
 
-void WriteToStream(std::shared_ptr<arrow::OutputStream> &output_stream, std::shared_ptr<arrow::RecordBatchReader> &reader) {
+size_t WriteToStream(std::shared_ptr<arrow::OutputStream> &output_stream, std::shared_ptr<arrow::RecordBatchReader> &reader) {
     std::shared_ptr<arrow::RecordBatch> batch;
     auto writer = arrow::ipc::MakeStreamWriter(output_stream, reader->schema()).ValueOrDie();
     while (reader->ReadNext(&batch).ok()) {
         if (!batch) {
             break;
         }
-        std::cout << "batch size: " << batch->num_rows() << std::endl;
+        std::cout << "Batch size: " << batch->num_rows() << std::endl;
         writer->WriteRecordBatch(*batch);
     }
     writer->Close();
     arrow::Result<std::shared_ptr<arrow::Buffer>> buffer = output_stream->Finish();
     if (!buffer.ok()) {
         std::cout << "Error: " << buffer.status().message() << std::endl;
-        return 1;
+        return -1;
     }
-    std::cout << "Size: " << buffer.ValueOrDie()->size() << std::endl;
+    return buffer.ValueOrDie()->size();
 }
 
 int main(int argc, char **argv) {
