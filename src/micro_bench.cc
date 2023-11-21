@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
     // read out batches from the tables and serializd each of them
     std::shared_ptr<arrow::RecordBatch> batch;
-    auto output_stream = arrow::io::BufferOutputStream();
+    auto output_stream = arrow::io::BufferOutputStream::Create().ValueOrDie();
     while (reader->ReadNext(&batch).ok()) {
         arrow::ipc::IpcWriteOptions options;
         arrow::ipc::WriteRecordBatchStream(std::vector<std::shared_ptr<arrow::RecordBatch>>{batch}, options, output_stream);
