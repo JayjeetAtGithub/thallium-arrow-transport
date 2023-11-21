@@ -11,6 +11,19 @@
 
 #include "constants.h"
 
+class time_block {
+public:
+    time_block(std::string tag) : __start(std::chrono::high_resolution_clock::now()), _tag(tag) {}
+    ~time_block() {
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> dur = std::chrono::duration_cast<std::chrono::microseconds>(end - __start);
+        std::cout << _tag << " : " << dur.count() << " seconds" << std::endl;
+    }
+private:
+    std::string _tag;
+    std::chrono::high_resolution_clock::time_point __start;
+};
+
 void WriteToFile(std::string data, std::string path, bool append) {
     std::ofstream file;
     if (append) {
