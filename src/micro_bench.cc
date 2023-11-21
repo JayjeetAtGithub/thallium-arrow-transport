@@ -21,6 +21,8 @@ int main(int argc, char **argv) {
         if (batch) {
             std::cout << "batch size: " << batch->num_rows() << std::endl;
             writer->WriteRecordBatch(*batch);
+        } else {
+            break;
         }
     }
     writer->Close();
