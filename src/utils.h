@@ -16,8 +16,8 @@ public:
     time_block(std::string tag) : __start(std::chrono::high_resolution_clock::now()), _tag(tag) {}
     ~time_block() {
         std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-        auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - __start);
-        std::cout << _tag << " : " << dur.count() << "ms" << std::endl;
+        auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(end - __start);
+        std::cout << _tag << " : " << dur.count() << " us" << std::endl;
     }
 private:
     std::string _tag;
