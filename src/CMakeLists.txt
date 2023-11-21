@@ -23,3 +23,6 @@ target_link_libraries(fc arrow arrow_dataset arrow_flight parquet duckdb)
 
 add_executable(fs flight_server.cc)
 target_link_libraries(fs arrow arrow_dataset arrow_flight parquet duckdb)
+
+add_executable(mbench micro_bench.cc)
+target_link_libraries(mbench thallium arrow arrow_dataset duckdb)
