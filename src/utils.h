@@ -163,10 +163,10 @@ class IterateRespStub {
                     writer->Close();
                 }
                     
-                output_stream = arrow::io::BufferOutputStream::Create().ValueOrDie();
+                auto bos = arrow::io::BufferOutputStream::Create().ValueOrDie();
                 {
                     time_block t("write to BufferOutputStream");
-                    auto writer = arrow::ipc::MakeStreamWriter(output_stream, batch->schema()).ValueOrDie();
+                    auto writer = arrow::ipc::MakeStreamWriter(bos, batch->schema()).ValueOrDie();
                     writer->WriteRecordBatch(*batch);
                     writer->Close();
                 }
