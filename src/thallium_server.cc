@@ -6,7 +6,22 @@
 #include "engine.h"
 #include "constants.h"
 
+#include <chrono>
+
 namespace tl = thallium;
+
+class time_block {
+public:
+    time_block(std::string tag) : __start(std::chrono::high_resolution_clock::now()), _tag(tag) {}
+    ~time_block() {
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> dur = std::chrono::duration_cast<std::chrono::microseconds>(end - __start);
+        std::cout << _tag << " : " << dur.count() << " seconds" << std::endl;
+    }
+private:
+    std::string _tag;
+    std::chrono::high_resolution_clock::time_point __start;
+};
 
 int push_batch(tl::remote_procedure &do_rdma, tl::engine& engine, const tl::request& req, std::shared_ptr<arrow::RecordBatch> batch) {
     std::vector<int64_t> data_buff_sizes;
