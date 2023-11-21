@@ -6,7 +6,7 @@
 #include "engine.h"
 #include "constants.h"
 
-void WriteToStream(std::shared_ptr<arrow::io::OutputStream> &output_stream, std::shared_ptr<arrow::RecordBatchReader> &reader) {
+void WriteToStream(std::shared_ptr<arrow::io::OutputStream> output_stream, std::shared_ptr<arrow::RecordBatchReader> &reader) {
     std::shared_ptr<arrow::RecordBatch> batch;
     auto writer = arrow::ipc::MakeStreamWriter(output_stream, reader->schema()).ValueOrDie();
     while (reader->ReadNext(&batch).ok()) {
