@@ -157,16 +157,20 @@ class IterateRespStub {
             if (batch) {
                 if (optimize) {
                     ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
-                    arrow::ipc::IpcWriteOptions options;
                     {
                         time_block t("write to stream");
-                        arrow::ipc::WriteRecordBatchStream(std::vector<std::shared_ptr<arrow::RecordBatch>>{batch}, options, &output_stream);
+                        auto writer = arrow::ipc::MakeStreamWriter(output_stream, batch->schema()).ValueOrDie();
+                        writer->WriteRecordBatch(*batch);
+                        writer->Close();
                     }
                 } else {
                     auto output_stream = arrow::io::BufferOutputStream::Create().ValueOrDie();
-                    auto writer = arrow::ipc::MakeStreamWriter(output_stream, batch->schema()).ValueOrDie();
-                    writer->WriteRecordBatch(*batch);
-                    writer->Close();
+                    {
+                        time_block t("write to buffer");
+                        auto writer = arrow::ipc::MakeStreamWriter(output_stream, batch->schema()).ValueOrDie();
+                        writer->WriteRecordBatch(*batch);
+                        writer->Close();
+                    }
                 }
             }
         }
