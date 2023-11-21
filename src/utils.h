@@ -147,18 +147,26 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 class IterateRespStub {
     public:
         std::shared_ptr<arrow::RecordBatch> batch;
+        bool optimize = true;
 
         IterateRespStub() {}
-        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch) : batch(batch) {}
+        IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch, bool optimize) : batch(batch), optimize(optimize) {}
 
         template<typename Archive>
         void save(Archive& ar) const {
             if (batch) {
-                ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
-                arrow::ipc::IpcWriteOptions options;
-                {
-                    time_block t("write to stream");
-                    arrow::ipc::WriteRecordBatchStream(std::vector<std::shared_ptr<arrow::RecordBatch>>{batch}, options, &output_stream);
+                if (optimize) {
+                    ThalliumOutputStreamAdaptor<Archive> output_stream{ar};
+                    arrow::ipc::IpcWriteOptions options;
+                    {
+                        time_block t("write to stream");
+                        arrow::ipc::WriteRecordBatchStream(std::vector<std::shared_ptr<arrow::RecordBatch>>{batch}, options, &output_stream);
+                    }
+                } else {
+                    auto output_stream = arrow::io::BufferOutputStream::Create().ValueOrDie();
+                    auto writer = arrow::ipc::MakeStreamWriter(output_stream, batch->schema()).ValueOrDie();
+                    writer->WriteRecordBatch(*batch);
+                    writer->Close();
                 }
             }
         }
