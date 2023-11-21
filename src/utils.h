@@ -147,7 +147,7 @@ struct ThalliumInputStreamAdaptor : public arrow::io::InputStream {
 class IterateRespStub {
     public:
         std::shared_ptr<arrow::RecordBatch> batch;
-        bool optimize = true;
+        bool optimize;
 
         IterateRespStub() {}
         IterateRespStub(std::shared_ptr<arrow::RecordBatch> batch, bool optimize) : batch(batch), optimize(optimize) {}
