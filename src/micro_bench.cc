@@ -18,12 +18,11 @@ int main(int argc, char **argv) {
     auto output_stream = arrow::io::BufferOutputStream::Create().ValueOrDie();
     auto writer = arrow::ipc::MakeStreamWriter(output_stream, reader->schema()).ValueOrDie();
     while (reader->ReadNext(&batch).ok()) {
-        if (batch) {
-            std::cout << "batch size: " << batch->num_rows() << std::endl;
-            writer->WriteRecordBatch(*batch);
-        } else {
+        if (!batch) {
             break;
         }
+        std::cout << "batch size: " << batch->num_rows() << std::endl;
+        writer->WriteRecordBatch(*batch);
     }
     writer->Close();
     arrow::Result<std::shared_ptr<arrow::Buffer>> buffer = output_stream->Finish();
