@@ -26,9 +26,12 @@ int main(int argc, char **argv) {
     std::string query = "SELECT * FROM dataset WHERE total_amount >= 900.5;"; 
     std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
 
-    // read out batches from the tables and serializd each of them
+    // just write to a buffer output stream
     auto output_stream = arrow::io::BufferOutputStream::Create().ValueOrDie();
+    auto start = std::chrono::high_resolution_clock::now();
     WriteToStream(output_stream, reader);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 
     return 0;
 }
