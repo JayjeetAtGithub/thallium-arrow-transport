@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     while (reader->ReadNext(&batch).ok()) {
         if (batch) {
             std::cout << "batch size: " << batch->num_rows() << std::endl;
-            writer->WriteRecordBatch(batch);
+            writer->WriteRecordBatch(batch.get());
         }
     }
     writer->Close();
