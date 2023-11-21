@@ -155,10 +155,10 @@ class IterateRespStub {
         template<typename Archive>
         void save(Archive& ar) const {
             if (batch) {
-                auto output_stream = std::make_shared<ThalliumOutputStreamAdaptor<Archive>>(ar);
+                auto tos = std::make_shared<ThalliumOutputStreamAdaptor<Archive>>(ar);
                 {
                     time_block t("write to thallium archive");
-                    auto writer = arrow::ipc::MakeStreamWriter(output_stream, batch->schema()).ValueOrDie();
+                    auto writer = arrow::ipc::MakeStreamWriter(tos, batch->schema()).ValueOrDie();
                     writer->WriteRecordBatch(*batch);
                     writer->Close();
                 }
