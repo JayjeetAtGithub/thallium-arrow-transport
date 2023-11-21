@@ -19,6 +19,6 @@ int main(int argc, char **argv) {
     while (reader->ReadNext(&batch).ok()) {
         std::cout << "batch size: " << batch->num_rows() << std::endl;
         arrow::ipc::IpcWriteOptions options;
-        arrow::ipc::WriteRecordBatchStream(std::vector<std::shared_ptr<arrow::RecordBatch>>{batch}, options, output_stream.get());
+        // arrow::ipc::WriteRecordBatchStream(std::vector<std::shared_ptr<arrow::RecordBatch>>{batch}, options, output_stream.get());
     }
 }
