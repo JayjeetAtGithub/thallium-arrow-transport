@@ -21,4 +21,5 @@ int main(int argc, char **argv) {
         arrow::ipc::IpcWriteOptions options;
         // arrow::ipc::WriteRecordBatchStream(std::vector<std::shared_ptr<arrow::RecordBatch>>{batch}, options, output_stream.get());
     }
+    return 0;
 }
