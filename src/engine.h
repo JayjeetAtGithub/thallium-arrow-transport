@@ -107,7 +107,8 @@ class DuckDBEngine : public QueryEngine {
         void Create(const std::string &path) {
             con->Query("INSTALL parquet; LOAD parquet;");
             con->Query("PRAGMA threads=32;");
-            std::string table_create_query = "CREATE TABLE dataset AS SELECT * FROM read_parquet('" + path + "');";
+            std::string table_create_query = "CREATE TABLE dataset AS SELECT * FROM '" + path + "';";
+            std::cout << "Query: " << table_create_query << std::endl;
             con->Query(table_create_query);    
         }
 
