@@ -11,3 +11,11 @@ if __name__ == "__main__":
     print("Number of columns: ", table.num_columns)
     print("Schema: ", table.schema)
     print("Column names: ", table.column_names)
+
+
+# 10% total_amount >= 63, 350000
+# 1%  total_amount >= 104, 35000
+# 0.1% total_amount >= 178, 3500
+# 0.01% total_amount >= 335, 350
+# 0.001% total_amount >= 530, 35
+# 0.0001% total_amount >= 1030, 3
