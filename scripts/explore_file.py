@@ -11,4 +11,3 @@ if __name__ == "__main__":
     print("Number of columns: ", table.num_columns)
     print("Schema: ", table.schema)
     print("Column names: ", table.column_names)
-    print("Column types: ", table.column_types)
