@@ -25,12 +25,12 @@ while IFS= read -r query; do
     for i in {1..5}; do
         if [ "$binary" == "tc" ]; then            
             uri=$(cat /proj/schedock-PG0/thallium_uri)
-            $PWD/bin/"$binary" $uri "/mnt/dataset/*" "$query" || true
+            $PWD/bin/"$binary" $uri "/mnt/dataset/nyc.*.parquet" "$query" || true
         elif [ "$binary" == "c" ]; then
             uri=$(cat /proj/schedock-PG0/thallium_uri)
             $PWD/bin/"$binary" $uri || true
         else
-            $PWD/bin/"$binary" "/mnt/dataset/*" "$query" || true
+            $PWD/bin/"$binary" "/mnt/dataset/nyc.*.parquet" "$query" || true
         fi
     done
 done < queries.txt
