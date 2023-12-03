@@ -70,7 +70,6 @@ int main(int argc, char** argv) {
             std::cout << "Request: " << query << "@" << path << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
-            std::cout << "DB created. Executing query: " << query << "\n";
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
             std::string uuid = boost::uuids::to_string(boost::uuids::random_generator()());
             reader_map[uuid] = reader;
