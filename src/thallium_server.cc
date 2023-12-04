@@ -106,9 +106,9 @@ int main(int argc, char** argv) {
                     auto buffer = PackBatch(batch);
                     auto e = std::chrono::high_resolution_clock::now();
                     // in milliseconds
-                    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
+                    auto diff = std::chrono::duration_cast<std::chrono::microseconds>(e - s);
                     std::cout << "PackBatch: " << diff.count() << std::endl;
-                    
+
                     resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
                     return req.respond(resp);
                 }
