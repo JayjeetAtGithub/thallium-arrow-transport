@@ -124,9 +124,17 @@ class ThalliumClient {
                 };
             
             engine.define("do_rdma", do_rdma);
+            auto s2 = std::chrono::high_resolution_clock::now();
             IterateRespStub resp = this->iterate.on(endpoint)(0, info.uuid);
+            auto e2 = std::chrono::high_resolution_clock::now();
+            auto diff2 = std::chrono::duration_cast<std::chrono::microseconds>(e2 - s2);
+            std::cout << "iterate rpc: " << diff2.count() << " us" << std::endl;
             if (resp.ret_code == RPC_DONE_WITH_BATCH) {
+                auto s3 = std::chrono::high_resolution_clock::now();
                 batch = UnpackBatch(resp.buffer, schema);
+                auto e3 = std::chrono::high_resolution_clock::now();
+                auto diff3 = std::chrono::duration_cast<std::chrono::microseconds>(e3 - s3);
+                std::cout << "unpack batch: " << diff3.count() << " us" << std::endl;
                 total_rows_read += batch->num_rows();
             }
             return 0;
