@@ -97,7 +97,12 @@ int main(int argc, char** argv) {
             }
 
             std::shared_ptr<arrow::RecordBatch> batch;
+            auto s1 = std::chrono::high_resolution_clock::now();
             reader_map[uuid]->ReadNext(&batch);
+            auto e1 = std::chrono::high_resolution_clock::now();
+            // in milliseconds
+            auto diff1 = std::chrono::duration_cast<std::chrono::microseconds>(e1 - s1);
+            std::cout << "ReadNext: " << diff1.count() << " us" << std::endl;
             IterateRespStub resp;
 
             while (batch != nullptr) {
