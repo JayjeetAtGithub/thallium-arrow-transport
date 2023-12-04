@@ -62,8 +62,11 @@ class IterateRespStub {
             size_t size = (buffer == nullptr) ? 0 : buffer->size();
             ar & size;
             if (size != 0) {
+                auto s = std::chrono::high_resolution_clock::now();
                 ar.write(buffer->data(), size);
-
+                auto e = std::chrono::high_resolution_clock::now();
+                auto diff = std::chrono::duration_cast<std::chrono::microseconds>(e - s);
+                std::cout << "ar.write: " << diff.count() << " us" << std::endl;
             }
             ar & ret_code;
         }
