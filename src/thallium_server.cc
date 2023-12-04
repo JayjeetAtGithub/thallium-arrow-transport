@@ -6,6 +6,8 @@
 #include "engine.h"
 #include "constants.h"
 
+#include <chrono>
+
 namespace tl = thallium;
 
 int push_batch(tl::remote_procedure &do_rdma, tl::engine& engine, const tl::request& req, std::shared_ptr<arrow::RecordBatch> batch) {
@@ -100,7 +102,13 @@ int main(int argc, char** argv) {
 
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
+                    auto s = std::chrono::high_resolution_clock::now();
                     auto buffer = PackBatch(batch);
+                    auto e = std::chrono::high_resolution_clock::now();
+                    // in milliseconds
+                    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
+                    std::cout << "PackBatch: " << diff.count() << std::endl;
+                    
                     resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
                     return req.respond(resp);
                 }
