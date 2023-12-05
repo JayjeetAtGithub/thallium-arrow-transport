@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
     std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     auto buff = output_stream->Finish();
+    std::cout << "Size of buffer: " << buff->size() << std::endl;
 
     return 0;
 }
