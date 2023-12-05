@@ -30,13 +30,21 @@ int main(int argc, char **argv) {
 
     // just write to a buffer output stream
     auto output_stream = arrow::io::BufferOutputStream::Create().ValueOrDie();
-    auto start = std::chrono::high_resolution_clock::now();
+   
+    auto s1 = std::chrono::high_resolution_clock::now();
     WriteToStream(output_stream, reader);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    auto e1 = std::chrono::high_resolution_clock::now();
+    std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(e1 - s1).count() << " ms" << std::endl;
 
     auto buff = output_stream->Finish().ValueOrDie();
     std::cout << "Size of buffer: " << (double)(buff->size() / (1000 * 1000)) << " MB" << std::endl;
+
+    auto new_buff = arrow::AllocateBuffer(buff->size()).ValueOrDie();
+    auto s2 = std::chrono::high_resolution_clock::now();
+    memcpy(new_buff->mutable_data(), buff->data(), buff->size());
+    auto e2 = std::chrono::high_resolution_clock::now();
+    std::cout << "Time taken to copy: " << std::chrono::duration_cast<std::chrono::microseconds>(e2 - s2).count() << " us" << std::endl;
+
 
     return 0;
 }
