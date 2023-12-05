@@ -9,14 +9,16 @@
 void WriteToStream(std::shared_ptr<arrow::io::OutputStream> output_stream, std::shared_ptr<arrow::RecordBatchReader> &reader) {
     std::shared_ptr<arrow::RecordBatch> batch;
     auto writer = arrow::ipc::MakeStreamWriter(output_stream, reader->schema()).ValueOrDie();
+    int64_t total_rows = 0;
     while (reader->ReadNext(&batch).ok()) {
         if (!batch) {
             break;
         }
-        std::cout << "Batch size: " << batch->num_rows() << std::endl;
+        total_rows += batch->num_rows();
         writer->WriteRecordBatch(*batch);
     }
     writer->Close();
+    std::cout << "Total number of rows: " << total_rows << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -31,7 +33,7 @@ int main(int argc, char **argv) {
     auto start = std::chrono::high_resolution_clock::now();
     WriteToStream(output_stream, reader);
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
+    std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 
     return 0;
 }
