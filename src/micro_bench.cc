@@ -35,5 +35,7 @@ int main(int argc, char **argv) {
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
+    auto buff = output_stream->Finish();
+
     return 0;
 }
