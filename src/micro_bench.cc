@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     auto start = std::chrono::high_resolution_clock::now();
     WriteToStream(output_stream, reader);
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << << " ms" << std::endl;
+    std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     return 0;
 }
