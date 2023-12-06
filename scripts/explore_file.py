@@ -8,9 +8,9 @@ def describe_table(table):
     print("Table size in MB: ", table_size_in_mb, " MB")
     print("Number of rows: ", table.num_rows)
     print("Number of columns: ", table.num_columns)
-    print("Schema: ", table.schema)
     print("Column names: ", table.column_names)
     print("Total dataset size for 105 files: ", table_size_in_mb * 105, " MB")
+    print("Total number of rows: ", table.num_rows * 105)
 
 
 if __name__ == "__main__":
