@@ -25,7 +25,6 @@ if __name__ == "__main__":
         ('total_amount', '>=', 1030),
     ]
 
-
     table = pq.read_table(filename)
     describe_table(table)
 
