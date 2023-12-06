@@ -99,11 +99,11 @@ int main(int argc, char** argv) {
             IterateRespStub resp;
 
             while (batch != nullptr) {
-                if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
-                    auto buffer = PackBatch(batch);
-                    resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
-                    return req.respond(resp);
-                }
+                // if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
+                //     auto buffer = PackBatch(batch);
+                //     resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
+                //     return req.respond(resp);
+                // }
                 int ret = push_batch(do_rdma, engine, req, batch);
                 if (ret != 0) {
                     std::cerr << "Error: push_batch()" << std::endl;
