@@ -60,7 +60,14 @@ int push_batch(tl::remote_procedure &do_rdma, tl::engine& engine, const tl::requ
     auto e1 = std::chrono::high_resolution_clock::now();
     auto diff1 = std::chrono::duration_cast<std::chrono::microseconds>(e1 - s1);
     std::cout << "server.engine.expose: " << diff1.count() << " us" << std::endl;
-    return do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
+    
+    auto s3 = std::chrono::high_resolution_clock::now();
+    do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
+    auto e3 = std::chrono::high_resolution_clock::now();
+    auto diff3 = std::chrono::duration_cast<std::chrono::microseconds>(e3 - s3);
+    std::cout << "do_rdma: " << diff3.count() << " us" << std::endl;
+
+    return;
 }
 
 int main(int argc, char** argv) {
