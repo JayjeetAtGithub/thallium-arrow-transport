@@ -139,7 +139,11 @@ int main(int argc, char** argv) {
                     std::cerr << "Error: push_batch()" << std::endl;
                     exit(ret);
                 }
+                auto s11 = std::chrono::high_resolution_clock::now();
                 reader_map[uuid]->ReadNext(&batch);
+                auto e11 = std::chrono::high_resolution_clock::now();
+                auto diff11 = std::chrono::duration_cast<std::chrono::microseconds>(e11 - s11);
+                std::cout << "ReadNext (subsequent): " << diff11.count() << " us" << std::endl;
             }
 
             resp.ret_code = RPC_DONE;
