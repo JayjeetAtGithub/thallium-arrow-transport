@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 
         if (warmup == 1) {
             std::cout << "Warmup" << std::endl;
-            return;
+            return req.respond(0);
         }
 
         std::cout << "get_single_byte" << std::endl;
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
         std::string single_char = "x";
         segments.emplace_back(std::make_pair((void*)(&single_char[0]), single_char.size()));
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
-        do_rdma.on(req.get_endpoint())(bulk);
+        return do_rdma.on(req.get_endpoint())(bulk);
     };
 
     engine.define("get_single_byte", get_single_byte);
