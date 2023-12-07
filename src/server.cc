@@ -8,6 +8,8 @@
 namespace tl = thallium;
 
 int main(int argc, char** argv) {
+    int32_t data_size = argv[1] ? atoi(argv[1]) : 1;
+
     // Define the thallium server
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
 
@@ -30,7 +32,11 @@ int main(int argc, char** argv) {
         segments.reserve(1);
         
         // Map the buffer for the single char to the segment
-        std::string single_char = "xxxxxxxxxx";
+        std::string data = "";
+        // Append `n` chars to the string
+        for (int32_t i = 0; i < data_size; i++) {
+            data += "x";
+        }
         segments.emplace_back(std::make_pair((void*)(&single_char[0]), single_char.size()));
 
         // Expose the segment and send it as argument to `do_rdma`

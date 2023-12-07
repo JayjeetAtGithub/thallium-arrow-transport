@@ -12,6 +12,7 @@ int main(int argc, char** argv) {
 
     // Read the server uri from the user
     std::string uri = argv[1];
+    int32_t data_size = argv[2] ? atoi(argv[2]) : 1;
 
     // Define thallium client engine and lookup server endpoint
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
@@ -30,7 +31,7 @@ int main(int argc, char** argv) {
         segments.reserve(1);
 
         // Allocate memory for a single char and add it to the segment
-        char *single_char = new char[10];
+        char *single_char = new char[data_size];
         segments.emplace_back(std::make_pair((void*)(&single_char[0]), 1));
         
         // Expose the segment as a local bulk handle
