@@ -7,17 +7,19 @@ namespace tl = thallium;
 
 
 int main(int argc, char** argv) {
-
     if(argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <address>" << std::endl;
         exit(0);
     }
 
+    std::string uri = argv[1];
+
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
+    tl::endpoint = engine.lookup(uri);
     tl::remote_procedure get_single_byte = engine.define("get_single_byte");
 
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
-        [](const tl::request &req, const tl::bulk &bulk) {
+        [&engine](const tl::request &req, const tl::bulk &bulk) {
         std::cout << "do_rdma" << std::endl;
 
         std::vector<std::pair<void*,std::size_t>> segments;
