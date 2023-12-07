@@ -122,7 +122,11 @@ int main(int argc, char** argv) {
                 //     std::cout << "respond: " << diff5.count() << " us" << std::endl;
                 //     return;
                 // }
+                auto s4 = std::chrono::high_resolution_clock::now();
                 int ret = push_batch(do_rdma, engine, req, batch);
+                auto e4 = std::chrono::high_resolution_clock::now();
+                auto diff4 = std::chrono::duration_cast<std::chrono::microseconds>(e4 - s4);
+                std::cout << "push_batch: " << diff4.count() << " us" << std::endl;
                 if (ret != 0) {
                     std::cerr << "Error: push_batch()" << std::endl;
                     exit(ret);
