@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
-        [&engine](const tl::request &req, const tl::bulk &bulk) {
+        [&engine, &data_size](const tl::request &req, const tl::bulk &bulk) {
         std::cout << "do_rdma" << std::endl;
 
         // Reserve a single segment
