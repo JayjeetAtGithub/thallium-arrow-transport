@@ -106,22 +106,22 @@ int main(int argc, char** argv) {
             IterateRespStub resp;
 
             while (batch != nullptr) {
-                if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
-                    auto s = std::chrono::high_resolution_clock::now();
-                    auto buffer = PackBatch(batch);
-                    auto e = std::chrono::high_resolution_clock::now();
-                    // in milliseconds
-                    auto diff = std::chrono::duration_cast<std::chrono::microseconds>(e - s);
-                    std::cout << "PackBatch: " << diff.count() << " us" << std::endl;
+                // if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
+                //     auto s = std::chrono::high_resolution_clock::now();
+                //     auto buffer = PackBatch(batch);
+                //     auto e = std::chrono::high_resolution_clock::now();
+                //     // in milliseconds
+                //     auto diff = std::chrono::duration_cast<std::chrono::microseconds>(e - s);
+                //     std::cout << "PackBatch: " << diff.count() << " us" << std::endl;
 
-                    resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
-                    auto s5 = std::chrono::high_resolution_clock::now();
-                    req.respond(resp);
-                    auto e5 = std::chrono::high_resolution_clock::now();
-                    auto diff5 = std::chrono::duration_cast<std::chrono::microseconds>(e5 - s5);
-                    std::cout << "respond: " << diff5.count() << " us" << std::endl;
-                    return;
-                }
+                //     resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
+                //     auto s5 = std::chrono::high_resolution_clock::now();
+                //     req.respond(resp);
+                //     auto e5 = std::chrono::high_resolution_clock::now();
+                //     auto diff5 = std::chrono::duration_cast<std::chrono::microseconds>(e5 - s5);
+                //     std::cout << "respond: " << diff5.count() << " us" << std::endl;
+                //     return;
+                // }
                 int ret = push_batch(do_rdma, engine, req, batch);
                 if (ret != 0) {
                     std::cerr << "Error: push_batch()" << std::endl;
