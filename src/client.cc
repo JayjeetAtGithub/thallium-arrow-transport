@@ -5,26 +5,6 @@
 
 namespace tl = thallium;
 
-class RespStub {
-    public:
-        std::string buffer;
-        int ret_code;
-
-        RespStub() {}
-        RespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
-
-        template<typename A>
-        void save(A& ar) const {
-            ar & buffer;
-            ar & ret_code;
-        }
-
-        template<typename A>
-        void load(A& ar) {
-            ar & buffer;
-            ar & ret_code;
-        }
-};
 
 int main(int argc, char** argv) {
 
@@ -34,20 +14,28 @@ int main(int argc, char** argv) {
     }
 
     tl::engine myEngine("ofi+verbs", THALLIUM_CLIENT_MODE);
-    tl::remote_procedure hello = myEngine.define("hello");
-    
-    std::string uri = argv[1];
-    tl::endpoint server = myEngine.lookup(uri);
+    tl::remote_procedure get_single_byte = myEngine.define("get_single_byte");
 
-    std::string s = "helloworldhelloworldhelloworldhe";
-    std::cout << "Size of request: " << s.size() << std::endl;
+    std::function<void(const tl::request&)> do_rdma = 
+        [](const tl::request &req) {
+        std::cout << "do_rdma" << std::endl;
 
-    hello.on(server)(1, s);
+        std::vector<std::pair<void*,std::size_t>> segments;
+        segments.reserve(1);
+
+        char *single_char = new char[1];
+        segments.emplace_back(std::make_pair((void*)(&single_char[0]), 1));
+        
+        tl::bulk bulk = engine.expose(segments, tl::bulk_mode::write_only);
+        bulk.on(req.get_endpoint()) >> local;
+
+    };
+
+    get_single_byte.on(server)(1, s);
     std::cout << "Warmup done" << std::endl;
     for (int i = 0; i < 1000; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        RespStub resp = hello.on(server)(2, s);
-        std::cout << "Size of response: " << resp.buffer.size() << std::endl;
+        get_single_byte.on(server)(2, s);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         std::cout << "Iteration " << i << " took " << duration << " microseconds" << std::endl;

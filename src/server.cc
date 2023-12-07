@@ -7,41 +7,25 @@
 
 namespace tl = thallium;
 
-class RespStub {
-    public:
-        std::string buffer;
-        int ret_code;
-
-        RespStub() {}
-        RespStub(std::string buffer, int ret_code) : buffer(buffer), ret_code(ret_code) {}
-
-        template<typename A>
-        void save(A& ar) const {
-            ar & buffer;
-            ar & ret_code;
-        }
-
-        template<typename A>
-        void load(A& ar) {
-            ar & buffer;
-            ar & ret_code;
-        }
-};
+int main(int argc, char** argv) {
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
 
 
-std::function<void(const tl::request&, const int&, std::string&)> hello = 
-    [](const tl::request &req, const int& a, const std::string &s) {
-        RespStub resp;
-        resp.buffer = "helloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhellow";
-        resp.ret_code = 0;
-        return req.respond(resp);
+    std::function<void(const tl::request&, tl::bulk&)> get_single_byte = 
+    [](const tl::request &req, tl::bulk &bulk) {
+        std::cout << "get_single_byte" << std::endl;
+
+        std::vector<std::pair<void*,std::size_t>> segments;
+        segments.reserve(1);
+        
+        std::string single_char = "x";
+        segments.emplace_back(std::make_pair((void*)(&single_char[0]), single_char.size()));
+        tl::bulk local = engine.expose(segments, tl::bulk_mode::read_only);
+        bulk.on(req.get_endpoint()) >> local;
     };
 
-
-int main(int argc, char** argv) {
-    tl::engine myEngine("ofi+verbs", THALLIUM_SERVER_MODE);
-    myEngine.define("hello", hello);
-    WriteToFile(myEngine.self(), TL_URI_PATH, false);
+    engine.define("get_single_byte", get_single_byte);
+    WriteToFile(engine.self(), TL_URI_PATH, false);
     std::cout << "Server running at address " << myEngine.self() << std::endl;
     return 0;
 }
