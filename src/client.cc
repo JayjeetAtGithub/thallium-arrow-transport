@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
         // Allocate memory for a single char and add it to the segment
         char *data = new char[data_size];
-        segments.emplace_back(std::make_pair((void*)(&data[0]), 1));
+        segments.emplace_back(std::make_pair((void*)(&data[0]), data_size));
         
         // Expose the segment as a local bulk handle
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
