@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
         segments.reserve(1);
 
         // Allocate memory for a single char and add it to the segment
-        char *single_char = new char[1];
+        char *single_char = new char[10];
         segments.emplace_back(std::make_pair((void*)(&single_char[0]), 1));
         
         // Expose the segment as a local bulk handle

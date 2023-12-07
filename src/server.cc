@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
         segments.reserve(1);
         
         // Map the buffer for the single char to the segment
-        std::string single_char = "x";
+        std::string single_char = "xxxxxxxxxx";
         segments.emplace_back(std::make_pair((void*)(&single_char[0]), single_char.size()));
 
         // Expose the segment and send it as argument to `do_rdma`
