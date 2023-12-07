@@ -105,7 +105,11 @@ class ThalliumClient {
                     }
 
                     tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+                    auto s8 = std::chrono::high_resolution_clock::now();
                     b.on(req.get_endpoint()) >> local;
+                    auto e8 = std::chrono::high_resolution_clock::now();
+                    auto diff8 = std::chrono::duration_cast<std::chrono::microseconds>(e8 - s8);
+                    std::cout << "b.on >> local: " << diff8.count() << " us" << std::endl;
 
                     for (int64_t i = 0; i < num_cols; i++) {
                         std::shared_ptr<arrow::DataType> type = schema->field(i)->type();  
