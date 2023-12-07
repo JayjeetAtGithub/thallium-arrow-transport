@@ -34,7 +34,10 @@ int main(int argc, char** argv) {
     };
     engine.define("do_rdma", do_rdma);
 
-    get_single_byte.on(endpoint)(1);
+    for (int i = 0; i < 50; i++) {
+        get_single_byte.on(endpoint)(1);
+    }
+
     std::cout << "Warmup done" << std::endl;
     for (int i = 0; i < 1000; i++) {
         auto start = std::chrono::high_resolution_clock::now();
