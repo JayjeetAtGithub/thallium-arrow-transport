@@ -143,7 +143,12 @@ int main(int argc, char** argv) {
             }
 
             resp.ret_code = RPC_DONE;
-            return req.respond(resp);
+            auto s10 = std::chrono::high_resolution_clock::now();
+            req.respond(resp);
+            auto e10 = std::chrono::high_resolution_clock::now();
+            auto diff10 = std::chrono::duration_cast<std::chrono::microseconds>(e10 - s10);
+            std::cout << "respond: " << diff10.count() << " us" << std::endl;
+            return;
         };
 
     engine.define("init_scan", init_scan);
