@@ -84,6 +84,7 @@ class ThalliumClient {
 
                     int num_cols = schema->num_fields();
                     
+                    auto s6 = std::chrono::high_resolution_clock::now();
                     std::vector<std::shared_ptr<arrow::Array>> columns;
                     std::vector<std::unique_ptr<arrow::Buffer>> data_buffs(num_cols);
                     std::vector<std::unique_ptr<arrow::Buffer>> offset_buffs(num_cols);
@@ -103,8 +104,16 @@ class ThalliumClient {
                             offset_buff_sizes[i]
                         ));
                     }
+                    auto e6 = std::chrono::high_resolution_clock::now();
+                    auto diff6 = std::chrono::duration_cast<std::chrono::microseconds>(e6 - s6);
+                    std::cout << "allocations: " << diff6.count() << " us" << std::endl;
 
+                    auto s7 = std::chrono::high_resolution_clock::now();
                     tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+                    auto e7 = std::chrono::high_resolution_clock::now();
+                    auto diff7 = std::chrono::duration_cast<std::chrono::microseconds>(e7 - s7);
+                    std::cout << "engine.expose: " << diff7.count() << " us" << std::endl;
+                    
                     auto s8 = std::chrono::high_resolution_clock::now();
                     b.on(req.get_endpoint()) >> local;
                     auto e8 = std::chrono::high_resolution_clock::now();
