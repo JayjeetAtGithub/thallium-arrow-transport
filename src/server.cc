@@ -27,7 +27,8 @@ int main(int argc, char** argv) {
         std::string single_char = "x";
         segments.emplace_back(std::make_pair((void*)(&single_char[0]), single_char.size()));
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
-        return do_rdma.on(req.get_endpoint())(bulk);
+        do_rdma.on(req.get_endpoint())(bulk);
+        return req.respond(0);
     };
 
     engine.define("get_single_byte", get_single_byte);
