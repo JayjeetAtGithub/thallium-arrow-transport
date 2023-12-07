@@ -67,7 +67,7 @@ int push_batch(tl::remote_procedure &do_rdma, tl::engine& engine, const tl::requ
     auto diff3 = std::chrono::duration_cast<std::chrono::microseconds>(e3 - s3);
     std::cout << "do_rdma: " << diff3.count() << " us" << std::endl;
 
-    return;
+    return 0;
 }
 
 int main(int argc, char** argv) {
