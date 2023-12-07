@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     std::string uri = argv[1];
 
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
-    tl::endpoint = engine.lookup(uri);
+    tl::endpoint endpoint = engine.lookup(uri);
     tl::remote_procedure get_single_byte = engine.define("get_single_byte");
 
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
@@ -32,11 +32,11 @@ int main(int argc, char** argv) {
         bulk.on(req.get_endpoint()) >> local;
     };
 
-    get_single_byte.on(server)(0);
+    get_single_byte.on(endpoint)(0);
     std::cout << "Warmup done" << std::endl;
     for (int i = 0; i < 1000; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        get_single_byte.on(server)(1);
+        get_single_byte.on(endpoint)(1);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         std::cout << "Iteration " << i << " took " << duration << " microseconds" << std::endl;
