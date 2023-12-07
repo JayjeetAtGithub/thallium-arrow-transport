@@ -106,7 +106,7 @@ class ThalliumClient {
                     }
                     auto e6 = std::chrono::high_resolution_clock::now();
                     auto diff6 = std::chrono::duration_cast<std::chrono::microseconds>(e6 - s6);
-                    std::cout << "allocations: " << diff6.count() << " us" << std::endl;
+                    std::cout << "client.allocations: " << diff6.count() << " us" << std::endl;
 
                     auto s7 = std::chrono::high_resolution_clock::now();
                     tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);

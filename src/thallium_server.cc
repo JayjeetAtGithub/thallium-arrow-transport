@@ -15,6 +15,7 @@ int push_batch(tl::remote_procedure &do_rdma, tl::engine& engine, const tl::requ
     std::vector<int64_t> offset_buff_sizes;
     int64_t num_rows = batch->num_rows();
 
+    auto s2 = std::chrono::high_resolution_clock::now();
     std::vector<std::pair<void*,std::size_t>> segments;
     segments.reserve(batch->num_columns()*2);
 
@@ -50,6 +51,9 @@ int push_batch(tl::remote_procedure &do_rdma, tl::engine& engine, const tl::requ
         data_buff_sizes.push_back(data_size);
         offset_buff_sizes.push_back(offset_size);
     }
+    auto e2 = std::chrono::high_resolution_clock::now();
+    auto diff2 = std::chrono::duration_cast<std::chrono::microseconds>(e2 - s2);
+    std::cout << "server.allocations: " << diff2.count() << " us" << std::endl;
 
     auto s1 = std::chrono::high_resolution_clock::now();
     tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
