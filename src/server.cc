@@ -11,8 +11,14 @@ int main(int argc, char** argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
 
 
-    std::function<void(const tl::request&, tl::bulk&)> get_single_byte = 
-    [](const tl::request &req, tl::bulk &bulk) {
+    std::function<void(const tl::request&, const int&)> get_single_byte = 
+    [](const tl::request &req, const int& warmup) {
+
+        if (warmup == 1) {
+            std::cout << "Warmup" << std::endl;
+            return;
+        }
+        
         std::cout << "get_single_byte" << std::endl;
 
         std::vector<std::pair<void*,std::size_t>> segments;
@@ -20,8 +26,8 @@ int main(int argc, char** argv) {
         
         std::string single_char = "x";
         segments.emplace_back(std::make_pair((void*)(&single_char[0]), single_char.size()));
-        tl::bulk local = engine.expose(segments, tl::bulk_mode::read_only);
-        bulk.on(req.get_endpoint()) >> local;
+        tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
+        do_rdma.on(req.get_endpoint())(bulk);
     };
 
     engine.define("get_single_byte", get_single_byte);
