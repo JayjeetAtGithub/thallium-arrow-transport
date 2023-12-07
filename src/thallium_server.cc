@@ -51,7 +51,11 @@ int push_batch(tl::remote_procedure &do_rdma, tl::engine& engine, const tl::requ
         offset_buff_sizes.push_back(offset_size);
     }
 
+    auto s1 = std::chrono::high_resolution_clock::now();
     tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
+    auto e1 = std::chrono::high_resolution_clock::now();
+    auto diff1 = std::chrono::duration_cast<std::chrono::microseconds>(e1 - s1);
+    std::cout << "server.engine.expose: " << diff1.count() << " us" << std::endl;
     return do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
 }
 
