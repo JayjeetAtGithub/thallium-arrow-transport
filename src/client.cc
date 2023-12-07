@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
         
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
         bulk.on(req.get_endpoint()) >> local;
+        return req.respond(0);
     };
     engine.define("do_rdma", do_rdma);
 
