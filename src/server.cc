@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
     std::function<void(const tl::request&, const int&)> get_single_byte = 
-    [&do_rdma](const tl::request &req, const int& warmup) {
+    [&do_rdma, &engine](const tl::request &req, const int& warmup) {
 
         if (warmup == 1) {
             std::cout << "Warmup" << std::endl;
@@ -32,6 +32,6 @@ int main(int argc, char** argv) {
 
     engine.define("get_single_byte", get_single_byte);
     WriteToFile(engine.self(), TL_URI_PATH, false);
-    std::cout << "Server running at address " << myEngine.self() << std::endl;
+    std::cout << "Server running at address " << engine.self() << std::endl;
     return 0;
 }
