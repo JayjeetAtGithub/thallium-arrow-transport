@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
     // Define the `get_single_byte` procedure
     std::function<void(const tl::request&, const int&)> get_single_byte = 
-    [&do_rdma, &engine](const tl::request &req, const int& warmup) {
+    [&do_rdma, &engine, &data_size](const tl::request &req, const int& warmup) {
         // If warmup, then just return
         if (warmup == 1) {
             std::cout << "Warmup" << std::endl;
@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
         for (int32_t i = 0; i < data_size; i++) {
             data += "x";
         }
-        segments.emplace_back(std::make_pair((void*)(&single_char[0]), single_char.size()));
+        segments.emplace_back(std::make_pair((void*)(&data[0]), data.size()));
 
         // Expose the segment and send it as argument to `do_rdma`
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
