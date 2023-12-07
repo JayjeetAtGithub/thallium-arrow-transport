@@ -45,9 +45,9 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    // Do 50 iterations to warmup the server.
+    // Do 50 iterations to warmup the server
     // TODO: Look into thallium for why the first couple requests
-    // are slow, mostly due to scheduling issues.
+    // are slow, mostly due to scheduling issues
     for (int i = 0; i < 50; i++) {
         get_single_byte.on(endpoint)(1);
     }
