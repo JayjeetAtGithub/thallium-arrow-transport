@@ -9,16 +9,16 @@ namespace tl = thallium;
 
 int main(int argc, char** argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
-
+    tl::remote_procedure do_rdma = engine.define("do_rdma");
 
     std::function<void(const tl::request&, const int&)> get_single_byte = 
-    [](const tl::request &req, const int& warmup) {
+    [&do_rdma](const tl::request &req, const int& warmup) {
 
         if (warmup == 1) {
             std::cout << "Warmup" << std::endl;
             return;
         }
-        
+
         std::cout << "get_single_byte" << std::endl;
 
         std::vector<std::pair<void*,std::size_t>> segments;
@@ -35,4 +35,3 @@ int main(int argc, char** argv) {
     std::cout << "Server running at address " << myEngine.self() << std::endl;
     return 0;
 }
-

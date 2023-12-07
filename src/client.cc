@@ -13,8 +13,8 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    tl::engine myEngine("ofi+verbs", THALLIUM_CLIENT_MODE);
-    tl::remote_procedure get_single_byte = myEngine.define("get_single_byte");
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
+    tl::remote_procedure get_single_byte = engine.define("get_single_byte");
 
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
         [](const tl::request &req, const tl::bulk &bulk) {
