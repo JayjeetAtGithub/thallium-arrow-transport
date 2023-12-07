@@ -120,6 +120,7 @@ class ThalliumClient {
                     auto diff8 = std::chrono::duration_cast<std::chrono::microseconds>(e8 - s8);
                     std::cout << "b.on >> local: " << diff8.count() << " us" << std::endl;
 
+                    auto s9 = std::chrono::high_resolution_clock::now();
                     for (int64_t i = 0; i < num_cols; i++) {
                         std::shared_ptr<arrow::DataType> type = schema->field(i)->type();  
                         if (is_base_binary_like(type->id())) {
@@ -132,6 +133,9 @@ class ThalliumClient {
                     }
 
                     batch = arrow::RecordBatch::Make(schema, num_rows, columns);
+                    auto e9 = std::chrono::high_resolution_clock::now();
+                    auto diff9 = std::chrono::duration_cast<std::chrono::microseconds>(e9 - s9);
+                    std::cout << "make batch: " << diff9.count() << " us" << std::endl;
                     total_rows_read += batch->num_rows();
                     return req.respond(0);
                 };
