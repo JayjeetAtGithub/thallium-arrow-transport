@@ -31,12 +31,13 @@ int main(int argc, char** argv) {
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
         bulk.on(req.get_endpoint()) >> local;
     };
+    engine.define("do_rdma", do_rdma);
 
-    get_single_byte.on(endpoint)(0);
+    get_single_byte.on(endpoint)(1);
     std::cout << "Warmup done" << std::endl;
     for (int i = 0; i < 1000; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        get_single_byte.on(endpoint)(1);
+        get_single_byte.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         std::cout << "Iteration " << i << " took " << duration << " microseconds" << std::endl;
