@@ -23,8 +23,8 @@ int main(int argc, char** argv) {
     tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");
 
     // Define the `do_rdma` remote procedure
-    std::function<void(const tl::request&, int64_t&, const tl::bulk&)> do_rdma = 
-        [&engine](const tl::request &req, int64_t& data_size, const tl::bulk &bulk) {
+    std::function<void(const tl::request&, int64_t&, tl::bulk&)> do_rdma = 
+        [&engine](const tl::request &req, int64_t& data_size, tl::bulk &bulk) {
         std::cout << "do_rdma" << std::endl;
 
         // Reserve a single segment
