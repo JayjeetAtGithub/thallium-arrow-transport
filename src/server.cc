@@ -9,6 +9,7 @@
 
 namespace tl = thallium;
 
+
 int main(int argc, char** argv) {
     // Define the thallium server
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
@@ -18,7 +19,7 @@ int main(int argc, char** argv) {
 
     // DuckDB query
 
-    std::unordered_map<int, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
+    std::unordered_map<int, std::shared_ptr<arrow::RecordBatch>> reader_map;
 
     std::function<void(const tl::request&)> init_scan = 
         [&reader_map](const tl::request &req) {
@@ -28,8 +29,9 @@ int main(int argc, char** argv) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-            reader_map[0] = reader;
-            std::cout << "Result schema: " << reader->schema()->ToString() << std::endl;
+            std::shared_ptr<arrow::RecordBatch> batch;
+            reader->ReadNext(&batch);
+            reader_map[0] = batch;
             return req.respond(0);
     };
 
@@ -42,16 +44,12 @@ int main(int argc, char** argv) {
             return req.respond(0);
         }
 
-        std::cout << "get_data_bytes" << std::endl;
-        std::shared_ptr<arrow::RecordBatch> batch;
-        reader_map[0]->ReadNext(&batch);
-
         // Reserve a single segment
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
 
         // Read out a single batch
-        auto buff = PackBatch(batch);
+        auto buff = PackBatch(reader_map[0]);
 
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
 
