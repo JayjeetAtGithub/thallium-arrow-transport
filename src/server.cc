@@ -49,7 +49,8 @@ int main(int argc, char** argv) {
         segments.reserve(1);
 
         // Read out a single batch
-        auto buff = PackBatch(reader_map[0]);
+        // auto buff = PackBatch(reader_map[0]);
+        std::string buff = "hello world";
 
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
 
