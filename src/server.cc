@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
         // Expose the segment and send it as argument to `do_rdma`
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
-        do_rdma.on(req.get_endpoint())(bulk);
+        do_rdma.on(req.get_endpoint())(buff->size(), bulk);
 
         // Respond back with 0
         return req.respond(0);
