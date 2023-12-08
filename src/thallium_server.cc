@@ -8,49 +8,62 @@
 
 namespace tl = thallium;
 
-int push_batch(tl::remote_procedure &do_rdma, tl::engine& engine, const tl::request& req, std::shared_ptr<arrow::RecordBatch> batch) {
-    std::vector<int64_t> data_buff_sizes;
-    std::vector<int64_t> offset_buff_sizes;
-    int64_t num_rows = batch->num_rows();
+int push_batch(tl::remote_procedure &rdma, tl::engine& engine, const tl::request& req, std::shared_ptr<arrow::RecordBatch> batch, bool single_segment) {
+    if (single_segment) {
+        std::shared_ptr<arrow::Buffer> buff = PackBatch(batch);
 
-    std::vector<std::pair<void*,std::size_t>> segments;
-    segments.reserve(batch->num_columns()*2);
+        std::vector<std::pair<void*,std::size_t>> segments;
+        segments.reserve(1);
 
-    std::string null_buff = "x";
+        segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
+        tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
 
-    for (int64_t i = 0; i < batch->num_columns(); i++) {
-        std::shared_ptr<arrow::Array> col_arr = batch->column(i);
+        return rdma.on(req.get_endpoint())(arrow_bulk);
+    } else {
 
-        int64_t data_size = 0;
-        int64_t offset_size = 0;
+        std::vector<int64_t> data_buff_sizes;
+        std::vector<int64_t> offset_buff_sizes;
+        int64_t num_rows = batch->num_rows();
 
-        if (is_base_binary_like(col_arr->type_id())) {
-            std::shared_ptr<arrow::Buffer> data_buff = 
-                std::static_pointer_cast<arrow::BinaryArray>(col_arr)->value_data();
-            std::shared_ptr<arrow::Buffer> offset_buff = 
-                std::static_pointer_cast<arrow::BinaryArray>(col_arr)->value_offsets();
-            
-            data_size = data_buff->size();
-            offset_size = offset_buff->size();
-            segments.emplace_back(std::make_pair((void*)data_buff->data(), data_size));
-            segments.emplace_back(std::make_pair((void*)offset_buff->data(), offset_size));
-        } else {
+        std::vector<std::pair<void*,std::size_t>> segments;
+        segments.reserve(batch->num_columns()*2);
 
-            std::shared_ptr<arrow::Buffer> data_buff = 
-                std::static_pointer_cast<arrow::PrimitiveArray>(col_arr)->values();
+        std::string null_buff = "x";
 
-            data_size = data_buff->size();
-            offset_size = null_buff.size(); 
-            segments.emplace_back(std::make_pair((void*)data_buff->data(), data_size));
-            segments.emplace_back(std::make_pair((void*)(&null_buff[0]), offset_size));
+        for (int64_t i = 0; i < batch->num_columns(); i++) {
+            std::shared_ptr<arrow::Array> col_arr = batch->column(i);
+
+            int64_t data_size = 0;
+            int64_t offset_size = 0;
+
+            if (is_base_binary_like(col_arr->type_id())) {
+                std::shared_ptr<arrow::Buffer> data_buff = 
+                    std::static_pointer_cast<arrow::BinaryArray>(col_arr)->value_data();
+                std::shared_ptr<arrow::Buffer> offset_buff = 
+                    std::static_pointer_cast<arrow::BinaryArray>(col_arr)->value_offsets();
+                
+                data_size = data_buff->size();
+                offset_size = offset_buff->size();
+                segments.emplace_back(std::make_pair((void*)data_buff->data(), data_size));
+                segments.emplace_back(std::make_pair((void*)offset_buff->data(), offset_size));
+            } else {
+
+                std::shared_ptr<arrow::Buffer> data_buff = 
+                    std::static_pointer_cast<arrow::PrimitiveArray>(col_arr)->values();
+
+                data_size = data_buff->size();
+                offset_size = null_buff.size(); 
+                segments.emplace_back(std::make_pair((void*)data_buff->data(), data_size));
+                segments.emplace_back(std::make_pair((void*)(&null_buff[0]), offset_size));
+            }
+
+            data_buff_sizes.push_back(data_size);
+            offset_buff_sizes.push_back(offset_size);
         }
 
-        data_buff_sizes.push_back(data_size);
-        offset_buff_sizes.push_back(offset_size);
+        tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
+        return rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
     }
-
-    tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
-    return do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, arrow_bulk);
 }
 
 int main(int argc, char** argv) {
@@ -87,33 +100,36 @@ int main(int argc, char** argv) {
             engine.finalize();
         };
 
+    tl::remote_procedure do_rdma_single = engine.define("do_rdma_single");
     tl::remote_procedure do_rdma = engine.define("do_rdma");
     std::function<void(const tl::request&, const int&, const std::string&)> iterate = 
-        [&do_rdma, &reader_map, &engine](const tl::request &req, const int& warmup, const std::string &uuid) {
+        [&do_rdma, &do_rdma_single, &reader_map, &engine](const tl::request &req, const int& warmup, const std::string &uuid) {
             if (warmup) {
                 return req.respond(0);
             }
 
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
-            IterateRespStub resp;
+            int ret;
 
             while (batch != nullptr) {
                 if (batch->num_rows() <= START_OPT_BATCH_SIZE_THRSHOLD) {
-                    auto buffer = PackBatch(batch);
-                    resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
-                    return req.respond(resp);
-                }
-                int ret = push_batch(do_rdma, engine, req, batch);
-                if (ret != 0) {
-                    std::cerr << "Error: push_batch()" << std::endl;
-                    exit(ret);
+                    ret = push_batch(do_rdma_single, engine, req, batch, true);
+                    if (ret != 0) {
+                        std::cerr << "Error: push_batch()" << std::endl;
+                        exit(ret);
+                    }
+                } else {
+                    ret = push_batch(do_rdma, engine, req, batch, false);
+                    if (ret != 0) {
+                        std::cerr << "Error: push_batch()" << std::endl;
+                        exit(ret);
+                    }
                 }
                 reader_map[uuid]->ReadNext(&batch);
             }
 
-            resp.ret_code = RPC_DONE;
-            return req.respond(resp);
+            return req.respond(ret);
         };
 
     engine.define("init_scan", init_scan);

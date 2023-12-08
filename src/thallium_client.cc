@@ -78,6 +78,23 @@ class ThalliumClient {
             auto engine = this->engine;
 
             std::shared_ptr<arrow::RecordBatch> batch;
+
+            std::function<void(const tl::request&, int64_t& response_size, tl::bulk&)> do_rdma_single = 
+                [&schema, &batch, &engine, &total_rows_read, &total_rpcs_made](const tl::request& req, tl::bulk& b) {
+                    std::vector<std::pair<void*,std::size_t>> segments;
+                    segments.reserve(1);
+
+                    auto buffer = arrow::AllocateBuffer(response_size).ValueOrDie();
+                    segments.emplace_back(std::make_pair((void*)buffer->mutable_data(), response_size));
+                    tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+
+                    b.on(req.get_endpoint()) >> local;
+
+                    batch = UnpackBatch(buffer, schema);
+                    total_rows_read += batch->num_rows();
+                }
+
+
             std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma =
                 [&schema, &batch, &engine, &total_rows_read, &total_rpcs_made](const tl::request& req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk& b) {
                     total_rpcs_made += 1;
@@ -123,13 +140,10 @@ class ThalliumClient {
                     return req.respond(0);
                 };
             
+            engine.define("do_rdma_single", do_rdma_single);
             engine.define("do_rdma", do_rdma);
-            IterateRespStub resp = this->iterate.on(endpoint)(0, info.uuid);
-            if (resp.ret_code == RPC_DONE_WITH_BATCH) {
-                batch = UnpackBatch(resp.buffer, schema);
-                total_rows_read += batch->num_rows();
-            }
-            return 0;
+
+            return this->iterate.on(endpoint)(0, info.uuid);
         }
 };
 
