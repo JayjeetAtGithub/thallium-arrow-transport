@@ -10,8 +10,6 @@
 namespace tl = thallium;
 
 int main(int argc, char** argv) {
-    int32_t data_size = argv[1] ? atoi(argv[1]) : 1;
-
     // Define the thallium server
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
 
@@ -33,7 +31,7 @@ int main(int argc, char** argv) {
 
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
-    [&do_rdma, &engine, &data_size, &buff](const tl::request &req, const int& warmup) {
+    [&do_rdma, &engine, &buff](const tl::request &req, const int& warmup) {
         // If warmup, then just return
         if (warmup == 1) {
             std::cout << "Warmup" << std::endl;

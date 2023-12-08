@@ -14,7 +14,6 @@ int main(int argc, char** argv) {
 
     // Read the server uri from the user
     std::string uri = argv[1];
-    int32_t data_size = argv[2] ? atoi(argv[2]) : 1;
 
     // Define thallium client engine and lookup server endpoint
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
@@ -25,7 +24,7 @@ int main(int argc, char** argv) {
 
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, int64_t&, const tl::bulk&)> do_rdma = 
-        [&engine, &data_size](const tl::request &req, int64_t& data_size, const tl::bulk &bulk) {
+        [&engine](const tl::request &req, int64_t& data_size, const tl::bulk &bulk) {
         std::cout << "do_rdma" << std::endl;
 
         // Reserve a single segment
