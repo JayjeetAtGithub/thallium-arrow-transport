@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
         }
 
         std::cout << "get_data_bytes" << std::endl;
+        std::cout << batch == nullptr << std::endl;
 
         // Reserve a single segment
         std::vector<std::pair<void*,std::size_t>> segments;
