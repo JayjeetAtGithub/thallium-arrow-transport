@@ -92,6 +92,7 @@ class ThalliumClient {
 
                     batch = UnpackBatch(buffer, schema);
                     total_rows_read += batch->num_rows();
+                    return req.respond(0);
                 };
 
             std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma =
