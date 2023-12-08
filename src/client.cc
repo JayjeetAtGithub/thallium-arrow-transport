@@ -46,8 +46,8 @@ int main(int argc, char** argv) {
         // Pull the single byte from the remote bulk handle
         bulk.on(req.get_endpoint()) >> local;
 
-        // auto batch = UnpackBatch(buff, schema);
-        // std::cout << "Batch size: " << batch->num_rows() << std::endl;
+        auto batch = UnpackBatch(buff, schema);
+        std::cout << "Batch size: " << batch->num_rows() << std::endl;
 
         // Create a string from the buffer
         std::string data = std::string((char*)buff->data(), buff->size());
