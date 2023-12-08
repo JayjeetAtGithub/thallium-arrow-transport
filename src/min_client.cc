@@ -22,8 +22,8 @@ int main(int argc, char** argv) {
     tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");
 
     // Define the `do_rdma` remote procedure
-    std::function<void(const tl::request&, int64_t&, const tl::bulk&)> do_rdma = 
-        [&engine, &data_size](const tl::request &req, int64_t& data_size, const tl::bulk &bulk) {
+    std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
+        [&engine, &data_size](const tl::request &req, const tl::bulk &bulk) {
         std::cout << "do_rdma" << std::endl;
 
         // Reserve a single segment
@@ -31,8 +31,8 @@ int main(int argc, char** argv) {
         segments.reserve(1);
 
         // Allocate memory for a single char and add it to the segment
-        auto buff = arrow::AllocateBuffer(data_size).ValueOrDie();
-        segments.emplace_back(std::make_pair((void*)buff->mutable_data(), buff->size()));
+        char *data = new char[data_size];
+        segments.emplace_back(std::make_pair((void*)(&data[0]), data_size));
         
         // Expose the segment as a local bulk handle
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
