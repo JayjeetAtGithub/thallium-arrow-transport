@@ -21,7 +21,12 @@ int push_batch(tl::remote_procedure &rdma, tl::engine& engine, const tl::request
         segments.reserve(1);
 
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
+
+        auto s2 = std::chrono::high_resolution_clock::now();
         tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
+        auto e2 = std::chrono::high_resolution_clock::now();
+        std::cout << "Expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
+        
 
         return rdma.on(req.get_endpoint())(buff->size(), arrow_bulk);
     } else {
