@@ -121,6 +121,7 @@ int main(int argc, char** argv) {
             }
 
             std::shared_ptr<arrow::RecordBatch> batch;
+            std::cout << "Reading batch" << std::endl;
             reader_map[uuid]->ReadNext(&batch);
             int ret;
 
@@ -138,6 +139,7 @@ int main(int argc, char** argv) {
                         exit(ret);
                     }
                 }
+                std::cout << "Reading next batch" << std::endl;
                 reader_map[uuid]->ReadNext(&batch);
             }
 
