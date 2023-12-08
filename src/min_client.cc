@@ -60,8 +60,8 @@ int main(int argc, char** argv) {
 
     init_scan.on(endpoint)();
     
-    // Run 1000 iterations of reading a single byte from the server
-    for (int i = 0; i < 1000; i++) {
+    // Run 100 iterations of reading a single byte from the server
+    for (int i = 0; i < 100; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         get_data_bytes.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();
