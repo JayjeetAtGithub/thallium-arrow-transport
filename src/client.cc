@@ -47,11 +47,10 @@ int main(int argc, char** argv) {
         bulk.on(req.get_endpoint()) >> local;
 
         auto batch = UnpackBatch(buff, schema);
-        std::cout << "Batch size: " << batch->num_rows() << std::endl;
+        std::cout << "Batch: " << batch->ToString() << std::endl;
 
         // Create a string from the buffer
-        std::string data = std::string((char*)buff->data(), buff->size());
-        std::cout << "Data: " << data << std::endl;
+        // std::string data = std::string((char*)buff->data(), buff->size());
 
         // Respond back with 0
         return req.respond(0);
