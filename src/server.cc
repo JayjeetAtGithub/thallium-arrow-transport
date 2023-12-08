@@ -25,13 +25,11 @@ int main(int argc, char** argv) {
     std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
     std::shared_ptr<arrow::RecordBatch> batch;
     reader->ReadNext(&batch);
-    auto buff = PackBatch(batch);
-    std::cout << "Batch size: " << buff->size() << std::endl;
 
 
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
-    [&do_rdma, &engine, &buff](const tl::request &req, const int& warmup) {
+    [&do_rdma, &engine, &batch](const tl::request &req, const int& warmup) {
         // If warmup, then just return
         if (warmup == 1) {
             std::cout << "Warmup" << std::endl;
@@ -44,6 +42,7 @@ int main(int argc, char** argv) {
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
         
+        auto buff = PackBatch(batch);
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
         // Expose the segment and send it as argument to `do_rdma`
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
