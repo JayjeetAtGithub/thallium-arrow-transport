@@ -50,9 +50,12 @@ int main(int argc, char** argv) {
 
         // Read out a single batch
         // auto buff = PackBatch(reader_map[0]);
-        std::string data = "hello world";
+        std::string data = "";
+        // Append `n` chars to the string
+        for (int32_t i = 0; i < 1472; i++) {
+            data += "x";
+        }        
         std::shared_ptr<arrow::Buffer> buff = arrow::Buffer::Wrap(data.c_str(), data.size());
-
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
 
         // Expose the segment and send it as argument to `do_rdma`
