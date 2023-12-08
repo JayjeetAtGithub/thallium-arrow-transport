@@ -82,12 +82,14 @@ class ThalliumClient {
             std::function<void(const tl::request&, int64_t&, tl::bulk&)> do_rdma_single = 
                 [&schema, &batch, &engine, &total_rows_read, &total_rpcs_made](const tl::request& req, int64_t& response_size, tl::bulk& b) {
                     std::cout << "Response size: " << response_size << std::endl;
+                    auto s1 = std::chrono::high_resolution_clock::now();
                     std::vector<std::pair<void*,std::size_t>> segments;
-                    segments.reserve(1);
-
+                    segments.reserve(1);                    
                     std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateBuffer(response_size).ValueOrDie();
                     segments.emplace_back(std::make_pair((void*)buffer->mutable_data(), response_size));
                     tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+                    auto e1 = std::chrono::high_resolution_clock::now();
+                    std::cout << "Bulk expose and allocations: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
 
                     b.on(req.get_endpoint()) >> local;
 
