@@ -48,7 +48,11 @@ int main(int argc, char** argv) {
 
         // auto batch = UnpackBatch(buff, schema);
         // std::cout << "Batch size: " << batch->num_rows() << std::endl;
-        
+
+        // Create a string from the buffer
+        std::string data = std::string((char*)buff->data(), buff->size());
+        std::cout << "Data: " << data << std::endl;
+
         // Respond back with 0
         return req.respond(0);
     };
