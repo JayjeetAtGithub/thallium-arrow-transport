@@ -12,6 +12,13 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
+    std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
+    std::string path = "/users/noobjc/thallium-arrow-transport/scripts/nyc.parquet";
+    std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+    db->Create(path);
+    std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+    auto schema = reader->schema();
+
     // Read the server uri from the user
     std::string uri = argv[1];
 
@@ -24,7 +31,7 @@ int main(int argc, char** argv) {
 
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, int64_t&, tl::bulk&)> do_rdma = 
-        [&engine](const tl::request &req, int64_t& data_size, tl::bulk &bulk) {
+        [&engine, &schema](const tl::request &req, int64_t& data_size, tl::bulk &bulk) {
         std::cout << "do_rdma : " << data_size << std::endl;
 
         // Reserve a single segment
@@ -41,7 +48,7 @@ int main(int argc, char** argv) {
         // Pull the single byte from the remote bulk handle
         bulk.on(req.get_endpoint()) >> local;
 
-        auto batch = UnpackBatch(buff);
+        auto batch = UnpackBatch(buff, schema);
         std::cout << "Batch size: " << batch->num_rows() << std::endl;
         
         // Respond back with 0
