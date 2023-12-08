@@ -28,6 +28,9 @@ int main(int argc, char** argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
     tl::endpoint endpoint = engine.lookup(uri);
 
+    // Declare the `init_scan` remote procedure
+    tl::remote_procedure init_scan = engine.define("init_scan");
+    
     // Declare the `get_data_bytes` remote procedure
     tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");
 
@@ -67,6 +70,8 @@ int main(int argc, char** argv) {
     }
     std::cout << "Warmup done" << std::endl;
     
+    init_scan.on(endpoint)();
+
     // Run 1000 iterations of reading a single byte from the server
     for (int i = 0; i < 1; i++) {
         auto start = std::chrono::high_resolution_clock::now();
