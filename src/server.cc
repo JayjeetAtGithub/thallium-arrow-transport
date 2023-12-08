@@ -21,19 +21,19 @@ int main(int argc, char** argv) {
 
     std::unordered_map<int, std::shared_ptr<arrow::RecordBatch>> reader_map;
 
-    std::function<void(const tl::request&)> init_scan = 
-        [&reader_map](const tl::request &req) {
-            std::cout << "init_scan" << std::endl;
-            std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
-            std::string path = "/mnt/dataset/nyc.1.parquet";
-            std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
-            db->Create(path);
-            std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-            std::shared_ptr<arrow::RecordBatch> batch;
-            reader->ReadNext(&batch);
-            reader_map[0] = batch;
-            return req.respond(0);
-    };
+    // std::function<void(const tl::request&)> init_scan = 
+    //     [&reader_map](const tl::request &req) {
+    //         std::cout << "init_scan" << std::endl;
+    //         std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
+    //         std::string path = "/mnt/dataset/nyc.1.parquet";
+    //         std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+    //         db->Create(path);
+    //         std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+    //         std::shared_ptr<arrow::RecordBatch> batch;
+    //         reader->ReadNext(&batch);
+    //         reader_map[0] = batch;
+    //         return req.respond(0);
+    // };
 
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     };
 
     // Define the `init_scan` procedure
-    engine.define("init_scan", init_scan);
+    // engine.define("init_scan", init_scan);
 
     // Define the `get_data_bytes` procedure
     engine.define("get_data_bytes", get_data_bytes);

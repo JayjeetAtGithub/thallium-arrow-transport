@@ -14,13 +14,6 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
-    std::string path = "/users/noobjc/thallium-arrow-transport/scripts/nyc.parquet";
-    std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
-    db->Create(path);
-    std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-    auto schema = reader->schema();
-
     // Read the server uri from the user
     std::string uri = argv[1];
 
@@ -29,7 +22,7 @@ int main(int argc, char** argv) {
     tl::endpoint endpoint = engine.lookup(uri);
 
     // Declare the `init_scan` remote procedure
-    tl::remote_procedure init_scan = engine.define("init_scan");
+    // tl::remote_procedure init_scan = engine.define("init_scan");
     
     // Declare the `get_data_bytes` remote procedure
     tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");
@@ -70,7 +63,7 @@ int main(int argc, char** argv) {
     }
     std::cout << "Warmup done" << std::endl;
     
-    init_scan.on(endpoint)();
+    // init_scan.on(endpoint)();
 
     // Run 1000 iterations of reading a single byte from the server
     for (int i = 0; i < 1; i++) {
