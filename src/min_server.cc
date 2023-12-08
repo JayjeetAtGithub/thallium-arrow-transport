@@ -17,14 +17,8 @@ int main(int argc, char** argv) {
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
     // Define the `get_data_bytes` procedure
-    std::function<void(const tl::request&, const int&)> get_data_bytes = 
-    [&do_rdma, &engine, &data_size](const tl::request &req, const int& warmup) {
-        // If warmup, then just return
-        if (warmup == 1) {
-            std::cout << "Warmup" << std::endl;
-            return req.respond(0);
-        }
-
+    std::function<void(const tl::request&)> get_data_bytes = 
+    [&do_rdma, &engine, &data_size](const tl::request &req) {
         std::cout << "get_data_bytes" << std::endl;
         
         // Reserve a single segment
