@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     std::cout << "Warmup done" << std::endl;
     
     // Run 1000 iterations of reading a single byte from the server
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         get_data_bytes.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();
