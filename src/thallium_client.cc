@@ -149,8 +149,13 @@ class ThalliumClient {
                     return req.respond(0);
                 };
             
+            auto s10 = std::chrono::high_resolution_clock::now();
             engine.define("do_rdma_single", do_rdma_single);
             engine.define("do_rdma", do_rdma);
+            auto e10 = std::chrono::high_resolution_clock::now();
+            std::cout << "Define: " << std::chrono::duration_cast<std::chrono::microseconds>(e10-s10).count() << std::endl;
+            
+
 
             return this->iterate.on(endpoint)(0, info.uuid);
         }
