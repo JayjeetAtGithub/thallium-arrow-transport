@@ -91,9 +91,15 @@ class ThalliumClient {
                     auto e1 = std::chrono::high_resolution_clock::now();
                     std::cout << "Bulk expose and allocations: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
 
+                    auto s2 = std::chrono::high_resolution_clock::now();
                     b.on(req.get_endpoint()) >> local;
+                    auto e2 = std::chrono::high_resolution_clock::now();
+                    std::cout << "Bulk pull: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
+                    auto s3 = std::chrono::high_resolution_clock::now();
                     batch = UnpackBatch(buffer, schema);
+                    auto e3 = std::chrono::high_resolution_clock::now();
+                    std::cout << "Unpack: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
                     total_rows_read += batch->num_rows();
                     return req.respond(0);
                 };
