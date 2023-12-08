@@ -43,6 +43,7 @@ int main(int argc, char** argv) {
         std::shared_ptr<arrow::RecordBatch> batch;
         std::cout << "Reader not null: " << (reader != nullptr) << std::endl;
         reader->ReadNext(&batch);
+        std::cout << "Batch not null: " << (batch != nullptr) << std::endl;
         auto buff = PackBatch(batch);
         
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
