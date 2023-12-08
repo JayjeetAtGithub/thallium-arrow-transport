@@ -21,6 +21,10 @@ int main(int argc, char** argv) {
     // Declare the `get_data_bytes` remote procedure
     tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");
 
+    // Define the `init_scan` remote procedure
+    tl::remote_procedure init_scan = engine.define("init_scan");
+
+
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
         [&engine, &data_size](const tl::request &req, const tl::bulk &bulk) {
@@ -53,6 +57,8 @@ int main(int argc, char** argv) {
         get_data_bytes.on(endpoint)(1);
     }
     std::cout << "Warmup done" << std::endl;
+
+    init_scan.on(endpoint)();
     
     // Run 1000 iterations of reading a single byte from the server
     for (int i = 0; i < 1000; i++) {
