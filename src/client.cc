@@ -4,6 +4,8 @@
 #include "utils.h"
 #include "headers.h"
 #include "constants.h"
+#include "engine.h"
+
 namespace tl = thallium;
 
 int main(int argc, char** argv) {
