@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
         // Read out a single batch
         // auto buff = PackBatch(reader_map[0]);
         std::string data = "hello world";
-        std::shared_ptr<arrow::Buffer> buff = arrow::Wrap(data.c_str(), data.size());
+        std::shared_ptr<arrow::Buffer> buff = arrow::Buffer::Wrap(data.c_str(), data.size());
 
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
 
