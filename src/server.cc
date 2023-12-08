@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
 
         // Read out a single batch
         std::shared_ptr<arrow::RecordBatch> batch;
+        std::cout << "Reader not null: " << (reader != nullptr) << std::endl;
         reader->ReadNext(&batch);
         auto buff = PackBatch(batch);
         
