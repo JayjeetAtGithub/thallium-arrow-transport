@@ -16,13 +16,13 @@ int main(int argc, char** argv) {
     // Declare the `do_rdma` remote procedure
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
-
     // DuckDB query
     std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
     std::string path = "/mnt/dataset/nyc.1.parquet";
     std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
     db->Create(path);
     std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+    std::cout << "Result schema: " << reader->schema()->ToString() << std::endl;
 
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
