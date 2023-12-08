@@ -50,14 +50,6 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    // Do 50 iterations to warmup the server
-    // TODO: Look into thallium for why the first couple requests
-    // are slow, mostly due to scheduling issues
-    for (int i = 0; i < 50; i++) {
-        get_data_bytes.on(endpoint)(1);
-    }
-    std::cout << "Warmup done" << std::endl;
-
     init_scan.on(endpoint)();
     
     // Run 100 iterations of reading a single byte from the server
