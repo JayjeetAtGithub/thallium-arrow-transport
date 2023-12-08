@@ -122,7 +122,10 @@ int main(int argc, char** argv) {
 
             std::shared_ptr<arrow::RecordBatch> batch;
             std::cout << "Reading batch" << std::endl;
+            auto s1 = std::chrono::high_resolution_clock::now();
             reader_map[uuid]->ReadNext(&batch);
+            auto e1 = std::chrono::high_resolution_clock::now();
+            std::cout << "ReadNext: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
             int ret;
 
             while (batch != nullptr) {
@@ -140,7 +143,10 @@ int main(int argc, char** argv) {
                     }
                 }
                 std::cout << "Reading next batch" << std::endl;
+                auto s2 = std::chrono::high_resolution_clock::now();
                 reader_map[uuid]->ReadNext(&batch);
+                auto e2 = std::chrono::high_resolution_clock::now();
+                std::cout << "ReadNextBatch: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
             }
 
             return req.respond(0);
