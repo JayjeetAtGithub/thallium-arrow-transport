@@ -18,8 +18,8 @@ int main(int argc, char** argv) {
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
     tl::endpoint endpoint = engine.lookup(uri);
 
-    // Declare the `get_single_byte` remote procedure
-    tl::remote_procedure get_single_byte = engine.define("get_single_byte");
+    // Declare the `get_data_bytes` remote procedure
+    tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");
 
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
@@ -50,14 +50,14 @@ int main(int argc, char** argv) {
     // TODO: Look into thallium for why the first couple requests
     // are slow, mostly due to scheduling issues
     for (int i = 0; i < 50; i++) {
-        get_single_byte.on(endpoint)(1);
+        get_data_bytes.on(endpoint)(1);
     }
     std::cout << "Warmup done" << std::endl;
     
     // Run 1000 iterations of reading a single byte from the server
     for (int i = 0; i < 1000; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        get_single_byte.on(endpoint)(0);
+        get_data_bytes.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         std::cout << "Iteration " << i << " took " << duration << " microseconds" << std::endl;

@@ -16,8 +16,8 @@ int main(int argc, char** argv) {
     // Declare the `do_rdma` remote procedure
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
-    // Define the `get_single_byte` procedure
-    std::function<void(const tl::request&, const int&)> get_single_byte = 
+    // Define the `get_data_bytes` procedure
+    std::function<void(const tl::request&, const int&)> get_data_bytes = 
     [&do_rdma, &engine, &data_size](const tl::request &req, const int& warmup) {
         // If warmup, then just return
         if (warmup == 1) {
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
             return req.respond(0);
         }
 
-        std::cout << "get_single_byte" << std::endl;
+        std::cout << "get_data_bytes" << std::endl;
         
         // Reserve a single segment
         std::vector<std::pair<void*,std::size_t>> segments;
@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
         return req.respond(0);
     };
 
-    // Define the `get_single_byte` procedure
-    engine.define("get_single_byte", get_single_byte);
+    // Define the `get_data_bytes` procedure
+    engine.define("get_data_bytes", get_data_bytes);
 
     // Write the server uri to a file
     WriteToFile(engine.self(), TL_URI_PATH, false);
