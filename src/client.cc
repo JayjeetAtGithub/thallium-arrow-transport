@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     }
     std::cout << "Warmup done" << std::endl;
     
-    init_scan.on(endpoint)();
+    // init_scan.on(endpoint)();
 
     // Run 1000 iterations of reading a single byte from the server
     for (int i = 0; i < 1; i++) {
