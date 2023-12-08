@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
         segments.reserve(1);
 
         // Allocate memory for a single char and add it to the segment
-        auto buff = arrow::AllocateBuffer(data_size).ValueOrDie();
+        std::shared_ptr<arrow::Buffer> buff = arrow::AllocateBuffer(data_size).ValueOrDie();
         segments.emplace_back(std::make_pair((void*)buff->mutable_data(), buff->size()));
         
         // Expose the segment as a local bulk handle
