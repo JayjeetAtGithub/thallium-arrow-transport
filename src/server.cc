@@ -39,6 +39,8 @@ int main(int argc, char** argv) {
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
 
+        // Read out a single batch
+        std::shared_ptr<arrow::RecordBatch> batch;
         reader->ReadNext(&batch);
         auto buff = PackBatch(batch);
         
