@@ -79,8 +79,8 @@ class ThalliumClient {
 
             std::shared_ptr<arrow::RecordBatch> batch;
 
-            std::function<void(const tl::request&, int64_t& response_size, tl::bulk&)> do_rdma_single = 
-                [&schema, &batch, &engine, &total_rows_read, &total_rpcs_made](const tl::request& req, tl::bulk& b) {
+            std::function<void(const tl::request&, int64_t&, tl::bulk&)> do_rdma_single = 
+                [&schema, &batch, &engine, &total_rows_read, &total_rpcs_made](const tl::request& req, int64_t& response_size, tl::bulk& b) {
                     std::vector<std::pair<void*,std::size_t>> segments;
                     segments.reserve(1);
 
