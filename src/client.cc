@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     tl::endpoint endpoint = engine.lookup(uri);
 
     // Declare the `init_scan` remote procedure
-    tl::remote_procedure init_scan = engine.define("init_scan");
+    // tl::remote_procedure init_scan = engine.define("init_scan");
     
     // Declare the `get_data_bytes` remote procedure
     tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");

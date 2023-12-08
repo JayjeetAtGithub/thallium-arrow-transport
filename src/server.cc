@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     };
 
     // Define the `init_scan` procedure
-    engine.define("init_scan", init_scan);
+    // engine.define("init_scan", init_scan);
 
     // Define the `get_data_bytes` procedure
     engine.define("get_data_bytes", get_data_bytes);
