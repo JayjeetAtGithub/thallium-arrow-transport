@@ -10,8 +10,6 @@ namespace tl = thallium;
 
 int push_batch(tl::remote_procedure &rdma, tl::engine& engine, const tl::request& req, std::shared_ptr<arrow::RecordBatch> batch, bool single_segment) {
     if (single_segment) {
-        std::cout << "Single segment" << std::endl;
-
         auto s1 = std::chrono::high_resolution_clock::now();
         std::shared_ptr<arrow::Buffer> buff = PackBatch(batch);
         auto e1 = std::chrono::high_resolution_clock::now();
@@ -121,7 +119,6 @@ int main(int argc, char** argv) {
             }
 
             std::shared_ptr<arrow::RecordBatch> batch;
-            std::cout << "Reading batch" << std::endl;
             auto s1 = std::chrono::high_resolution_clock::now();
             reader_map[uuid]->ReadNext(&batch);
             auto e1 = std::chrono::high_resolution_clock::now();
