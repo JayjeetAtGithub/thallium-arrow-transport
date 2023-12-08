@@ -84,7 +84,7 @@ class ThalliumClient {
                     std::vector<std::pair<void*,std::size_t>> segments;
                     segments.reserve(1);
 
-                    std::unique_ptr<arrow::Buffer> buffer = arrow::AllocateBuffer(response_size).ValueOrDie();
+                    std::shared_ptr<arrow::Buffer> buffer = arrow::AllocateBuffer(response_size).ValueOrDie();
                     segments.emplace_back(std::make_pair((void*)buffer->mutable_data(), response_size));
                     tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
 
