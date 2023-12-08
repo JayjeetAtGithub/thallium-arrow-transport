@@ -23,10 +23,13 @@ int main(int argc, char** argv) {
     db->Create(path);
     std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
     std::cout << "Result schema: " << reader->schema()->ToString() << std::endl;
-
+    std::shared_ptr<arrow::RecordBatch> batch;
+    reader->ReadNext(&batch);
+    std::cout << "Batch size: " << batch->num_rows() << std::endl;
+    
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
-    [&do_rdma, &engine, &reader](const tl::request &req, const int& warmup) {
+    [&do_rdma, &engine, &batch](const tl::request &req, const int& warmup) {
         // If warmup, then just return
         if (warmup == 1) {
             std::cout << "Warmup" << std::endl;
@@ -40,10 +43,6 @@ int main(int argc, char** argv) {
         segments.reserve(1);
 
         // Read out a single batch
-        std::shared_ptr<arrow::RecordBatch> batch;
-        std::cout << "Reader not null: " << (reader == nullptr) << std::endl;
-        std::cout << reader->schema()->ToString() << std::endl;
-        std::cout << "Batch not null: " << (batch != nullptr) << std::endl;
         auto buff = PackBatch(batch);
 
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
