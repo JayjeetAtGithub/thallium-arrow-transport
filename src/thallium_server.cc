@@ -18,7 +18,7 @@ int push_batch(tl::remote_procedure &rdma, tl::engine& engine, const tl::request
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
         tl::bulk arrow_bulk = engine.expose(segments, tl::bulk_mode::read_only);
 
-        return rdma.on(req.get_endpoint())(arrow_bulk);
+        return rdma.on(req.get_endpoint())(buff->size(), arrow_bulk);
     } else {
 
         std::vector<int64_t> data_buff_sizes;
