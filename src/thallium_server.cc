@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
                 reader_map[uuid]->ReadNext(&batch);
             }
 
-            return req.respond(ret);
+            return req.respond(0);
         };
 
     engine.define("init_scan", init_scan);
