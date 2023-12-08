@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
             reader_map[0] = reader;
             std::cout << "Result schema: " << reader->schema()->ToString() << std::endl;
             return req.respond(0);
-    }
+    };
 
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
