@@ -49,9 +49,7 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    init_scan.on(endpoint)();
-
-
+    // Run 100 iterations of reading a single byte from the server
     for (int i = 0; i < 100; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         init_scan.on(endpoint)();

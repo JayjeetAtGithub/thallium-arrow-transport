@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
         // Respond back with 0
         return req.respond(0);
     };
-    // Define the `get_data_bytes` procedure
+    // Declare the `get_data_bytes` procedure
     engine.define("get_data_bytes", get_data_bytes);
     
     // Define the `init_scan` procedure
@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
             std::cout << "init_scan" << std::endl;
             return req.respond(0);
     };
+    // Declare the `init_scan` procedure
     engine.define("init_scan", init_scan);
 
     // Write the server uri to a file
