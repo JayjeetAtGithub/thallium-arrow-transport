@@ -49,8 +49,8 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    // Run 100 iterations of reading a single byte from the server
-    for (int i = 0; i < 100; i++) {
+    // Run 50 iterations of reading a single byte from the server
+    for (int i = 0; i < 50; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         init_scan.on(endpoint)();
         auto end = std::chrono::high_resolution_clock::now();
@@ -58,8 +58,8 @@ int main(int argc, char** argv) {
         std::cout << "Iteration of init_scan " << i << " took " << duration << " microseconds" << std::endl;
     }
     
-    // Run 100 iterations of reading a single byte from the server
-    for (int i = 0; i < 100; i++) {
+    // Run 50 iterations of reading a single byte from the server
+    for (int i = 0; i < 50; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         get_data_bytes.on(endpoint)();
         auto end = std::chrono::high_resolution_clock::now();
