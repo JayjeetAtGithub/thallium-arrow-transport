@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     engine.define("do_rdma", do_rdma);
 
     // Warmup
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
         init_scan.on(endpoint)();
         get_data_bytes.on(endpoint)();
     }
