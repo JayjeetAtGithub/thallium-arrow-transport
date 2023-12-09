@@ -45,10 +45,13 @@ int main(int argc, char** argv) {
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
         auto e = std::chrono::high_resolution_clock::now();
         std::cout << "Expose took " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << " microseconds" << std::endl;
-        
+
 
         // Pull the single byte from the remote bulk handle
+        auto s2 = std::chrono::high_resolution_clock::now();
         bulk.on(req.get_endpoint()) >> local;
+        auto e2 = std::chrono::high_resolution_clock::now();
+        std::cout << "Pull took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
 
         auto batch = UnpackBatch(buff, schema);
         std::cout << "Batch: " << batch->ToString() << std::endl;
