@@ -17,8 +17,12 @@ int main(int argc, char** argv) {
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
     // Define the `get_data_bytes` procedure
-    std::function<void(const tl::request&)> get_data_bytes = 
-    [&do_rdma, &engine, &data_size](const tl::request &req) {
+    std::function<void(const tl::request&, const int&)> get_data_bytes = 
+    [&do_rdma, &engine, &data_size](const tl::request &req, const int& warmup) {
+        if (warmup == 1) {
+            std::cout << "Warmup get_data_bytes" << std::endl;
+            return req.respond(0);
+        }
         std::cout << "get_data_bytes" << std::endl;
         
         // Reserve a single segment
@@ -44,8 +48,12 @@ int main(int argc, char** argv) {
     engine.define("get_data_bytes", get_data_bytes);
     
     // Define the `init_scan` procedure
-    std::function<void(const tl::request&)> init_scan = 
-        [](const tl::request &req) {
+    std::function<void(const tl::request&, const int&)> init_scan = 
+        [](const tl::request &req, const int& warmup) {
+            if (warmup == 1) {
+                std::cout << "Warmup init_scan" << std::endl;
+                return req.respond(0);
+            }
             std::cout << "init_scan" << std::endl;
             return req.respond(0);
     };

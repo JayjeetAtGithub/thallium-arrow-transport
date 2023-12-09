@@ -51,14 +51,14 @@ int main(int argc, char** argv) {
 
     // Warmup
     for (int i = 0; i < 20; i++) {
-        init_scan.on(endpoint)();
-        get_data_bytes.on(endpoint)();
+        init_scan.on(endpoint)(1);
+        get_data_bytes.on(endpoint)(1);
     }
 
     // Run 50 iterations of reading a single byte from the server
     for (int i = 0; i < 50; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        init_scan.on(endpoint)();
+        init_scan.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         std::cout << "Iteration of init_scan " << i << " took " << duration << " microseconds" << std::endl;
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     // Run 50 iterations of reading a single byte from the server
     for (int i = 0; i < 50; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        get_data_bytes.on(endpoint)();
+        get_data_bytes.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         std::cout << "Iteration of get_data_bytes " << i << " took " << duration << " microseconds" << std::endl;
