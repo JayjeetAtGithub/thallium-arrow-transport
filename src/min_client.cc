@@ -49,6 +49,8 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
+    init_scan.on(endpoint)();
+
 
     for (int i = 0; i < 100; i++) {
         auto start = std::chrono::high_resolution_clock::now();
