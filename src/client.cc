@@ -53,7 +53,11 @@ int main(int argc, char** argv) {
         auto e2 = std::chrono::high_resolution_clock::now();
         std::cout << "Pull took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
 
+        auto s3 = std::chrono::high_resolution_clock::now();
         auto batch = UnpackBatch(buff, schema);
+        auto e3 = std::chrono::high_resolution_clock::now();
+        std::cout << "Unpack took " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << " microseconds" << std::endl;
+        
         std::cout << "Batch: " << batch->ToString() << std::endl;
 
         // Create a string from the buffer

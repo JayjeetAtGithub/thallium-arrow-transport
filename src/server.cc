@@ -49,7 +49,11 @@ int main(int argc, char** argv) {
         segments.reserve(1);
 
         // Read out a single batch
+        auto s2 = std::chrono::high_resolution_clock::now();
         auto buff = PackBatch(reader_map[0]);
+        auto e2 = std::chrono::high_resolution_clock::now();
+        std::cout << "Pack took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
+        
         // std::string data = "";
         // // Append `n` chars to the string
         // for (int32_t i = 0; i < 1472; i++) {
