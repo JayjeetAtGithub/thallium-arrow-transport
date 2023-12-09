@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
     std::function<void(const tl::request&)> init_scan = 
         [&reader_map](const tl::request &req) {
             std::cout << "init_scan" << std::endl;
-            std::string query = "SELECT * FROM dataset WHERE total_amount >= 178;";
+            std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
             std::string path = "/mnt/dataset/nyc.1.parquet";
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);

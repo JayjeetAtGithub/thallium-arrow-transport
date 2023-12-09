@@ -24,7 +24,6 @@ int main(int argc, char** argv) {
     // Define the `init_scan` remote procedure
     tl::remote_procedure init_scan = engine.define("init_scan");
 
-
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
         [&engine, &data_size](const tl::request &req, const tl::bulk &bulk) {
