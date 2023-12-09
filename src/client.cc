@@ -41,7 +41,11 @@ int main(int argc, char** argv) {
         segments.emplace_back(std::make_pair((void*)buff->mutable_data(), buff->size()));
         
         // Expose the segment as a local bulk handle
+        auto s = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+        auto e = std::chrono::high_resolution_clock::now();
+        std::cout << "Expose took " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << " microseconds" << std::endl;
+        
 
         // Pull the single byte from the remote bulk handle
         bulk.on(req.get_endpoint()) >> local;
