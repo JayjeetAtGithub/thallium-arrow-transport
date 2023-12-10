@@ -31,9 +31,7 @@ int main(int argc, char** argv) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-            std::shared_ptr<arrow::RecordBatch> batch;
-            reader->ReadNext(&batch);
-            reader_map[0] = batch;
+            reader_map[0] = reader;
             return req.respond(0);
     };
 
@@ -49,6 +47,9 @@ int main(int argc, char** argv) {
         // Reserve a single segment
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
+
+        std::shared_ptr<arrow::RecordBatch> batch;
+        reader_map[0]->ReadNext(&batch);
 
         // Read out a single batch
         auto s2 = std::chrono::high_resolution_clock::now();
