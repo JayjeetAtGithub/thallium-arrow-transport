@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     // Declare the `do_rdma` remote procedure
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
-    std::unordered_map<int, std::shared_ptr<arrow::RecordBatch>> reader_map;
+    std::unordered_map<int, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
 
     // Define the `init_scan` procedure
     // This procedure reads out a single batch from the result iterator
