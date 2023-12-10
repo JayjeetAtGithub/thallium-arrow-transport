@@ -14,7 +14,7 @@ std::shared_ptr<arrow::Schema> read_schema() {
     std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
     db->Create(path);
     std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-    return reader->schema().ValueOrDie();
+    return reader->schema();
 }
 
 int main(int argc, char** argv) {
