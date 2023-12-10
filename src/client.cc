@@ -55,9 +55,7 @@ int main(int argc, char** argv) {
 
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma = 
-        [&engine, &schema](const tl::request &req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk &bulk) {
-        std::cout << "do_rdma : " << data_size << std::endl;
-
+        [&engine, &schema](const tl::request &req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk &b) {
         int num_cols = schema->num_fields();
                     
         std::vector<std::shared_ptr<arrow::Array>> columns;
