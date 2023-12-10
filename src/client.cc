@@ -10,7 +10,7 @@ namespace tl = thallium;
 
 std::shared_ptr<arrow::Schema> read_schema() {
     std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
-    std::string path = "/mnt/dataset/nyc.1.parquet";
+    std::string path = "/mnt/dataset/nyc.parquet";
     std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
     db->Create(path);
     std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
