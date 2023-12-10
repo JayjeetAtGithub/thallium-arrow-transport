@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 
         // Read out a single batch
         auto s2 = std::chrono::high_resolution_clock::now();
-        auto buff = PackBatch(reader_map[0]);
+        auto buff = PackBatch(batch);
         auto e2 = std::chrono::high_resolution_clock::now();
         std::cout << "pack took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
 
