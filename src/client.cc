@@ -8,6 +8,15 @@
 
 namespace tl = thallium;
 
+std::shared_ptr<arrow::Schema> read_schema() {
+    std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
+    std::string path = "/mnt/dataset/nyc.1.parquet";
+    std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
+    db->Create(path);
+    std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
+    return reader->schema().ValueOrDie();
+}
+
 int main(int argc, char** argv) {
     if(argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <address>" << std::endl;
@@ -16,6 +25,8 @@ int main(int argc, char** argv) {
 
     // Read the server uri from the user
     std::string uri = argv[1];
+
+    std::shared_ptr<arrow::Schema> schema = read_schema();
 
     // Define thallium client engine and lookup server endpoint
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
