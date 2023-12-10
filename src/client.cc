@@ -25,7 +25,11 @@ void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint&
     for (int i = 0; i < 100; i++) {
         get_data_bytes.on(endpoint)(1);
     }
+    auto start = std::chrono::high_resolution_clock::now();
     get_data_bytes.on(endpoint)(0);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    std::cout << "Iteration of get_data_bytes " << " took " << duration << " microseconds" << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -93,11 +97,7 @@ int main(int argc, char** argv) {
     // Run 1000 iterations of reading a single byte from the server
     for (int i = 0; i < 100; i++) {
         call_init_scan_rpc(init_scan, endpoint, query, path);
-        auto start = std::chrono::high_resolution_clock::now();
         call_get_data_bytes_rpc(get_data_bytes, endpoint);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-        std::cout << "Iteration " << i << " took " << duration << " microseconds" << std::endl;
     }
     return 0;
 }
