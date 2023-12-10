@@ -92,6 +92,7 @@ int main(int argc, char** argv) {
             }
         }
 
+        std::cout << "Rebuilding batch from columns" << std::endl;
         auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
         std::cout << "Batch: " << batch->ToString() << std::endl;
 
