@@ -17,6 +17,17 @@ std::shared_ptr<arrow::Schema> read_schema() {
     return reader->schema();
 }
 
+void call_init_scan_rpc(tl::remote_procedure &init_scan, tl::endpoint& endpoint, std::string &query, std::string &path) {
+    init_scan.on(endpoint)(query, path, 0);
+}
+
+void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint& endpoint) {
+    for (int i = 0; i < 100; i++) {
+        get_data_bytes.on(endpoint)(1);
+    }
+    get_data_bytes.on(endpoint)(0);
+}
+
 int main(int argc, char** argv) {
     if(argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <address>" << std::endl;
@@ -79,17 +90,11 @@ int main(int argc, char** argv) {
     std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
     std::string path = "/mnt/dataset/nyc.1.parquet";
 
-    // Do some warmup iterations
-    for (int i = 0; i < 100; i++) {
-        init_scan.on(endpoint)(query, path, 1);
-        get_data_bytes.on(endpoint)(1);
-    }
-    
     // Run 1000 iterations of reading a single byte from the server
     for (int i = 0; i < 100; i++) {
-        init_scan.on(endpoint)(query, path, 0);
+        call_init_scan_rpc(init_scan, endpoint, query, path);
         auto start = std::chrono::high_resolution_clock::now();
-        get_data_bytes.on(endpoint)(0);
+        call_get_data_bytes_rpc(get_data_bytes, endpoint)
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         std::cout << "Iteration " << i << " took " << duration << " microseconds" << std::endl;
