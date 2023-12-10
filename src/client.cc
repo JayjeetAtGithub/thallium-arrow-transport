@@ -54,35 +54,47 @@ int main(int argc, char** argv) {
     tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");
 
     // Define the `do_rdma` remote procedure
-    std::function<void(const tl::request&, int64_t&, tl::bulk&)> do_rdma = 
-        [&engine, &schema](const tl::request &req, int64_t& data_size, tl::bulk &bulk) {
+    std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma = 
+        [&engine, &schema](const tl::request &req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk &bulk) {
         std::cout << "do_rdma : " << data_size << std::endl;
 
-        // Reserve a single segment
+        int num_cols = schema->num_fields();
+                    
+        std::vector<std::shared_ptr<arrow::Array>> columns;
+        std::vector<std::unique_ptr<arrow::Buffer>> data_buffs(num_cols);
+        std::vector<std::unique_ptr<arrow::Buffer>> offset_buffs(num_cols);
         std::vector<std::pair<void*,std::size_t>> segments;
-        segments.reserve(1);
-
-        // Allocate memory for a single char and add it to the segment
-        std::shared_ptr<arrow::Buffer> buff = arrow::AllocateBuffer(data_size).ValueOrDie();
-        segments.emplace_back(std::make_pair((void*)buff->mutable_data(), buff->size()));
+        segments.reserve(num_cols*2);
         
-        // Expose the segment as a local bulk handle
-        auto s = std::chrono::high_resolution_clock::now();
+        for (int64_t i = 0; i < num_cols; i++) {
+            data_buffs[i] = arrow::AllocateBuffer(data_buff_sizes[i]).ValueOrDie();
+            offset_buffs[i] = arrow::AllocateBuffer(offset_buff_sizes[i]).ValueOrDie();
+
+            segments.emplace_back(std::make_pair(
+                (void*)data_buffs[i]->mutable_data(),
+                data_buff_sizes[i]
+            ));
+            segments.emplace_back(std::make_pair(
+                (void*)offset_buffs[i]->mutable_data(),
+                offset_buff_sizes[i]
+            ));
+        }
+
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
-        auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "expose took " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << " microseconds" << std::endl;
+        b.on(req.get_endpoint()) >> local;
 
-        // Pull the single byte from the remote bulk handle
-        auto s2 = std::chrono::high_resolution_clock::now();
-        bulk.on(req.get_endpoint()) >> local;
-        auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "rdma pull took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
+        for (int64_t i = 0; i < num_cols; i++) {
+            std::shared_ptr<arrow::DataType> type = schema->field(i)->type();  
+            if (is_base_binary_like(type->id())) {
+                std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::LargeStringArray>(num_rows, std::move(offset_buffs[i]), std::move(data_buffs[i]));
+                columns.push_back(col_arr);
+            } else {
+                std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::PrimitiveArray>(type, num_rows, std::move(data_buffs[i]));
+                columns.push_back(col_arr);
+            }
+        }
 
-        auto s3 = std::chrono::high_resolution_clock::now();
-        auto batch = UnpackBatch(buff, schema);
-        auto e3 = std::chrono::high_resolution_clock::now();
-        std::cout << "unpack took " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << " microseconds" << std::endl;
-
+        auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
         std::cout << "Batch: " << batch->ToString() << std::endl;
 
         // Respond back with 0

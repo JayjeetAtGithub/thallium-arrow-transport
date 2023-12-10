@@ -46,17 +46,46 @@ int main(int argc, char** argv) {
             return req.respond(0);
         }
 
-        // Reserve a single segment
+        auto batch = reader_map[0];
+        std::vector<int64_t> data_buff_sizes;
+        std::vector<int64_t> offset_buff_sizes;
+        int64_t num_rows = batch->num_rows();
+
         std::vector<std::pair<void*,std::size_t>> segments;
-        segments.reserve(1);
+        segments.reserve(batch->num_columns()*2);
 
-        // Read out a single batch
-        auto s2 = std::chrono::high_resolution_clock::now();
-        auto buff = PackBatch(reader_map[0]);
-        auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "pack took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
+        std::string null_buff = "x";
 
-        segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
+        for (int64_t i = 0; i < batch->num_columns(); i++) {
+            std::shared_ptr<arrow::Array> col_arr = batch->column(i);
+
+            int64_t data_size = 0;
+            int64_t offset_size = 0;
+
+            if (is_base_binary_like(col_arr->type_id())) {
+                std::shared_ptr<arrow::Buffer> data_buff = 
+                    std::static_pointer_cast<arrow::BinaryArray>(col_arr)->value_data();
+                std::shared_ptr<arrow::Buffer> offset_buff = 
+                    std::static_pointer_cast<arrow::BinaryArray>(col_arr)->value_offsets();
+                
+                data_size = data_buff->size();
+                offset_size = offset_buff->size();
+                segments.emplace_back(std::make_pair((void*)data_buff->data(), data_size));
+                segments.emplace_back(std::make_pair((void*)offset_buff->data(), offset_size));
+            } else {
+
+                std::shared_ptr<arrow::Buffer> data_buff = 
+                    std::static_pointer_cast<arrow::PrimitiveArray>(col_arr)->values();
+
+                data_size = data_buff->size();
+                offset_size = null_buff.size(); 
+                segments.emplace_back(std::make_pair((void*)data_buff->data(), data_size));
+                segments.emplace_back(std::make_pair((void*)(&null_buff[0]), offset_size));
+            }
+
+            data_buff_sizes.push_back(data_size);
+            offset_buff_sizes.push_back(offset_size);
+        }
 
         // Expose the segment and send it as argument to `do_rdma`
         auto s = std::chrono::high_resolution_clock::now();
@@ -64,8 +93,7 @@ int main(int argc, char** argv) {
         auto e = std::chrono::high_resolution_clock::now();
         auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
         std::cout << "expose took " << d << " microseconds" << std::endl;
-        do_rdma.on(req.get_endpoint())(buff->size(), bulk);
-
+        do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, bulk);
 
         // Respond back with 0
         return req.respond(0);
