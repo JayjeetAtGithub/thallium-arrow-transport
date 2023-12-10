@@ -57,7 +57,6 @@ int main(int argc, char** argv) {
         auto e = std::chrono::high_resolution_clock::now();
         std::cout << "expose took " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << " microseconds" << std::endl;
 
-
         // Pull the single byte from the remote bulk handle
         auto s2 = std::chrono::high_resolution_clock::now();
         bulk.on(req.get_endpoint()) >> local;
