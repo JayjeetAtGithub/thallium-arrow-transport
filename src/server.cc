@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     // Declare the `do_rdma` remote procedure
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
-    std::unordered_map<int, std::shared_ptr<arrow::RecordBatch>> reader_map;
+    std::unordered_map<int, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
 
     // Define the `init_scan` procedure
     // This procedure reads out a single batch from the result iterator
@@ -31,9 +31,9 @@ int main(int argc, char** argv) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-            std::shared_ptr<arrow::RecordBatch> batch;
-            reader->ReadNext(&batch);
-            reader_map[0] = batch;
+            // std::shared_ptr<arrow::RecordBatch> batch;
+            // reader->ReadNext(&batch);
+            reader_map[0] = reader;
             return req.respond(0);
     };
 
@@ -46,7 +46,10 @@ int main(int argc, char** argv) {
             return req.respond(0);
         }
 
-        auto batch = reader_map[0];
+        auto reader = reader_map[0];
+        std::shared_ptr<arrow::RecordBatch> batch;
+        reader->ReadNext(&batch);
+
         std::vector<int64_t> data_buff_sizes;
         std::vector<int64_t> offset_buff_sizes;
         int64_t num_rows = batch->num_rows();
