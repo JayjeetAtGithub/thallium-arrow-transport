@@ -21,15 +21,13 @@ int main(int argc, char** argv) {
 
     // Define the `init_scan` procedure
     // This procedure reads out a single batch from the result iterator
-    std::function<void(const tl::request&, const int64_t&)> init_scan = 
-        [&reader_map](const tl::request &req, const int64_t& warmup) {
+    std::function<void(const tl::request&, const std::string&, const std::string&, const int64_t&)> init_scan = 
+        [&reader_map](const tl::request &req, const std::string& query, const std::string& path, const int64_t& warmup) {
             if (warmup == 1) {
                 std::cout << "Warmup init_scan" << std::endl;
                 return req.respond(0);
             }
             std::cout << "init_scan" << std::endl;
-            std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
-            std::string path = "/mnt/dataset/nyc.1.parquet";
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);

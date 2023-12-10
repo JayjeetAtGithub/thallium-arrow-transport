@@ -77,13 +77,16 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
+    std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
+    std::string path = "/mnt/dataset/nyc.1.parquet";
+
     // Do some warmup iterations
     for (int i = 0; i < 50; i++) {
-        init_scan.on(endpoint)(1);
+        init_scan.on(endpoint)(query, path, 1);
         get_data_bytes.on(endpoint)(1);
     }
     
-    init_scan.on(endpoint)(0);
+    init_scan.on(endpoint)(query, path, 0);
     // Run 1000 iterations of reading a single byte from the server
     for (int i = 0; i < 50; i++) {
         auto start = std::chrono::high_resolution_clock::now();
