@@ -44,24 +44,21 @@ int main(int argc, char** argv) {
         auto s = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
         auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "Expose took " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << " microseconds" << std::endl;
+        std::cout << "expose took " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << " microseconds" << std::endl;
 
 
         // Pull the single byte from the remote bulk handle
         auto s2 = std::chrono::high_resolution_clock::now();
         bulk.on(req.get_endpoint()) >> local;
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "Pull took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
+        std::cout << "rdma pull took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
 
         auto s3 = std::chrono::high_resolution_clock::now();
         auto batch = UnpackBatch(buff, schema);
         auto e3 = std::chrono::high_resolution_clock::now();
-        std::cout << "Unpack took " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << " microseconds" << std::endl;
-        
-        std::cout << "Batch: " << batch->ToString() << std::endl;
+        std::cout << "unpack took " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << " microseconds" << std::endl;
 
-        // Create a string from the buffer
-        // std::string data = std::string((char*)buff->data(), buff->size());
+        std::cout << "Batch: " << batch->ToString() << std::endl;
 
         // Respond back with 0
         return req.respond(0);
@@ -69,18 +66,15 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    // Do 50 iterations to warmup the server
-    // TODO: Look into thallium for why the first couple requests
-    // are slow, mostly due to scheduling issues
+    // Do some warmup iterations
     for (int i = 0; i < 50; i++) {
+        init_scan.on(endpoint)(1);
         get_data_bytes.on(endpoint)(1);
     }
-    std::cout << "Warmup done" << std::endl;
     
-    init_scan.on(endpoint)();
-
+    init_scan.on(endpoint)(0);
     // Run 1000 iterations of reading a single byte from the server
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 50; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         get_data_bytes.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();

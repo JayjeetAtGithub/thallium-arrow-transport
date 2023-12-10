@@ -17,12 +17,16 @@ int main(int argc, char** argv) {
     // Declare the `do_rdma` remote procedure
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
-    // DuckDB query
-
     std::unordered_map<int, std::shared_ptr<arrow::RecordBatch>> reader_map;
 
-    std::function<void(const tl::request&)> init_scan = 
-        [&reader_map](const tl::request &req) {
+    // Define the `init_scan` procedure
+    // This procedure reads out a single batch from the result iterator
+    std::function<void(const tl::request&, const int64_t&)> init_scan = 
+        [&reader_map](const tl::request &req, const int64_t& warmup) {
+            if (warmup == 1) {
+                std::cout << "Warmup init_scan" << std::endl;
+                return req.respond(0);
+            }
             std::cout << "init_scan" << std::endl;
             std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
             std::string path = "/mnt/dataset/nyc.1.parquet";
@@ -52,14 +56,8 @@ int main(int argc, char** argv) {
         auto s2 = std::chrono::high_resolution_clock::now();
         auto buff = PackBatch(reader_map[0]);
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "Pack took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
-        
-        // std::string data = "";
-        // // Append `n` chars to the string
-        // for (int32_t i = 0; i < 1472; i++) {
-        //     data += "x";
-        // }        
-        // std::shared_ptr<arrow::Buffer> buff = arrow::Buffer::Wrap(data.c_str(), data.size());
+        std::cout << "pack took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
+
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
 
         // Expose the segment and send it as argument to `do_rdma`
