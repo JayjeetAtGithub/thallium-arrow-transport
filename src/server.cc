@@ -24,10 +24,8 @@ int main(int argc, char** argv) {
     std::function<void(const tl::request&, const std::string&, const std::string&, const int64_t&)> init_scan = 
         [&reader_map](const tl::request &req, const std::string& query, const std::string& path, const int64_t& warmup) {
             if (warmup == 1) {
-                std::cout << "Warmup init_scan" << std::endl;
                 return req.respond(0);
             }
-            std::cout << "init_scan" << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
@@ -42,7 +40,6 @@ int main(int argc, char** argv) {
     [&do_rdma, &engine, &reader_map](const tl::request &req, const int& warmup) {
         // If warmup, then just return
         if (warmup == 1) {
-            std::cout << "Warmup" << std::endl;
             return req.respond(0);
         }
 
