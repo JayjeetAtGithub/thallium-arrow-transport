@@ -22,9 +22,6 @@ void call_init_scan_rpc(tl::remote_procedure &init_scan, tl::endpoint& endpoint,
 }
 
 void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint& endpoint) {
-    for (int i = 0; i < 100; i++) {
-        get_data_bytes.on(endpoint)(1);
-    }
     auto start = std::chrono::high_resolution_clock::now();
     get_data_bytes.on(endpoint)(0);
     auto end = std::chrono::high_resolution_clock::now();
