@@ -111,8 +111,7 @@ int main(int argc, char** argv) {
         call_init_scan_rpc(init_scan, endpoint, query, path);
         call_get_data_bytes_rpc(get_data_bytes, endpoint);
         // Create an arrow table from the record batches vector
-        std::shared_ptr<arrow::Table> table;
-        auto table = arrow::Table::FromRecordBatches(batches).ValueOrDie();
+        std::shared_ptr<arrow::Table> table = arrow::Table::FromRecordBatches(batches).ValueOrDie();
         std::cout << "Table: " << table->ToString() << std::endl;
         std::cout << "Table size: " << table.nbytes << std::endl;
     }
