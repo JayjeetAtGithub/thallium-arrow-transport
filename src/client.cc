@@ -98,7 +98,6 @@ int main(int argc, char** argv) {
         }
 
         auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-        std::cout << "Read out " << batch->num_rows() << " rows" << std::endl;
 
         // Respond back with 0
         return req.respond(0);
