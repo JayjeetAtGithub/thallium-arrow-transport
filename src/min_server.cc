@@ -44,15 +44,16 @@ int main(int argc, char** argv) {
         if (warmup == 1) {
             std::cout << "Warmup get_data_bytes" << std::endl;
             return req.respond(0);
-        }
-        std::cout << "get_data_bytes" << std::endl;
-        
+        }        
         // Reserve a single segment
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
         
         // Map the buffer for the single char to the segment
+        auto s2 = std::chrono::high_resolution_clock::now();
         std::string data = generateRandomString(data_size);
+        auto e2 = std::chrono::high_resolution_clock::now();
+        std::cout << "generateRandomString: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
         segments.emplace_back(std::make_pair((void*)(&data[0]), data.size()));
 
         // Expose the segment and send it as argument to `do_rdma`
