@@ -84,7 +84,12 @@ int main(int argc, char** argv) {
         auto e = std::chrono::high_resolution_clock::now();
         auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
         std::cout << "clientexpose: " << d << std::endl;
+
+        auto s1 = std::chrono::high_resolution_clock::now();
         b.on(req.get_endpoint()) >> local;
+        auto e1 = std::chrono::high_resolution_clock::now();
+        auto d1 = std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count();
+        std::cout << "rdma: " << d1 << std::endl;
 
         for (int64_t i = 0; i < num_cols; i++) {
             std::shared_ptr<arrow::DataType> type = schema->field(i)->type();  
