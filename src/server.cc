@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
         reader->ReadNext(&batch);
         auto e1 = std::chrono::high_resolution_clock::now();
         auto d1 = std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count();
-        std::cout << "ReadNext took " << d1 << " microseconds" << std::endl;
+        std::cout << "ReadNext: " << d1 << std::endl;
 
         if (batch != nullptr) {
             std::vector<int64_t> data_buff_sizes;
@@ -98,9 +98,7 @@ int main(int argc, char** argv) {
             tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
             auto e = std::chrono::high_resolution_clock::now();
             auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
-            std::cout << "server expose took " << d << " microseconds" << std::endl;
-            std::string exec_time_ms = std::to_string(d) + "\n";
-            WriteToFile(exec_time_ms, TL_SR_RES_PATH, true);
+            std::cout << "serverexpose: " << d << std::endl;
             do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, bulk);
         } else {
             std::cout << "No more batches" << std::endl;

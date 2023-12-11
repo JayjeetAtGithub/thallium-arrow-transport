@@ -29,11 +29,7 @@ void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint&
     get_data_bytes.on(endpoint)(0);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-    std::cout << "Iteration of get_data_bytes " << " took " << duration << " microseconds" << std::endl;
-    std::string exec_time_ms = std::to_string(duration) + "\n";
-    WriteToFile(exec_time_ms, TL_RES_PATH, true);
-
-
+    std::cout << "get_data_bytes: " << duration << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -87,9 +83,7 @@ int main(int argc, char** argv) {
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
         auto e = std::chrono::high_resolution_clock::now();
         auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
-        std::cout << "client expose took " << d << " microseconds" << std::endl;
-        std::string exec_time_ms = std::to_string(d) + "\n";
-        WriteToFile(exec_time_ms, TL_CL_RES_PATH, true);
+        std::cout << "clientexpose: " << d << std::endl;
         b.on(req.get_endpoint()) >> local;
 
         for (int64_t i = 0; i < num_cols; i++) {
