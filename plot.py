@@ -8,6 +8,7 @@ get_data_bytes = []
 client_expose = []
 server_expose = []
 read_next = []
+rdma = []
 
 with open('thallium_1') as f:
     for i, line in enumerate(f):
@@ -22,6 +23,8 @@ with open('thallium_1') as f:
             server_expose.append(int(time))
         elif tag == "ReadNext":
             read_next.append(int(time))
+        elif tag == "rdma":
+            rdma.append(int(time))
 
 for i in range(len(get_data_bytes)):
     iterations.append(i)
@@ -31,7 +34,7 @@ plt.plot(iterations, get_data_bytes, label='total')
 plt.plot(iterations, client_expose, label='client expose')
 plt.plot(iterations, server_expose, label='server expose')
 plt.plot(iterations, read_next, label='read next')
-
+plt.plot(iterations, rdma, label='rdma')
 
 # Adding labels and title
 plt.ylabel('microseconds (us)')

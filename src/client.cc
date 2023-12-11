@@ -8,6 +8,15 @@
 
 namespace tl = thallium;
 
+int64_t calc_total_size(std::vector<int64_t> &data_buff_sizes, std::vector<int64_t> &offset_buff_sizes) {
+    int64_t total_size = 0;
+    for (int i = 0; i < data_buff_sizes.size(); i++) {
+        total_size += data_buff_sizes[i];
+        total_size += offset_buff_sizes[i];
+    }
+    return total_size;
+}
+
 std::shared_ptr<arrow::Schema> read_schema() {
     std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
     std::string path = "/mnt/dataset/nyc.parquet";
@@ -57,6 +66,8 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma = 
         [&engine, &schema](const tl::request &req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk &b) {        
+        std::cout << calc_total_size(data_buff_sizes, offset_buff_sizes) << std::endl;
+        
         int num_cols = schema->num_fields();
                     
         std::vector<std::shared_ptr<arrow::Array>> columns;
