@@ -79,7 +79,11 @@ int main(int argc, char** argv) {
             ));
         }
 
+        auto s = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+        auto e = std::chrono::high_resolution_clock::now();
+        auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
+        std::cout << "client expose took " << d << " microseconds" << std::endl;
         b.on(req.get_endpoint()) >> local;
 
         for (int64_t i = 0; i < num_cols; i++) {

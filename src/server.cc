@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
             tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
             auto e = std::chrono::high_resolution_clock::now();
             auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
-            std::cout << "expose took " << d << " microseconds" << std::endl;
+            std::cout << "server expose took " << d << " microseconds" << std::endl;
             do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, bulk);
         } else {
             std::cout << "No more batches" << std::endl;
