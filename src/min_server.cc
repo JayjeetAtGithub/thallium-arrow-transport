@@ -54,6 +54,9 @@ int main(int argc, char** argv) {
         std::string data = generateRandomString(data_size);
         auto e2 = std::chrono::high_resolution_clock::now();
         std::cout << "generateRandomString: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
+
+        std::cout << "Sending: " << data << std::endl;
+
         segments.emplace_back(std::make_pair((void*)(&data[0]), data.size()));
 
         // Expose the segment and send it as argument to `do_rdma`
