@@ -30,6 +30,9 @@ void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint&
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
     std::cout << "Iteration of get_data_bytes " << " took " << duration << " microseconds" << std::endl;
+    std::string exec_time_ms = std::to_string(duration) + "\n";
+    WriteToFile(exec_time_ms, TL_RES_PATH, true);
+
 
 }
 
@@ -85,6 +88,8 @@ int main(int argc, char** argv) {
         auto e = std::chrono::high_resolution_clock::now();
         auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
         std::cout << "client expose took " << d << " microseconds" << std::endl;
+        std::string exec_time_ms = std::to_string(d) + "\n";
+        WriteToFile(exec_time_ms, TL_CL_RES_PATH, true);
         b.on(req.get_endpoint()) >> local;
 
         for (int64_t i = 0; i < num_cols; i++) {
