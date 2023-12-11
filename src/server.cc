@@ -45,7 +45,13 @@ int main(int argc, char** argv) {
 
         auto reader = reader_map[0];
         std::shared_ptr<arrow::RecordBatch> batch;
+        
+        auto s1 = std::chrono::high_resolution_clock::now();
         reader->ReadNext(&batch);
+        auto e1 = std::chrono::high_resolution_clock::now();
+        auto d1 = std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count();
+        std::cout << "ReadNext took " << d1 << " microseconds" << std::endl;
+
         if (batch != nullptr) {
             std::vector<int64_t> data_buff_sizes;
             std::vector<int64_t> offset_buff_sizes;
