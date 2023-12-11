@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
     // Read the server uri from the user
     std::string uri = argv[1];
 
+    // Read the schema from the dataset
     std::shared_ptr<arrow::Schema> schema = read_schema();
 
     // Define thallium client engine and lookup server endpoint
@@ -93,6 +94,7 @@ int main(int argc, char** argv) {
         }
 
         auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
+        std::cout << "Read out " << batch->num_rows() << " rows" << std::endl;
 
         // Respond back with 0
         return req.respond(0);
