@@ -99,6 +99,8 @@ int main(int argc, char** argv) {
             auto e = std::chrono::high_resolution_clock::now();
             auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
             std::cout << "server expose took " << d << " microseconds" << std::endl;
+            std::string exec_time_ms = std::to_string(d) + "\n";
+            WriteToFile(exec_time_ms, TL_RES_PATH, true);
             do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, bulk);
         } else {
             std::cout << "No more batches" << std::endl;
