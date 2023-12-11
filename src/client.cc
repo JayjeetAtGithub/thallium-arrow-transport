@@ -18,7 +18,7 @@ int64_t calc_total_size(std::vector<int64_t> &data_buff_sizes, std::vector<int64
 }
 
 std::shared_ptr<arrow::Schema> read_schema() {
-    std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
+    std::string query = "SELECT * FROM dataset WHERE total_amount >= 530;";
     std::string path = "/mnt/dataset/nyc.parquet";
     std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
     db->Create(path);
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
+    std::string query = "SELECT * FROM dataset WHERE total_amount >= 530;";
     std::string path = "/mnt/dataset/nyc.1.parquet";
 
     // Run 1000 iterations of reading a single byte from the server
