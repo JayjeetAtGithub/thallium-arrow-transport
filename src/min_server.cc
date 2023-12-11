@@ -38,7 +38,11 @@ int main(int argc, char** argv) {
         segments.emplace_back(std::make_pair((void*)(&data[0]), data.size()));
 
         // Expose the segment and send it as argument to `do_rdma`
+        auto s = std::chrono::high_resolution_clock::now();
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
+        auto e = std::chrono::high_resolution_clock::now();
+        std::cout << "server.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+
         do_rdma.on(req.get_endpoint())(bulk);
 
         // Respond back with 0

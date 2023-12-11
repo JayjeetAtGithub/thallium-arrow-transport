@@ -38,10 +38,16 @@ int main(int argc, char** argv) {
         segments.emplace_back(std::make_pair((void*)(&data[0]), data_size));
         
         // Expose the segment as a local bulk handle
+        auto s = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+        auto e = std::chrono::high_resolution_clock::now();
+        std::cout << "client.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
 
         // Pull the single byte from the remote bulk handle
+        auto s1 = std::chrono::high_resolution_clock::now();
         bulk.on(req.get_endpoint()) >> local;
+        auto e1 = std::chrono::high_resolution_clock::now();
+        std::cout << "rdma: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
         
         // Respond back with 0
         return req.respond(0);
@@ -56,16 +62,8 @@ int main(int argc, char** argv) {
     }
 
     // Run 50 iterations of reading a single byte from the server
-    for (int i = 0; i < 50; i++) {
-        auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 200; i++) {
         init_scan.on(endpoint)(0);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-        std::cout << "Iteration of init_scan " << i << " took " << duration << " microseconds" << std::endl;
-    }
-    
-    // Run 50 iterations of reading a single byte from the server
-    for (int i = 0; i < 50; i++) {
         auto start = std::chrono::high_resolution_clock::now();
         get_data_bytes.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();
