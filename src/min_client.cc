@@ -27,8 +27,6 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
         [&engine, &data_size](const tl::request &req, const tl::bulk &bulk) {
-        std::cout << "do_rdma" << std::endl;
-
         // Reserve a single segment
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
@@ -68,7 +66,7 @@ int main(int argc, char** argv) {
         get_data_bytes.on(endpoint)(0);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-        std::cout << "Iteration of get_data_bytes " << i << " took " << duration << " microseconds" << std::endl;
+        std::cout << "total: " << duration << std::endl;
     }
     return 0;
 }
