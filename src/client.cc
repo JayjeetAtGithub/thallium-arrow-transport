@@ -8,15 +8,6 @@
 
 namespace tl = thallium;
 
-int64_t calc_result_size(std::vector<int64_t> &data_buff_sizes, std::vector<int64_t> &offset_buff_sizes) {
-    int64_t result = 0;
-    for (int i = 0; i < data_buff_sizes.size(); i++) {
-        result += data_buff_sizes[i];
-        result += offset_buff_sizes[i];
-    }
-    return result;
-}
-
 std::shared_ptr<arrow::Schema> read_schema() {
     std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
     std::string path = "/mnt/dataset/nyc.parquet";
@@ -62,13 +53,11 @@ int main(int argc, char** argv) {
     // Declare the `get_data_bytes` remote procedure
     tl::remote_procedure get_data_bytes = engine.define("get_data_bytes");
 
+    std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma = 
-        [&engine, &schema](const tl::request &req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk &b) {
-        
-        int64_t result_size = calc_result_size(data_buff_sizes, offset_buff_sizes);
-        std::cout << "Result size: " << result_size << std::endl;
-        
+        [&engine, &schema, &batches](const tl::request &req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk &b) {        
         int num_cols = schema->num_fields();
                     
         std::vector<std::shared_ptr<arrow::Array>> columns;
@@ -105,9 +94,8 @@ int main(int argc, char** argv) {
             }
         }
 
-        std::cout << "Rebuilding batch from columns" << std::endl;
         auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-        std::cout << "Batch: " << batch->ToString() << std::endl;
+        batches.push_back(batch);
 
         // Respond back with 0
         return req.respond(0);
@@ -122,6 +110,11 @@ int main(int argc, char** argv) {
     for (int i = 0; i < 200; i++) {
         call_init_scan_rpc(init_scan, endpoint, query, path);
         call_get_data_bytes_rpc(get_data_bytes, endpoint);
+        // Create an arrow table from the record batches vector
+        std::shared_ptr<arrow::Table> table;
+        auto table = arrow::Table::FromRecordBatches(batches).ValueOrDie();
+        std::cout << "Table: " << table->ToString() << std::endl;
+        std::cout << "Table size: " << table.nbytes << std::endl;
     }
     return 0;
 }
