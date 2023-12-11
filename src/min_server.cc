@@ -4,8 +4,30 @@
 
 #include "utils.h"
 #include "constants.h"
+#include <iostream>
+#include <string>
+#include <random>
 
 namespace tl = thallium;
+
+
+std::string generateRandomString(int N) {
+    // Define the characters allowed in the random string
+    const std::string allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    // Create a random number generator
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<int> distribution(0, allowedChars.size() - 1);
+
+    // Generate the random string
+    std::string randomString;
+    for (int i = 0; i < N; ++i) {
+        randomString += allowedChars[distribution(generator)];
+    }
+
+    return randomString;
+}
 
 int main(int argc, char** argv) {
     int32_t data_size = argv[1] ? atoi(argv[1]) : 1;
@@ -30,11 +52,7 @@ int main(int argc, char** argv) {
         segments.reserve(1);
         
         // Map the buffer for the single char to the segment
-        std::string data = "";
-        // Append `n` chars to the string
-        for (int32_t i = 0; i < data_size; i++) {
-            data += "x";
-        }
+        std::string data = generateRandomString(data_size);
         segments.emplace_back(std::make_pair((void*)(&data[0]), data.size()));
 
         // Expose the segment and send it as argument to `do_rdma`
