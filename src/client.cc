@@ -57,13 +57,15 @@ int main(int argc, char** argv) {
     std::function<void(const tl::request&, int64_t&, tl::bulk&)> do_rdma = 
         [&engine, &schema](const tl::request &req, int64_t& data_size, tl::bulk &bulk) {
         // Reserve a single segment
+        // Allocate memory for a single char and add it to the segment
+        auto s4 = std::chrono::high_resolution_clock::now();
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
-
-        // Allocate memory for a single char and add it to the segment
         std::shared_ptr<arrow::Buffer> buff = arrow::AllocateBuffer(data_size).ValueOrDie();
         segments.emplace_back(std::make_pair((void*)buff->mutable_data(), buff->size()));
-        
+        auto e4 = std::chrono::high_resolution_clock::now();
+        std::cout << "allocate_buffer: " << std::chrono::duration_cast<std::chrono::microseconds>(e4-s4).count() << std::endl;
+ 
         // Expose the segment as a local bulk handle
         auto s = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);

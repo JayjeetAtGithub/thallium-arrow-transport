@@ -18,7 +18,6 @@ int main(int argc, char** argv) {
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
     std::unordered_map<int, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
-
     // Define the `init_scan` procedure
     // This procedure reads out a single batch from the result iterator
     std::function<void(const tl::request&, const std::string&, const std::string&, const int64_t&)> init_scan = 
@@ -45,8 +44,11 @@ int main(int argc, char** argv) {
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
 
+        auto s3 = std::chrono::high_resolution_clock::now();
         std::shared_ptr<arrow::RecordBatch> batch;
         reader_map[0]->ReadNext(&batch);
+        auto e3 = std::chrono::high_resolution_clock::now();
+        std::cout << "read_next: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
 
         // Read out a single batch
         auto s2 = std::chrono::high_resolution_clock::now();
@@ -54,10 +56,9 @@ int main(int argc, char** argv) {
         auto e2 = std::chrono::high_resolution_clock::now();
         std::cout << "pack_batch: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
-        segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
-
         // Expose the segment and send it as argument to `do_rdma`
         auto s = std::chrono::high_resolution_clock::now();
+        segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
         auto e = std::chrono::high_resolution_clock::now();
         auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
