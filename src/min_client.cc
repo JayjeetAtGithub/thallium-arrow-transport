@@ -4,6 +4,21 @@
 
 namespace tl = thallium;
 
+void call_init_scan_rpc(tl::remote_procedure &init_scan, tl::endpoint& endpoint) {
+    init_scan.on(endpoint)(query, path, 0);
+}
+
+void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint& endpoint) {
+    for (int i = 0; i < 100; i++) {
+        get_data_bytes.on(endpoint)(1);
+    }
+    auto start = std::chrono::high_resolution_clock::now();
+    get_data_bytes.on(endpoint)(0);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    std::cout << "total: " << duration << std::endl;
+}
+
 int main(int argc, char** argv) {
     if(argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <address>" << std::endl;
@@ -53,20 +68,10 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    // Warmup
-    for (int i = 0; i < 100; i++) {
-        init_scan.on(endpoint)(1);
-        get_data_bytes.on(endpoint)(1);
-    }
-
     // Run 50 iterations of reading a single byte from the server
     for (int i = 0; i < 200; i++) {
-        init_scan.on(endpoint)(0);
-        auto start = std::chrono::high_resolution_clock::now();
-        get_data_bytes.on(endpoint)(0);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-        std::cout << "total: " << duration << std::endl;
+        call_init_scan_rpc(init_scan, endpoint);
+        call_get_data_bytes_rpc(get_data_bytes, endpoint);
     }
     return 0;
 }
