@@ -52,9 +52,7 @@ int main(int argc, char** argv) {
         auto s2 = std::chrono::high_resolution_clock::now();
         std::string data = generateRandomString(data_size);
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "generateRandomString: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
-
-        std::cout << "Sending: " << data << std::endl;
+        std::cout << "generate_data: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
         segments.emplace_back(std::make_pair((void*)(&data[0]), data.size()));
 
@@ -78,7 +76,6 @@ int main(int argc, char** argv) {
             if (warmup == 1) {
                 return req.respond(0);
             }
-            std::cout << "init_scan" << std::endl;
             return req.respond(0);
     };
     // Declare the `init_scan` procedure
