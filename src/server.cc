@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     // Declare the `do_rdma` remote procedure
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
-    std::unordered_map<int, std::shared_ptr<arrow::RecordBatch>> reader_map;
+    std::unordered_map<int, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
 
     // Define the `init_scan` procedure
     // This procedure reads out a single batch from the result iterator
@@ -29,9 +29,7 @@ int main(int argc, char** argv) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-            std::shared_ptr<arrow::RecordBatch> batch;
-            reader->ReadNext(&batch);
-            reader_map[0] = batch;
+            reader_map[0] = reader;
             return req.respond(0);
     };
 
@@ -47,9 +45,12 @@ int main(int argc, char** argv) {
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
 
+        std::shared_ptr<arrow::RecordBatch> batch;
+        reader_map[0]->ReadNext(&batch);
+
         // Read out a single batch
         auto s2 = std::chrono::high_resolution_clock::now();
-        auto buff = PackBatch(reader_map[0]);
+        auto buff = PackBatch(batch);
         auto e2 = std::chrono::high_resolution_clock::now();
         std::cout << "pack_batch: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
