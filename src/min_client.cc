@@ -5,7 +5,7 @@
 namespace tl = thallium;
 
 void call_init_scan_rpc(tl::remote_procedure &init_scan, tl::endpoint& endpoint) {
-    init_scan.on(endpoint)(query, path, 0);
+    init_scan.on(endpoint)(0);
 }
 
 void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint& endpoint) {
