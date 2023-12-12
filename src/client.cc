@@ -22,7 +22,7 @@ void call_init_scan_rpc(tl::remote_procedure &init_scan, tl::endpoint& endpoint,
 }
 
 void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint& endpoint) {
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 200; i++) {
         get_data_bytes.on(endpoint)(1);
     }
     auto start = std::chrono::high_resolution_clock::now();
@@ -56,8 +56,6 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, int64_t&, tl::bulk&)> do_rdma = 
         [&engine, &schema](const tl::request &req, int64_t& data_size, tl::bulk &bulk) {
-        std::cout << "do_rdma : " << data_size << std::endl;
-
         // Reserve a single segment
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
@@ -70,20 +68,18 @@ int main(int argc, char** argv) {
         auto s = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
         auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "expose took " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << " microseconds" << std::endl;
+        std::cout << "client.expose " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
 
         // Pull the single byte from the remote bulk handle
         auto s2 = std::chrono::high_resolution_clock::now();
         bulk.on(req.get_endpoint()) >> local;
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "rdma pull took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
+        std::cout << "rdma: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
         auto s3 = std::chrono::high_resolution_clock::now();
         auto batch = UnpackBatch(buff, schema);
         auto e3 = std::chrono::high_resolution_clock::now();
-        std::cout << "unpack took " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << " microseconds" << std::endl;
-
-        std::cout << "Batch: " << batch->ToString() << std::endl;
+        std::cout << "unpack: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
 
         // Respond back with 0
         return req.respond(0);

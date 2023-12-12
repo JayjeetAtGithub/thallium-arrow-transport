@@ -24,10 +24,8 @@ int main(int argc, char** argv) {
     std::function<void(const tl::request&, const std::string&, const std::string&, const int64_t&)> init_scan = 
         [&reader_map](const tl::request &req, const std::string& query, const std::string& path, const int64_t& warmup) {
             if (warmup == 1) {
-                std::cout << "Warmup init_scan" << std::endl;
                 return req.respond(0);
             }
-            std::cout << "init_scan" << std::endl;
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
@@ -42,7 +40,6 @@ int main(int argc, char** argv) {
     [&do_rdma, &engine, &reader_map](const tl::request &req, const int& warmup) {
         // If warmup, then just return
         if (warmup == 1) {
-            std::cout << "Warmup" << std::endl;
             return req.respond(0);
         }
 
@@ -54,7 +51,7 @@ int main(int argc, char** argv) {
         auto s2 = std::chrono::high_resolution_clock::now();
         auto buff = PackBatch(reader_map[0]);
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "pack took " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << " microseconds" << std::endl;
+        std::cout << "pack_batch: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
         segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
 
@@ -63,9 +60,8 @@ int main(int argc, char** argv) {
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
         auto e = std::chrono::high_resolution_clock::now();
         auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
-        std::cout << "expose took " << d << " microseconds" << std::endl;
+        std::cout << "server.expose: " << d << std::endl;
         do_rdma.on(req.get_endpoint())(buff->size(), bulk);
-
 
         // Respond back with 0
         return req.respond(0);
