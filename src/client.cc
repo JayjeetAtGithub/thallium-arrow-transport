@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
         auto s = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
         auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "client.expose " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+        std::cout << "client.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
 
         // Pull the single byte from the remote bulk handle
         auto s2 = std::chrono::high_resolution_clock::now();
