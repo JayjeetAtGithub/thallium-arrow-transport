@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
     segments.reserve(20);
     for (int i = 0; i < 20; i++) {
         char *data = new char[128];
-        segments.emplace_back(std::make_pair((void*)(&data[0]), data_size));
+        segments.emplace_back(std::make_pair((void*)data, data_size));
     }
     auto s = std::chrono::high_resolution_clock::now();
     tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_write);
