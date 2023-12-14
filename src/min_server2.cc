@@ -38,28 +38,28 @@ int main(int argc, char** argv) {
     // Declare the `do_rdma` remote procedure
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
+    // Preregister some buffers
+    std::vector<std::pair<void*,std::size_t>> segments;
+    segments.reserve(20);
+    for (int i = 0; i < 20; i++) {
+        char *data = new char[128];
+        segments.emplace_back(std::make_pair((void*)(&data[0]), data_size));
+    }
+
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
     [&do_rdma, &engine, &data_size](const tl::request &req, const int& warmup) {
         if (warmup == 1) {
             return req.respond(0);
-        }        
-        // Reserve a single segment
-        std::vector<std::pair<void*,std::size_t>> segments;
-        segments.reserve(20);
+        }
 
-        auto s2 = std::chrono::high_resolution_clock::now();
         std::vector<std::string> dataset;
         for (int i = 0; i < 20; i++) {
-            dataset.emplace_back(generateRandomString(data_size));
+            std::string s = generateRandomString(data_size);
+            // copy this into the segment
+            std::memcpy(segments[i].first, s.c_str(), data_size);
         }
-        auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "generate_random_strings: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
-        for (int i = 0; i < 20; i++) {
-            segments.emplace_back(std::make_pair((void*)(&dataset[i][0]), dataset[i].size()));
-        }
-        
         // Expose the segment and send it as argument to `do_rdma`
         auto s = std::chrono::high_resolution_clock::now();
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
