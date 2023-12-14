@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
-    [&do_rdma, &engine, &data_size](const tl::request &req, const int& warmup) {
+    [&do_rdma, &engine, &data_size, &segments](const tl::request &req, const int& warmup) {
         if (warmup == 1) {
             return req.respond(0);
         }
