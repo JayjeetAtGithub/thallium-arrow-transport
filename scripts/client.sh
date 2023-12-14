@@ -29,6 +29,9 @@ while IFS= read -r query; do
         elif [ "$binary" == "c" ]; then
             uri=$(cat /proj/schedock-PG0/thallium_uri)
             $PWD/bin/"$binary" $uri || true
+        elif [ "$binary" == "c2" ]; then
+            uri=$(cat /proj/schedock-PG0/thallium_uri)
+            $PWD/bin/"$binary" $uri || true
         else
             $PWD/bin/"$binary" "/mnt/dataset/nyc.*.parquet" "$query" || true
         fi
