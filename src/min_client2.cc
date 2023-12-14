@@ -38,26 +38,26 @@ int main(int argc, char** argv) {
 
     // Define the `init_scan` remote procedure
     tl::remote_procedure init_scan = engine.define("init_scan");
+    
+    auto s2 = std::chrono::high_resolution_clock::now();
+    std::vector<std::pair<void*,std::size_t>> segments;
+    segments.reserve(20);
+    for (int i = 0; i < 20; i++) {
+        char *data = new char[128];
+        segments.emplace_back(std::make_pair((void*)(&data[0]), data_size));
+    }
+    auto e2 = std::chrono::high_resolution_clock::now();
+    std::cout << "create_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
+
+    // Expose the segment as a local bulk handle
+    auto s = std::chrono::high_resolution_clock::now();
+    tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+    auto e = std::chrono::high_resolution_clock::now();
+    std::cout << "client.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
 
     // Define the `do_rdma` remote procedure
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
-        [&engine, &data_size](const tl::request &req, const tl::bulk &bulk) {
-        // Reserve a single segment
-        auto s2 = std::chrono::high_resolution_clock::now();
-        std::vector<std::pair<void*,std::size_t>> segments;
-        segments.reserve(20);
-        for (int i = 0; i < 20; i++) {
-            char *data = new char[data_size];
-            segments.emplace_back(std::make_pair((void*)(&data[0]), data_size));
-        }
-        auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "create_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
-        
-        // Expose the segment as a local bulk handle
-        auto s = std::chrono::high_resolution_clock::now();
-        tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
-        auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "client.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+        [&engine, &local](const tl::request &req, const tl::bulk &bulk) {
 
         // Pull the single byte from the remote bulk handle
         auto s1 = std::chrono::high_resolution_clock::now();
