@@ -44,25 +44,26 @@ int main(int argc, char** argv) {
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
 
-        auto s3 = std::chrono::high_resolution_clock::now();
+        auto s1 = std::chrono::high_resolution_clock::now();
         std::shared_ptr<arrow::RecordBatch> batch;
         reader_map[0]->ReadNext(&batch);
-        auto e3 = std::chrono::high_resolution_clock::now();
-        std::cout << "read_next: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
+        auto e1 = std::chrono::high_resolution_clock::now();
+        std::cout << "server/read_next: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
 
         // Read out a single batch
         auto s2 = std::chrono::high_resolution_clock::now();
         auto buff = PackBatch(batch);
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "pack_batch: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
+        std::cout << "server/pack_batch: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
+
+        segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
 
         // Expose the segment and send it as argument to `do_rdma`
-        auto s = std::chrono::high_resolution_clock::now();
-        segments.emplace_back(std::make_pair((void*)buff->data(), buff->size()));
+        auto s3 = std::chrono::high_resolution_clock::now();
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
-        auto e = std::chrono::high_resolution_clock::now();
-        auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
-        std::cout << "server.expose: " << d << std::endl;
+        auto e3 = std::chrono::high_resolution_clock::now();
+        std::cout << "server/expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+
         do_rdma.on(req.get_endpoint())(buff->size(), bulk);
 
         // Respond back with 0

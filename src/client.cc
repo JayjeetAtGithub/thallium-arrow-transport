@@ -64,24 +64,24 @@ int main(int argc, char** argv) {
         std::shared_ptr<arrow::Buffer> buff = arrow::AllocateBuffer(data_size).ValueOrDie();
         segments.emplace_back(std::make_pair((void*)buff->mutable_data(), buff->size()));
         auto e4 = std::chrono::high_resolution_clock::now();
-        std::cout << "allocate_buffer: " << std::chrono::duration_cast<std::chrono::microseconds>(e4-s4).count() << std::endl;
+        std::cout << "client/allocate_buffer: " << std::chrono::duration_cast<std::chrono::microseconds>(e4-s4).count() << std::endl;
  
         // Expose the segment as a local bulk handle
-        auto s = std::chrono::high_resolution_clock::now();
+        auto s1 = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
-        auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "client.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+        auto e1 = std::chrono::high_resolution_clock::now();
+        std::cout << "client.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
 
         // Pull the single byte from the remote bulk handle
         auto s2 = std::chrono::high_resolution_clock::now();
         bulk.on(req.get_endpoint()) >> local;
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "rdma: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
+        std::cout << "client/rdma: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
         auto s3 = std::chrono::high_resolution_clock::now();
         auto batch = UnpackBatch(buff, schema);
         auto e3 = std::chrono::high_resolution_clock::now();
-        std::cout << "unpack: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
+        std::cout << "client/unpack_batch: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
 
         // Respond back with 0
         return req.respond(0);
