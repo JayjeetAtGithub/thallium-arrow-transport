@@ -44,9 +44,12 @@ int main(int argc, char** argv) {
         if (warmup == 1) {
             return req.respond(0);
         }        
-        // Reserve a single segment
+
+        auto s1 = std::chrono::high_resolution_clock::now();
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(20);
+        auto e1 = std::chrono::high_resolution_clock::now();
+        std::cout << "server/create_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
 
         auto s2 = std::chrono::high_resolution_clock::now();
         std::vector<std::string> dataset;
@@ -54,17 +57,20 @@ int main(int argc, char** argv) {
             dataset.emplace_back(generateRandomString(data_size));
         }
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "generate_random_strings: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
+        std::cout << "server/generate_data: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
+        auto s3 = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < 20; i++) {
             segments.emplace_back(std::make_pair((void*)(&dataset[i][0]), dataset[i].size()));
         }
+        auto e3 = std::chrono::high_resolution_clock::now();
+        std::cout << "server/popular_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
         
         // Expose the segment and send it as argument to `do_rdma`
-        auto s = std::chrono::high_resolution_clock::now();
+        auto s4 = std::chrono::high_resolution_clock::now();
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
-        auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "server.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+        auto e4 = std::chrono::high_resolution_clock::now();
+        std::cout << "server/expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
 
         do_rdma.on(req.get_endpoint())(bulk);
 
