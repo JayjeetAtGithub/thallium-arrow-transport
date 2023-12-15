@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     engine.define("do_rdma", do_rdma);
 
     // Run 400 iterations of reading a single byte from the server
-    for (int i = 0; i < 400; i++) {
+    for (int i = 0; i < 200; i++) {
         call_init_scan_rpc(init_scan, endpoint);
         call_get_data_bytes_rpc(get_data_bytes, endpoint);
     }
