@@ -18,7 +18,7 @@ int64_t calc_total_size(std::vector<int64_t> &data_buff_sizes, std::vector<int64
 }
 
 std::shared_ptr<arrow::Schema> read_schema() {
-    std::string query = "SELECT * FROM dataset WHERE total_amount >= 335;";
+    std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
     std::string path = "/mnt/dataset/nyc.parquet";
     std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
     db->Create(path);
@@ -31,14 +31,14 @@ void call_init_scan_rpc(tl::remote_procedure &init_scan, tl::endpoint& endpoint,
 }
 
 void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint& endpoint) {
-    for (int i = 0; i < 300; i++) {
+    for (int i = 0; i < 200; i++) {
         get_data_bytes.on(endpoint)(1);
     }
     auto start = std::chrono::high_resolution_clock::now();
     get_data_bytes.on(endpoint)(0);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-    std::cout << "get_data_bytes: " << duration << std::endl;
+    std::cout << "client/total: " << duration << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -69,7 +69,8 @@ int main(int argc, char** argv) {
         std::cout << calc_total_size(data_buff_sizes, offset_buff_sizes) << std::endl;
         
         int num_cols = schema->num_fields();
-                    
+        
+        auto s1 = std::chrono::high_resolution_clock::now();
         std::vector<std::shared_ptr<arrow::Array>> columns;
         std::vector<std::unique_ptr<arrow::Buffer>> data_buffs(num_cols);
         std::vector<std::unique_ptr<arrow::Buffer>> offset_buffs(num_cols);
@@ -89,19 +90,23 @@ int main(int argc, char** argv) {
                 offset_buff_sizes[i]
             ));
         }
-
-        auto s = std::chrono::high_resolution_clock::now();
-        tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
-        auto e = std::chrono::high_resolution_clock::now();
-        auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
-        std::cout << "clientexpose: " << d << std::endl;
-
-        auto s1 = std::chrono::high_resolution_clock::now();
-        b.on(req.get_endpoint()) >> local;
         auto e1 = std::chrono::high_resolution_clock::now();
         auto d1 = std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count();
-        std::cout << "rdma: " << d1 << std::endl;
+        std::cout << "client/reserve_segments: " << d1 << std::endl;
 
+        auto s2 = std::chrono::high_resolution_clock::now();
+        tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
+        auto e2 = std::chrono::high_resolution_clock::now();
+        auto d2 = std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count();
+        std::cout << "client/expose: " << d2 << std::endl;
+
+        auto s3 = std::chrono::high_resolution_clock::now();
+        b.on(req.get_endpoint()) >> local;
+        auto e3 = std::chrono::high_resolution_clock::now();
+        auto d3 = std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count();
+        std::cout << "client/rdma: " << d1 << std::endl;
+
+        auto s4 = std::chrono::high_resolution_clock::now();
         for (int64_t i = 0; i < num_cols; i++) {
             std::shared_ptr<arrow::DataType> type = schema->field(i)->type();  
             if (is_base_binary_like(type->id())) {
@@ -112,8 +117,10 @@ int main(int argc, char** argv) {
                 columns.push_back(col_arr);
             }
         }
-
         auto batch = arrow::RecordBatch::Make(schema, num_rows, columns);
+        auto e4 = std::chrono::high_resolution_clock::now();
+        auto d4 = std::chrono::duration_cast<std::chrono::microseconds>(e4-s4).count();
+        std::cout << "client/make_batch: " << d4 << std::endl;
 
         // Respond back with 0
         return req.respond(0);
@@ -121,7 +128,7 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    std::string query = "SELECT * FROM dataset WHERE total_amount >= 335;";
+    std::string query = "SELECT * FROM dataset WHERE total_amount >= 1030;";
     std::string path = "/mnt/dataset/nyc.1.parquet";
 
     // Run 1000 iterations of reading a single byte from the server

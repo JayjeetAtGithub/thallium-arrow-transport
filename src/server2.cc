@@ -9,7 +9,6 @@
 
 namespace tl = thallium;
 
-
 int main(int argc, char** argv) {
     // Define the thallium server
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
@@ -29,8 +28,6 @@ int main(int argc, char** argv) {
             std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
             db->Create(path);
             std::shared_ptr<arrow::RecordBatchReader> reader = db->Execute(query);
-            // std::shared_ptr<arrow::RecordBatch> batch;
-            // reader->ReadNext(&batch);
             reader_map[0] = reader;
             return req.respond(0);
     };
@@ -50,18 +47,22 @@ int main(int argc, char** argv) {
         reader->ReadNext(&batch);
         auto e1 = std::chrono::high_resolution_clock::now();
         auto d1 = std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count();
-        std::cout << "ReadNext: " << d1 << std::endl;
+        std::cout << "server/read_next: " << d1 << std::endl;
 
         if (batch != nullptr) {
+            auto s2 = std::chrono::high_resolution_clock::now();
             std::vector<int64_t> data_buff_sizes;
             std::vector<int64_t> offset_buff_sizes;
             int64_t num_rows = batch->num_rows();
-
             std::vector<std::pair<void*,std::size_t>> segments;
             segments.reserve(batch->num_columns()*2);
+            auto e2 = std::chrono::high_resolution_clock::now();
+            auto d2 = std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count();
+            std::cout << "server/create_segments: " << d2 << std::endl;
 
             std::string null_buff = "x";
 
+            auto s3 = std::chrono::high_resolution_clock::now();
             for (int64_t i = 0; i < batch->num_columns(); i++) {
                 std::shared_ptr<arrow::Array> col_arr = batch->column(i);
 
@@ -92,13 +93,16 @@ int main(int argc, char** argv) {
                 data_buff_sizes.push_back(data_size);
                 offset_buff_sizes.push_back(offset_size);
             }
+            auto e3 = std::chrono::high_resolution_clock::now();
+            auto d3 = std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count();
+            std::cout << "server/populate_segments: " << d3 << std::endl;
 
             // Expose the segment and send it as argument to `do_rdma`
-            auto s = std::chrono::high_resolution_clock::now();
+            auto s4 = std::chrono::high_resolution_clock::now();
             tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
-            auto e = std::chrono::high_resolution_clock::now();
-            auto d = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
-            std::cout << "serverexpose: " << d << std::endl;
+            auto e4 = std::chrono::high_resolution_clock::now();
+            auto d4 = std::chrono::duration_cast<std::chrono::microseconds>(e4-s4).count();
+            std::cout << "server/expose: " << d4 << std::endl;
             do_rdma.on(req.get_endpoint())(num_rows, data_buff_sizes, offset_buff_sizes, bulk);
         } else {
             std::cout << "No more batches" << std::endl;
