@@ -29,7 +29,7 @@ void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint&
     get_data_bytes.on(endpoint)(0);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-    std::cout << "total: " << duration << std::endl;
+    std::cout << "client/total: " << duration << std::endl;
 }
 
 int main(int argc, char** argv) {
