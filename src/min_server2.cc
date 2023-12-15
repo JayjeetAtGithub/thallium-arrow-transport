@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
         auto s4 = std::chrono::high_resolution_clock::now();
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
         auto e4 = std::chrono::high_resolution_clock::now();
-        std::cout << "server/expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+        std::cout << "server/expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e4-s4).count() << std::endl;
 
         do_rdma.on(req.get_endpoint())(bulk);
 
