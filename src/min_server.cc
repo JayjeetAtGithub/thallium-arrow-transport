@@ -10,7 +10,6 @@
 
 namespace tl = thallium;
 
-
 std::string generateRandomString(int N) {
     // Define the characters allowed in the random string
     const std::string allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -52,15 +51,15 @@ int main(int argc, char** argv) {
         auto s2 = std::chrono::high_resolution_clock::now();
         std::string data = generateRandomString(data_size);
         auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "generate_data: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
+        std::cout << "server/generate_data: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
         segments.emplace_back(std::make_pair((void*)(&data[0]), data.size()));
 
         // Expose the segment and send it as argument to `do_rdma`
-        auto s = std::chrono::high_resolution_clock::now();
+        auto s3 = std::chrono::high_resolution_clock::now();
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
-        auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "server.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+        auto e3 = std::chrono::high_resolution_clock::now();
+        std::cout << "server/expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
 
         do_rdma.on(req.get_endpoint())(bulk);
 

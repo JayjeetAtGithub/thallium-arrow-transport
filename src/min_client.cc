@@ -12,10 +12,10 @@ void call_get_data_bytes_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint&
     for (int i = 0; i < 200; i++) {
         get_data_bytes.on(endpoint)(1);
     }
-    auto start = std::chrono::high_resolution_clock::now();
+    auto s = std::chrono::high_resolution_clock::now();
     get_data_bytes.on(endpoint)(0);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    auto e = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
     std::cout << "total: " << duration << std::endl;
 }
 
@@ -43,24 +43,25 @@ int main(int argc, char** argv) {
     std::function<void(const tl::request&, const tl::bulk&)> do_rdma = 
         [&engine, &data_size](const tl::request &req, const tl::bulk &bulk) {
         // Reserve a single segment
+        auto s1 = std::chrono::high_resolution_clock::now();
         std::vector<std::pair<void*,std::size_t>> segments;
         segments.reserve(1);
-
-        // Allocate memory for a single char and add it to the segment
         char *data = new char[data_size];
         segments.emplace_back(std::make_pair((void*)(&data[0]), data_size));
+        auto e1 = std::chrono::high_resolution_clock::now();
+        std::cout << "client/create_segment: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
         
         // Expose the segment as a local bulk handle
-        auto s = std::chrono::high_resolution_clock::now();
+        auto s2 = std::chrono::high_resolution_clock::now();
         tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
-        auto e = std::chrono::high_resolution_clock::now();
-        std::cout << "client.expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e-s).count() << std::endl;
+        auto e2 = std::chrono::high_resolution_clock::now();
+        std::cout << "client/expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
         // Pull the single byte from the remote bulk handle
-        auto s1 = std::chrono::high_resolution_clock::now();
+        auto s3 = std::chrono::high_resolution_clock::now();
         bulk.on(req.get_endpoint()) >> local;
-        auto e1 = std::chrono::high_resolution_clock::now();
-        std::cout << "rdma: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
+        auto e3 = std::chrono::high_resolution_clock::now();
+        std::cout << "client/rdma_pull: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
         
         // Respond back with 0
         return req.respond(0);
@@ -68,8 +69,8 @@ int main(int argc, char** argv) {
     // Define the `do_rdma` procedure
     engine.define("do_rdma", do_rdma);
 
-    // Run 50 iterations of reading a single byte from the server
-    for (int i = 0; i < 200; i++) {
+    // Run 400 iterations of reading a single byte from the server
+    for (int i = 0; i < 400; i++) {
         call_init_scan_rpc(init_scan, endpoint);
         call_get_data_bytes_rpc(get_data_bytes, endpoint);
     }
