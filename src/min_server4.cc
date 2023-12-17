@@ -39,15 +39,14 @@ int main(int argc, char** argv) {
     tl::remote_procedure do_rdma = engine.define("do_rdma");
 
     // Generate a set of `20` strings to use everytime
-    std::vector<std::string> dataset;
+    std::vector<std::string> list_of_strs;
     for (int i = 0; i < 20; i++) {
-        std::string data_str = generateRandomString(data_size);
-        dataset.push_back(data_str);
+        list_of_strs.push_back(generateRandomString(data_size));
     }
 
     // Define the `get_data_bytes` procedure
     std::function<void(const tl::request&, const int&)> get_data_bytes = 
-    [&do_rdma, &engine, &dataset](const tl::request &req, const int& warmup) {
+    [&do_rdma, &engine, &list_of_strs](const tl::request &req, const int& warmup) {
         if (warmup == 1) {
             return req.respond(0);
         }        
@@ -57,6 +56,14 @@ int main(int argc, char** argv) {
         segments.reserve(20);
         auto e1 = std::chrono::high_resolution_clock::now();
         std::cout << "server/create_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
+
+        auto s2 = std::chrono::high_resolution_clock::now();
+        std::vector<std::string> dataset;
+        for (int i = 0; i < 20; i++) {
+            dataset.emplace_back(list_of_strs[i]);
+        }
+        auto e2 = std::chrono::high_resolution_clock::now();
+        std::cout << "server/generate_data: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
 
         auto s3 = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < 20; i++) {
