@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     // Generate a set of `20` strings to use everytime
     std::vector<std::string> dataset;
     for (int i = 0; i < 20; i++) {
-        dataset.emplace_back(generateRandomString(data_size));
+        dataset.push_back(generateRandomString(data_size));
     }
 
     // Define the `get_data_bytes` procedure
