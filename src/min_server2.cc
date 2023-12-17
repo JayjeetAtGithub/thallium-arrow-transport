@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
             segments.emplace_back(std::make_pair((void*)(&dataset[i][0]), dataset[i].size()));
         }
         auto e3 = std::chrono::high_resolution_clock::now();
-        std::cout << "server/popular_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
+        std::cout << "server/populate_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
         
         // Expose the segment and send it as argument to `do_rdma`
         auto s4 = std::chrono::high_resolution_clock::now();
