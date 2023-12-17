@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 
         auto s3 = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < 20; i++) {
-            segments.emplace_back(std::make_pair((void*)(&dataset[i][0]), dataset[i].size()));
+            segments.emplace_back(std::make_pair((void*)(dataset[i].c_str()), dataset[i].size()));
         }
         auto e3 = std::chrono::high_resolution_clock::now();
         std::cout << "server/populate_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
