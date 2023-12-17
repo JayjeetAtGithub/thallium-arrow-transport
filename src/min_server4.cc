@@ -59,9 +59,9 @@ int main(int argc, char** argv) {
 
         auto s2 = std::chrono::high_resolution_clock::now();
         std::cout << list_of_strs.size() << std::endl;
-        std::vector<std::string> dataset;
+        std::vector<std::string> dataset(list_of_strs.size());
         for (int i = 0; i < 20; i++) {
-            dataset.push_back(list_of_strs[i]);
+            dataset.emplace_back(list_of_strs[i]);
         }
         auto e2 = std::chrono::high_resolution_clock::now();
         std::cout << "server/generate_data: " << std::chrono::duration_cast<std::chrono::microseconds>(e2-s2).count() << std::endl;
