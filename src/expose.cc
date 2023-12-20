@@ -67,9 +67,6 @@ int main(int argc, char** argv) {
     auto e4 = std::chrono::high_resolution_clock::now();
     std::cout << "server/expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e4-s4).count() << std::endl;
 
-    // Respond back with 0
-    return req.respond(0);
-
     // Write the server URI to a file
     return 0;
 }
