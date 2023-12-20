@@ -53,3 +53,6 @@ target_link_libraries(fc arrow arrow_dataset arrow_flight parquet duckdb)
 
 add_executable(fs flight_server.cc)
 target_link_libraries(fs arrow arrow_dataset arrow_flight parquet duckdb)
+
+add_executable(expose expose.cc)
+target_link_libraries(expose thallium arrow arrow_dataset parquet duckdb)
