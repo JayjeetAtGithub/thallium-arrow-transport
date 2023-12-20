@@ -46,7 +46,6 @@ int main(int argc, char** argv) {
     std::cout << "server/create_segments: " << std::chrono::duration_cast<std::chrono::microseconds>(e1-s1).count() << std::endl;
 
     auto s2 = std::chrono::high_resolution_clock::now();
-    std::cout << list_of_strs.size() << std::endl;
     std::vector<std::string> dataset(list_of_strs.size());
     for (int i = 0; i < 20; i++) {
         dataset.emplace_back(list_of_strs[i]);
