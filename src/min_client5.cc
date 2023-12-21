@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 
     // Run 400 iterations of reading a single byte from the server
     for (int i = 0; i < 200; i++) {
-        expose_memory_rpc(get_data_bytes, endpoint);
+        expose_memory_rpc(expose_memory, endpoint);
     }
     return 0;
 }
