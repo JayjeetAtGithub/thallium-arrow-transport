@@ -48,6 +48,12 @@ target_link_libraries(min_client5 thallium arrow arrow_dataset parquet duckdb)
 add_executable(min_server5 min_server5.cc)
 target_link_libraries(min_server5 thallium arrow arrow_dataset parquet duckdb)
 
+add_executable(min_client6 min_client6.cc)
+target_link_libraries(min_client6 thallium arrow arrow_dataset parquet duckdb)
+
+add_executable(min_server6 min_server6.cc)
+target_link_libraries(min_server6 thallium arrow arrow_dataset parquet duckdb)
+
 add_executable(tc thallium_client.cc)
 target_link_libraries(tc thallium arrow arrow_dataset duckdb)
 
