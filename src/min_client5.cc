@@ -32,9 +32,6 @@ int main(int argc, char** argv) {
     // Declare the `expose_memory` remote procedure
     tl::remote_procedure expose_memory = engine.define("expose_memory");
 
-    // Define the `do_rdma` procedure
-    engine.define("do_rdma", do_rdma);
-
     // Run 400 iterations of reading a single byte from the server
     for (int i = 0; i < 200; i++) {
         expose_memory_rpc(expose_memory, endpoint);

@@ -34,14 +34,11 @@ int main(int argc, char** argv) {
     // Define the thallium server
     tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
 
-    // Declare the `do_rdma` remote procedure
-    tl::remote_procedure do_rdma = engine.define("do_rdma");
-
     std::string data_str = generateRandomString(data_size);
 
     // Define the `expose_memory` procedure
     std::function<void(const tl::request&, const int&)> expose_memory = 
-    [&do_rdma, &engine, &data_str](const tl::request &req, const int& warmup) {
+    [&engine, &data_str](const tl::request &req, const int& warmup) {
         if (warmup == 1) {
             return req.respond(0);
         }        
@@ -51,7 +48,7 @@ int main(int argc, char** argv) {
         
         segments.emplace_back(std::make_pair((void*)(&data_str[0]), data_str.size()));
 
-        // Expose the segment and send it as argument to `do_rdma`
+        // Expose the segment
         auto s3 = std::chrono::high_resolution_clock::now();
         tl::bulk bulk = engine.expose(segments, tl::bulk_mode::read_only);
         auto e3 = std::chrono::high_resolution_clock::now();
