@@ -57,8 +57,6 @@ int main(int argc, char** argv) {
         auto e3 = std::chrono::high_resolution_clock::now();
         std::cout << "server/expose: " << std::chrono::duration_cast<std::chrono::microseconds>(e3-s3).count() << std::endl;
 
-        do_rdma.on(req.get_endpoint())(bulk);
-
         // Respond back with 0
         return req.respond(0);
     };
