@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
     std::string data_str = generateRandomString(data_size);
 
-    // Define the `get_data_bytes` procedure
+    // Define the `expose_memory` procedure
     std::function<void(const tl::request&, const int&)> expose_memory = 
     [&do_rdma, &engine, &data_str](const tl::request &req, const int& warmup) {
         if (warmup == 1) {
