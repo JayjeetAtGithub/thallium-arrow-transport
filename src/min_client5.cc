@@ -4,12 +4,12 @@
 
 namespace tl = thallium;
 
-void expose_memory_rpc(tl::remote_procedure &get_data_bytes, tl::endpoint& endpoint) {
+void expose_memory_rpc(tl::remote_procedure &expose_memory, tl::endpoint& endpoint) {
     for (int i = 0; i < 200; i++) {
-        get_data_bytes.on(endpoint)(1);
+        expose_memory.on(endpoint)(1);
     }
     auto s = std::chrono::high_resolution_clock::now();
-    get_data_bytes.on(endpoint)(0);
+    expose_memory.on(endpoint)(0);
     auto e = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(e-s).count();
     std::cout << "client/total: " << duration << std::endl;
