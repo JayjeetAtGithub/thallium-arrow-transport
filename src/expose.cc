@@ -32,7 +32,7 @@ std::string GenerateData(int N) {
 int main(int argc, char** argv) {
     int32_t data_size = argv[1] ? atoi(argv[1]) : 1;
 
-    tl::engine engine("ofi+verbs", THALLIUM_CLIENT_MODE);
+    tl::engine engine("ofi+verbs", THALLIUM_SERVER_MODE);
 
     std::vector<std::string> list_of_strs;
     for (int i = 0; i < 20; i++) {
