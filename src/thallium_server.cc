@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    int64_t start_opt_batch_threshold = stoi(argv[1]);
+    int64_t start_opt_batch_threshold = std::stoi(argv[1]);
 
     std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
     std::function<void(const tl::request&, const std::string&, const std::string&)> init_scan = 
