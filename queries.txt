@@ -1,6 +1,1 @@
-SELECT * FROM dataset WHERE total_amount >= 63;
-SELECT * FROM dataset WHERE total_amount >= 104;
-SELECT * FROM dataset WHERE total_amount >= 178;
-SELECT * FROM dataset WHERE total_amount >= 335;
-SELECT * FROM dataset WHERE total_amount >= 530;
 SELECT * FROM dataset WHERE total_amount >= 1030;
