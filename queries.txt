@@ -1,1 +1,6 @@
-SELECT * FROM dataset WHERE total_amount >= 1030;
+SELECT * FROM dataset;
+SELECT VendorID, mta_tax, passenger_count, trip_distance, payment_type, fare_amount, tip_amount, tolls_amount, improvement_surcharge, congestion_surcharge, Airport_free, PULocationID, DOLocationID, RatecodeID, store_and_fwd_flag, tpep_pickup_time, tpep_dropoff_time FROM dataset;
+SELECT trip_distance, payment_type, fare_amount, tip_amount, tolls_amount, improvement_surcharge, congestion_surcharge, Airport_free, PULocationID, DOLocationID, RatecodeID, store_and_fwd_flag, tpep_pickup_time, tpep_dropoff_time FROM dataset;
+SELECT tolls_amount, improvement_surcharge, congestion_surcharge, Airport_free, PULocationID, DOLocationID, RatecodeID, store_and_fwd_flag, tpep_pickup_time, tpep_dropoff_time FROM dataset;
+SELECT DOLocationID, RatecodeID, store_and_fwd_flag, tpep_pickup_time, tpep_dropoff_time FROM dataset;
+SELECT tpep_dropoff_time FROM dataset;
