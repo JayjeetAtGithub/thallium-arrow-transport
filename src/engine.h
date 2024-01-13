@@ -8,56 +8,6 @@
 
 #include "constants.h"
 
-auto schema = arrow::schema({
-    arrow::field("VendorID", arrow::int64()),
-    arrow::field("tpep_pickup_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-    arrow::field("tpep_dropoff_datetime", arrow::timestamp(arrow::TimeUnit::MICRO)),
-    arrow::field("passenger_count", arrow::int64()),
-    arrow::field("trip_distance", arrow::float64()),
-    arrow::field("RatecodeID", arrow::int64()),
-    arrow::field("store_and_fwd_flag", arrow::utf8()),
-    arrow::field("PULocationID", arrow::int64()),
-    arrow::field("DOLocationID", arrow::int64()),
-    arrow::field("payment_type", arrow::int64()),
-    arrow::field("fare_amount", arrow::float64()),
-    arrow::field("extra", arrow::float64()),
-    arrow::field("mta_tax", arrow::float64()),
-    arrow::field("tip_amount", arrow::float64()),
-    arrow::field("tolls_amount", arrow::float64()),
-    arrow::field("improvement_surcharge", arrow::float64()),
-    arrow::field("total_amount", arrow::float64())
-});
-
-arrow::compute::Expression GetFilter(const std::string &query) {
-    if (query == "SELECT * FROM dataset;") {
-        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                        arrow::compute::literal(-200));
-    } else if (query == "SELECT * FROM dataset WHERE total_amount > 27;") {
-        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                        arrow::compute::literal(27));
-    } else if (query == "SELECT * FROM dataset WHERE total_amount > 69;") {
-        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                        arrow::compute::literal(69));
-    } else if (query == "SELECT * FROM dataset WHERE total_amount > 104;") {
-        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                        arrow::compute::literal(104));
-    } else if (query == "SELECT * FROM dataset WHERE total_amount > 199;") {
-        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                        arrow::compute::literal(199));
-    } else if (query == "SELECT * FROM dataset WHERE total_amount > 520;") {
-        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                        arrow::compute::literal(520));
-    } else if (query == "SELECT total_amount, fare_amount, tip_amount FROM dataset WHERE total_amount > 520;") {
-        schema = arrow::schema({
-            arrow::field("total_amount", arrow::float64()),
-            arrow::field("fare_amount", arrow::float64()),
-            arrow::field("tip_amount", arrow::float64())
-        });
-        return arrow::compute::greater(arrow::compute::field_ref("total_amount"),
-                                        arrow::compute::literal(520));
-    }
-}
-
 
 class DuckDBRecordBatchReader : public arrow::RecordBatchReader {
     public:
@@ -132,56 +82,4 @@ class DuckDBEngine : public QueryEngine {
     private:
         std::shared_ptr<duckdb::DuckDB> db;
         std::shared_ptr<duckdb::Connection> con;
-};
-
-
-class AceroEngine : public QueryEngine {
-    public:
-        AceroEngine() {}
-
-        void Create(const std::string &path) {
-            dataset_path = path;
-            std::string path_non_const = const_cast<std::string&>(path);
-            path_non_const = path_non_const.substr(0, path_non_const.length() - 2);
-            uri = "file://" + path_non_const;
-        }
-
-        std::shared_ptr<arrow::RecordBatchReader> Execute(const std::string &query) {
-            if (query == "SELECT sum(total_amount) FROM dataset;") {
-                std::shared_ptr<DuckDBEngine> db = std::make_shared<DuckDBEngine>();
-                db->Create(dataset_path);
-                return db->Execute(query);
-            }
-
-            std::string path;
-            auto fs = arrow::fs::FileSystemFromUri(uri, &path).ValueOrDie();
-            arrow::fs::FileSelector s;
-            s.base_dir = std::move(path);
-            s.recursive = true;
-
-            arrow::dataset::FileSystemFactoryOptions options;
-            auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
-
-            auto factory =
-                arrow::dataset::FileSystemDatasetFactory::Make(std::move(fs), s, std::move(format), options).ValueOrDie();
-            arrow::dataset::FinishOptions finish_options;
-            auto dataset = factory->Finish(finish_options).ValueOrDie();
-
-            auto scanner_builder = dataset->NewScan().ValueOrDie();
-            scanner_builder->Filter(GetFilter(query));
-            scanner_builder->UseThreads(true);
-            scanner_builder->BatchSize(BATCH_SIZE);
-            scanner_builder->Project(schema->field_names());
-            auto scanner = scanner_builder->Finish().ValueOrDie();
-            auto table = scanner->ToTable().ValueOrDie();
-
-            auto ds = std::make_shared<arrow::dataset::InMemoryDataset>(table);
-            scanner_builder = ds->NewScan().ValueOrDie();
-            scanner = scanner_builder->Finish().ValueOrDie();
-            return scanner->ToRecordBatchReader().ValueOrDie();
-        }
-
-    protected:
-        std::string dataset_path;
-        std::string uri;
 };
