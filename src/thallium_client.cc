@@ -120,6 +120,7 @@ class ThalliumClient {
 
                     batch = arrow::RecordBatch::Make(schema, num_rows, columns);
                     total_rows_read += batch->num_rows();
+                    std::cout << batch->ToString() << std::endl;
                     return req.respond(0);
                 };
             
@@ -127,6 +128,7 @@ class ThalliumClient {
             IterateRespStub resp = this->iterate.on(endpoint)(0, info.uuid);
             if (resp.ret_code == RPC_DONE_WITH_BATCH) {
                 batch = UnpackBatch(resp.buffer, schema);
+                std::cout << batch->ToString() << std::endl;
                 total_rows_read += batch->num_rows();
             }
             return 0;
