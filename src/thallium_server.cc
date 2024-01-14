@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
                 resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);   
                 return req.respond(resp);             
             } else {
-                resp = IterateRespStub("", RPC_DONE);
+                resp.ret_code = RPC_DONE;
                 return req.respond(resp);
             }
         };
