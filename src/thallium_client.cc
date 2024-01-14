@@ -147,24 +147,26 @@ arrow::Status Main(int argc, char **argv) {
     ThalliumInfo info;
     client->GetThalliumInfo(desc, info);
 
-    // Do a couple of warmup blank RPC to get around libfabrics cold start
-    for (int i = 0; i < 30; i++) {
-        client->Warmup();
+    for (int i = 0; i < 10; i++) {
+        // Do a couple of warmup blank RPC to get around libfabrics cold start
+        for (int i = 0; i < 30; i++) {
+            client->Warmup();
+        }
+
+        int64_t total_rows_read = 0;
+        int64_t total_rpcs_made = 2;
+
+        auto start = std::chrono::high_resolution_clock::now();
+        client->Iterate(info, total_rows_read, total_rpcs_made);
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
+        WriteToFile(exec_time_ms, TL_RES_PATH, true);
+
+        std::cout << "Total time taken (ms): " << exec_time_ms;
+        std::cout << "Total rows read: " << total_rows_read << std::endl;
+        std::cout << "Total messages exchanged: " << total_rpcs_made << std::endl;
     }
-
-    int64_t total_rows_read = 0;
-    int64_t total_rpcs_made = 2;
-
-    auto start = std::chrono::high_resolution_clock::now();
-    client->Iterate(info, total_rows_read, total_rpcs_made);
-    auto end = std::chrono::high_resolution_clock::now();
-
-    std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";
-    WriteToFile(exec_time_ms, TL_RES_PATH, true);
-
-    std::cout << "Total time taken (ms): " << exec_time_ms;
-    std::cout << "Total rows read: " << total_rows_read << std::endl;
-    std::cout << "Total messages exchanged: " << total_rpcs_made << std::endl;
 
     return arrow::Status::OK();
 }
