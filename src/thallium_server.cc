@@ -108,6 +108,7 @@ int main(int argc, char** argv) {
 
             while (batch != nullptr) {
                 if (batch->num_rows() <= start_opt_batch_threshold) {
+                    std::cout << "Using RPC\n";
                     auto buffer = PackBatch(batch);
                     resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
                     return req.respond(resp);
