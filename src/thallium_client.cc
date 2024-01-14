@@ -34,7 +34,7 @@ class ThalliumClient {
         tl::endpoint endpoint;
 
         tl::remote_procedure init_scan;
-        tl::remote_procedure iterate;
+        tl::remote_procedure get_next_batch;
         tl::remote_procedure finalize;
 
         std::string uri;
@@ -44,7 +44,7 @@ class ThalliumClient {
 
         void DefineProcedures() {
             this->init_scan = engine.define("init_scan");
-            this->iterate = engine.define("iterate");
+            this->get_next_batch = engine.define("get_next_batch");
             this->finalize = engine.define("finalize").disable_response();
         }
 
@@ -67,70 +67,25 @@ class ThalliumClient {
 
         void Warmup() {
             std::string fake_uuid = "x";
-            this->iterate.on(endpoint)(1, fake_uuid);
+            this->get_next_batch.on(endpoint)(1, fake_uuid);
         }
 
         void Finalize() {
             this->finalize.on(endpoint)();
         }
 
-        int Iterate(ThalliumInfo &info, int64_t &total_rows_read, int64_t &total_rpcs_made) {
+        int GetNextBatch(ThalliumInfo &info, int64_t &total_rows_read, int64_t &total_rpcs_made) {
             auto schema = info.schema;
-            auto engine = this->engine;
 
-            std::shared_ptr<arrow::RecordBatch> batch;
-            std::function<void(const tl::request&, int64_t&, std::vector<int64_t>&, std::vector<int64_t>&, tl::bulk&)> do_rdma =
-                [&schema, &batch, &engine, &total_rows_read, &total_rpcs_made](const tl::request& req, int64_t& num_rows, std::vector<int64_t>& data_buff_sizes, std::vector<int64_t>& offset_buff_sizes, tl::bulk& b) {
-                    total_rpcs_made += 1;
-
-                    int num_cols = schema->num_fields();
-                    
-                    std::vector<std::shared_ptr<arrow::Array>> columns;
-                    std::vector<std::unique_ptr<arrow::Buffer>> data_buffs(num_cols);
-                    std::vector<std::unique_ptr<arrow::Buffer>> offset_buffs(num_cols);
-                    std::vector<std::pair<void*,std::size_t>> segments;
-                    segments.reserve(num_cols*2);
-                    
-                    for (int64_t i = 0; i < num_cols; i++) {
-                        data_buffs[i] = arrow::AllocateBuffer(data_buff_sizes[i]).ValueOrDie();
-                        offset_buffs[i] = arrow::AllocateBuffer(offset_buff_sizes[i]).ValueOrDie();
-
-                        segments.emplace_back(std::make_pair(
-                            (void*)data_buffs[i]->mutable_data(),
-                            data_buff_sizes[i]
-                        ));
-                        segments.emplace_back(std::make_pair(
-                            (void*)offset_buffs[i]->mutable_data(),
-                            offset_buff_sizes[i]
-                        ));
-                    }
-
-                    tl::bulk local = engine.expose(segments, tl::bulk_mode::write_only);
-                    b.on(req.get_endpoint()) >> local;
-
-                    for (int64_t i = 0; i < num_cols; i++) {
-                        std::shared_ptr<arrow::DataType> type = schema->field(i)->type();  
-                        if (is_base_binary_like(type->id())) {
-                            std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::LargeStringArray>(num_rows, std::move(offset_buffs[i]), std::move(data_buffs[i]));
-                            columns.push_back(col_arr);
-                        } else {
-                            std::shared_ptr<arrow::Array> col_arr = std::make_shared<arrow::PrimitiveArray>(type, num_rows, std::move(data_buffs[i]));
-                            columns.push_back(col_arr);
-                        }
-                    }
-
-                    batch = arrow::RecordBatch::Make(schema, num_rows, columns);
-                    total_rows_read += batch->num_rows();
-                    return req.respond(0);
-                };
-            
-            engine.define("do_rdma", do_rdma);
-            IterateRespStub resp = this->iterate.on(endpoint)(0, info.uuid);
+            IterateRespStub resp = this->get_next_batch.on(endpoint)(0, info.uuid);
+            total_rpcs_made += 1;
             if (resp.ret_code == RPC_DONE_WITH_BATCH) {
-                batch = UnpackBatch(resp.buffer, schema);
+                std::shared_ptr<arrow::RecordBatch> batch = UnpackBatch(resp.buffer, schema);
                 total_rows_read += batch->num_rows();
+                return 0;
+            } else {
+                return -1;
             }
-            return 0;
         }
 };
 
@@ -157,7 +112,12 @@ arrow::Status Main(int argc, char **argv) {
         int64_t total_rpcs_made = 2;
 
         auto start = std::chrono::high_resolution_clock::now();
-        client->Iterate(info, total_rows_read, total_rpcs_made);
+        while (true) {
+            int ret = client->GetNextBatch(info, total_rows_read, total_rpcs_made);
+            if (ret == -1) {
+                break;
+            }
+        }
         auto end = std::chrono::high_resolution_clock::now();
 
         std::string exec_time_ms = std::to_string((double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000) + "\n";

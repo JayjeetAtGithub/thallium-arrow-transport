@@ -96,37 +96,29 @@ int main(int argc, char** argv) {
         };
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
-    std::function<void(const tl::request&, const int&, const std::string&)> iterate = 
+    std::function<void(const tl::request&, const int&, const std::string&)> get_next_batch = 
         [&do_rdma, &reader_map, &engine, &start_opt_batch_threshold](const tl::request &req, const int& warmup, const std::string &uuid) {
             if (warmup) {
                 return req.respond(0);
             }
 
+            IterateRespStub resp;
+            std::shared_ptr<arrow::RecordBatchReader> reader = reader_map[uuid];
             std::shared_ptr<arrow::RecordBatch> batch;
             reader_map[uuid]->ReadNext(&batch);
-            IterateRespStub resp;
 
-            while (batch != nullptr) {
-                if (batch->num_rows() <= start_opt_batch_threshold) {
-                    std::cout << "Using RPC\n";
-                    auto buffer = PackBatch(batch);
-                    resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);
-                    return req.respond(resp);
-                }
-                int ret = push_batch(do_rdma, engine, req, batch);
-                if (ret != 0) {
-                    std::cerr << "Error: push_batch()" << std::endl;
-                    exit(ret);
-                }
-                reader_map[uuid]->ReadNext(&batch);
+            if (batch != nullptr) {
+                auto buffer = PackBatch(batch);
+                resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);   
+                return req.respond(resp);             
+            } else {
+                resp = IterateRespStub("", RPC_DONE);
+                return req.respond(resp);
             }
-
-            resp.ret_code = RPC_DONE;
-            return req.respond(resp);
         };
 
     engine.define("init_scan", init_scan);
-    engine.define("iterate", iterate);
+    engine.define("get_next_batch", get_next_batch);
     engine.define("finalize", finalize).disable_response();
     WriteToFile(engine.self(), TL_URI_PATH, false);
     std::cout << "Serving at: " << engine.self() << std::endl;
