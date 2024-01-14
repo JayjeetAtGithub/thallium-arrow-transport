@@ -60,6 +60,7 @@ class ThalliumClient {
             arrow::ipc::DictionaryMemo dict_memo;
             arrow::io::BufferReader buff_reader(schema_buff);
             std::shared_ptr<arrow::Schema> schema = arrow::ipc::ReadSchema(&buff_reader, &dict_memo).ValueOrDie();
+            std::cout << "Num cols: " << schema->field_names().size() << std::endl;
             info.schema = schema;
             info.uuid = resp.uuid;
         }
