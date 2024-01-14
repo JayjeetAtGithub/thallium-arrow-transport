@@ -64,14 +64,6 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    if (argc < 2) {
-        std::cerr << "Usage: ./thallium_server <start_opt_batch_threshold>\n";
-        margo_finalize(mid);
-        return -1;
-    }
-
-    int64_t start_opt_batch_threshold = std::stoi(argv[1]);
-
     std::unordered_map<std::string, std::shared_ptr<arrow::RecordBatchReader>> reader_map;
     std::function<void(const tl::request&, const std::string&, const std::string&)> init_scan = 
         [&reader_map](const tl::request &req, const std::string& path, const std::string& query) {
@@ -97,7 +89,7 @@ int main(int argc, char** argv) {
 
     tl::remote_procedure do_rdma = engine.define("do_rdma");
     std::function<void(const tl::request&, const int&, const std::string&)> get_next_batch = 
-        [&do_rdma, &reader_map, &engine, &start_opt_batch_threshold](const tl::request &req, const int& warmup, const std::string &uuid) {
+        [&do_rdma, &reader_map, &engine](const tl::request &req, const int& warmup, const std::string &uuid) {
             if (warmup) {
                 return req.respond(0);
             }
