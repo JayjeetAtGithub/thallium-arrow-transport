@@ -54,7 +54,11 @@ int main(int argc, char** argv) {
             reader_map[uuid]->ReadNext(&batch);
 
             if (batch != nullptr) {
+                auto start = std::chrono::high_resolution_clock::now();
                 auto buffer = PackBatch(batch);
+                auto end = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+                std::cout << "PackBatch: " << duration.count() << "us" << std::endl;
                 resp = IterateRespStub(buffer, RPC_DONE_WITH_BATCH);   
                 return req.respond(resp);             
             } else {
