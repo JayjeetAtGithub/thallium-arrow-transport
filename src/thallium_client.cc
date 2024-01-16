@@ -80,7 +80,11 @@ class ThalliumClient {
             IterateRespStub resp = this->get_next_batch.on(endpoint)(0, info.uuid);
             total_rpcs_made += 1;
             if (resp.ret_code == RPC_DONE_WITH_BATCH) {
+                auto start = std::chrono::high_resolution_clock::now();
                 std::shared_ptr<arrow::RecordBatch> batch = UnpackBatch(resp.buffer, schema);
+                auto end = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
+                std::cout << "UnpackBatch: " << duration.count() << "us" << std::endl;
                 total_rows_read += batch->num_rows();
                 return 0;
             } else {
@@ -112,7 +116,11 @@ arrow::Status Main(int argc, char **argv) {
 
     auto start = std::chrono::high_resolution_clock::now();
     while (true) {
+        auto start = std::chrono::high_resolution_clock::now();
         int ret = client->GetNextBatch(info, total_rows_read, total_rpcs_made);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
+        std::cout << "GetNextBatch: " << duration.count() << "us" << std::endl;
         if (ret == -1) {
             break;
         }
